@@ -1,4 +1,3 @@
-package com.tbank.smartbudget.presentation.ui.home/*
 package com.tbank.smartbudget.presentation.ui.home
 
 import androidx.lifecycle.ViewModel
@@ -17,21 +16,12 @@ import javax.inject.Inject
 
 // --- МОДЕЛИ СОСТОЯНИЯ UI (UI State) ---
 
-*/
-/**
- * Модель, которая содержит сводную информацию для отображения.
- *//*
-
 data class BudgetSummaryUi(
     val totalIncome: String,
     val totalLimit: String,
     val freeFunds: String
 )
 
-*/
-/**
- * Модель для карточки категории на главном экране.
- *//*
 
 data class CategoryUi(
     val id: Long,
@@ -44,10 +34,6 @@ data class CategoryUi(
 )
 
 
-*/
-/**
- * Единое состояние для всего экрана.
- *//*
 
 data class BudgetUiState(
     val period: BudgetPeriod = BudgetPeriod.MONTH, // Месяц или год
@@ -126,6 +112,7 @@ class BudgetViewModel @Inject constructor(
 
     // Функция для перехода к редактированию
     fun onEditClicked() {
+
         // ... логика навигации ...
     }
-}*/
+}

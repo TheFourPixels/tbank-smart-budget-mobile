@@ -2,32 +2,58 @@ package com.tbank.smartbudget.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.tbank.smartbudget.R // Важно: R.font должен быть доступен
 
-// Set of Material typography styles to start with
+// Определение семейства шрифтов Roboto
+private val RobotoFontFamily = FontFamily(
+    Font(R.font.roboto, FontWeight.Normal), // 400
+    Font(R.font.roboto_medium, FontWeight.Medium),   // 500
+    Font(R.font.roboto_bold, FontWeight.Bold)       // 700
+)
+
+// Определение стилей типографики
 val Typography = Typography(
+    // Пример настройки Body Large (ваш основной текст)
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontFamily = RobotoFontFamily,
+        fontWeight = FontWeight.Normal, // 400 Regular
         fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-//     Other default text styles to override
-//    titleLarge = TextStyle(
-//        fontFamily = FontFamily.Default,
-//        fontWeight = FontWeight.Normal,
-//        fontSize = 22.sp,
-//        lineHeight = 28.sp,
-//        letterSpacing = 0.sp
-//    ),
-//    labelSmall = TextStyle(
-//        fontFamily = FontFamily.Default,
-//        fontWeight = FontWeight.Medium,
-//        fontSize = 11.sp,
-//        lineHeight = 16.sp,
-//        letterSpacing = 0.5.sp
-//    )
+        lineHeight = 16.sp, // Установка межстрочного интервала
+        letterSpacing = 0.sp
+    ),
+
+    // Переопределение других ключевых стилей для единообразия
+    titleLarge = TextStyle(
+        fontFamily = RobotoFontFamily,
+        fontWeight = FontWeight.Bold, // Bold для заголовков
+        fontSize = 22.sp,
+        lineHeight = 23.sp,
+        letterSpacing = 0.2.sp
+    ),
+
+    titleMedium = TextStyle(
+        fontFamily = RobotoFontFamily,
+        fontWeight = FontWeight.Medium, // Medium для подзаголовков
+        fontSize = 19.sp,
+        lineHeight = 23.sp,
+        letterSpacing = 0.2.sp
+    ),
+
+    // Остальные стили по умолчанию также будут использовать Roboto:
+    // headline, label, display и т.д.
+    bodyMedium = TextStyle(fontFamily = RobotoFontFamily),
+    bodySmall = TextStyle(fontFamily = RobotoFontFamily),
+    labelLarge = TextStyle(fontFamily = RobotoFontFamily),
+    labelMedium = TextStyle(fontFamily = RobotoFontFamily),
+    labelSmall = TextStyle(fontFamily = RobotoFontFamily),
+    headlineLarge = TextStyle(fontFamily = RobotoFontFamily),
+    headlineMedium = TextStyle(fontFamily = RobotoFontFamily),
+    headlineSmall = TextStyle(fontFamily = RobotoFontFamily),
+    displayLarge = TextStyle(fontFamily = RobotoFontFamily),
+    displayMedium = TextStyle(fontFamily = RobotoFontFamily),
+    displaySmall = TextStyle(fontFamily = RobotoFontFamily),
 )

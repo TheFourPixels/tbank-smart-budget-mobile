@@ -9,5 +9,4 @@ import dagger.hilt.android.HiltAndroidApp
  */
 @HiltAndroidApp
 class SmartBudgetApp : Application() {
-    // Не требует дополнительной логики
 }

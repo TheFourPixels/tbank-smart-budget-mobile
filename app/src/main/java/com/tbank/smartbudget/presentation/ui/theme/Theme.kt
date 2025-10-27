@@ -6,7 +6,10 @@ import androidx.compose.material3.Typography as MaterialTypography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+
+// --- 1. СТАНДАРТНЫЕ ЦВЕТОВЫЕ СХЕМЫ MATERIAL 3 ---
 
 // Темная цветовая схема, использует цвета, определенные в Color.kt
 private val DarkColorScheme = darkColorScheme(
@@ -17,7 +20,9 @@ private val DarkColorScheme = darkColorScheme(
     surface = DarkSurface,
     onBackground = DarkOnSurface,
     onSurface = DarkOnSurface,
-    surfaceVariant = Color(0xFF333333) // Цвет фона для карточек
+    surfaceVariant = Color(0xFF333333), // Цвет фона для карточек
+    error = ErrorRed,
+    scrim = Color.Black.copy(alpha = 0.8f) // Используется для фона модальных окон
 )
 
 // Светлая цветовая схема, использует цвета, определенные в Color.kt
@@ -30,12 +35,15 @@ private val LightColorScheme = lightColorScheme(
     onBackground = LightOnSurface,
     onSurface = LightOnSurface,
     surfaceVariant = LightSurfaceVariant, // Используем для фона карточек/элементов
+    error = ErrorRedLight,
+    scrim = Color.Black.copy(alpha = 0.6f),
 )
+
+// --- 2. РАСШИРЕНИЕ ЦВЕТОВЫХ СХЕМ ---
 
 /**
  * Основная тема приложения SmartBudget.
- * * Автоматически переключается между LightColorScheme и DarkColorScheme
- * в зависимости от настроек системы.
+ * Внедряет MaterialTheme и ExtendedColors.
  */
 @Composable
 fun SmartBudgetTheme(
@@ -44,21 +52,30 @@ fun SmartBudgetTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        // Если в системе установлена темная тема, используем DarkColorScheme
         darkTheme -> DarkColorScheme
-        // Иначе (если светлая тема) используем LightColorScheme
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
+    // Определяем расширенную цветовую схему на основе стандартной
+    val extendedColors = when {
+        darkTheme -> darkExtendedColors(colorScheme)
+        else -> lightExtendedColors(colorScheme)
+    }
+
+    // CompositionLocalProvider предоставляет кастомную схему всем Composable-функциям
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography, // Используем шрифт, определенный в Typography.kt
+            content = content
+        )
+    }
 }
+
+// --- 3. ТИПОГРАФИКА (Для справки) ---
 
 /**
  * Заглушка для Типографики.
- * Можно расширить для настройки шрифтов, размеров и стилей текста.
+ * Должна быть определена в файле Typography.kt (или Type.kt).
  */
 val AppTypography = MaterialTypography()

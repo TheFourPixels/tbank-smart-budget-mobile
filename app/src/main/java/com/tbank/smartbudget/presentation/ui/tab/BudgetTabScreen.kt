@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,6 +29,9 @@ import com.tbank.smartbudget.presentation.ui.setup.BudgetTabCategoryUi
 import com.tbank.smartbudget.presentation.ui.theme.DarkOnSurface
 import com.tbank.smartbudget.presentation.ui.theme.PrimaryDark
 import com.tbank.smartbudget.presentation.ui.theme.SecondaryDark
+import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
+import com.tbank.smartbudget.presentation.ui.theme.extendedColors
+
 
 @Composable
 fun BudgetTabScreen(
@@ -91,10 +95,9 @@ fun BudgetTabScreen(
 }
 
 // --- Компоненты UI ---
-
 @Composable
 fun UserInfoAndSearch(userName: String) {
-    Column(modifier = Modifier.padding(top = 16.dp, start = 24.dp, end = 24.dp)) {
+    Column(modifier = Modifier.padding(top = 16.dp, start = 18.dp, end = 218.dp)) {
         // Профиль (Аватар + Имя)
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -104,7 +107,7 @@ fun UserInfoAndSearch(userName: String) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(37.dp)
                     .clip(CircleShape)
                     .background(PrimaryDark.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
@@ -116,14 +119,14 @@ fun UserInfoAndSearch(userName: String) {
                     fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(5.dp))
             Text(
                 text = userName,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Icon(
-                Icons.Filled.ArrowForward,
+                Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Профиль",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(16.dp).padding(start = 4.dp)
@@ -140,10 +143,10 @@ fun UserInfoAndSearch(userName: String) {
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Поиск") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.secondary,
+                unfocusedContainerColor = MaterialTheme.extendedColors.lightGrey,
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
             )
@@ -215,18 +218,17 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Карточка "Все операции"
-        SummarySmallCard(modifier = Modifier.weight(1f)) {
-            Text("Все операции", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+        SummarySmallCard (modifier = Modifier.weight(1f)) {
+            Text("Все операции", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(4.dp))
-            Text(totalSpentDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
+            Text("$totalSpentDescription\n$totalSpent",
+                style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+//            Spacer(Modifier.height(33.dp))
+            /*Text(
                 totalSpent,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 24.sp
-                ),
-                color = MaterialTheme.colorScheme.error // Цвет для трат
-            )
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface // Цвет для трат
+            )*/
             Spacer(Modifier.height(8.dp))
             // Имитация прогресс-бара
             Box(
@@ -240,7 +242,7 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
 
         // Карточка "Выбранные категории"
         SummarySmallCard(modifier = Modifier.weight(1f)) {
-            Text("Выбранные категории", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text("Выбранные категории", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W700, lineHeight = 23.sp))
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 selectedCategories.take(2).forEach { category ->
@@ -254,9 +256,16 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
 @Composable
 fun SummarySmallCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Card(
-        modifier = modifier.height(IntrinsicSize.Min),
+        modifier = modifier.height(IntrinsicSize.Min)
+        ,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 5.dp, // Используйте значение от 1.dp (легкая тень) до 24.dp (сильная тень)
+            pressedElevation = 1.dp, // Тень при нажатии (эффект "утопания")
+            // Настройка цвета тени для более мягкого эффекта, чем стандартный черный
+        ),
+
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -311,5 +320,21 @@ fun CategoryOperationItem(category: BudgetTabCategoryUi) {
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BudgetTabScreenLightPreview() {
+    SmartBudgetTheme(darkTheme = false) {
+        BudgetTabScreen(viewModel = hiltViewModel()) // hiltViewModel() здесь просто заглушка для Preview
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BudgetTabScreenDarkPreview() {
+    SmartBudgetTheme(darkTheme = true) {
+        BudgetTabScreen(viewModel = hiltViewModel())
     }
 }

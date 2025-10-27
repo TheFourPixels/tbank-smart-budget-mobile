@@ -60,9 +60,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     // --- Lifecycle, ViewModel и Coroutines ---
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation(libs.androidx.compose.foundation)
 
     // --- Hilt (Dependency Injection) ---
     // ИСПОЛЬЗУЕМ СОВМЕСТИМУЮ ВЕРСИЮ 2.51.1
