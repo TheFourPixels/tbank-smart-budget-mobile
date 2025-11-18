@@ -1,14 +1,9 @@
 plugins {
-    // Стандартные плагины
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-    // 1. Применяем плагин Kapt (для обработки аннотаций)
-    kotlin("kapt")
-
-    // 2. Применяем плагин Hilt
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -44,40 +39,41 @@ android {
     buildFeatures {
         compose = true
     }
-    // Конфигурация для Hilt
-    kapt {
-        correctErrorTypes = true
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
     }
 }
 
 dependencies {
-    // --- Compose и Core ---
+// --- Compose и Core ---
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material.icons)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+
+
 
     // --- Lifecycle, ViewModel и Coroutines ---
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // --- Hilt (Dependency Injection) ---
-    // ИСПОЛЬЗУЕМ СОВМЕСТИМУЮ ВЕРСИЮ 2.51.1
-    val hiltVersion = "2.51.1"
-
-    implementation("com.google.dagger:hilt-android:$hiltVersion")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    // Процессор аннотаций Kapt
-    kapt("com.google.dagger:hilt-compiler:$hiltVersion")
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
 
     // --- Networking (Retrofit) ---
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
 
     // --- Тестирование ---
     testImplementation(libs.junit)
