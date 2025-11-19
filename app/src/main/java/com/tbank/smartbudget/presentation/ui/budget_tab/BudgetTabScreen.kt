@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.tab
+package com.tbank.smartbudget.presentation.ui.budget_tab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,9 +8,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,17 +20,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.tbank.smartbudget.presentation.ui.setup.BudgetSetupViewModel
 import com.tbank.smartbudget.presentation.ui.setup.BudgetTabCategoryUi
 import com.tbank.smartbudget.presentation.ui.theme.DarkOnSurface
 import com.tbank.smartbudget.presentation.ui.theme.PrimaryDark
 import com.tbank.smartbudget.presentation.ui.theme.SecondaryDark
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
-import com.tbank.smartbudget.presentation.ui.theme.extendedColors
 
 
 @Composable
@@ -97,11 +97,12 @@ fun BudgetTabScreen(
 // --- Компоненты UI ---
 @Composable
 fun UserInfoAndSearch(userName: String) {
-    Column(modifier = Modifier.padding(top = 16.dp, start = 18.dp, end = 218.dp)) {
+    Column(modifier = Modifier.padding(top = 16.dp)) {
         // Профиль (Аватар + Имя)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
+                .padding(start = 16.dp)
                 .fillMaxWidth()
                 .clickable { /* Перейти в профиль */ }
         ) {
@@ -121,19 +122,20 @@ fun UserInfoAndSearch(userName: String) {
             }
             Spacer(Modifier.width(5.dp))
             Text(
+                modifier =  Modifier.padding(start = 15.dp),
                 text = userName,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = W700),
                 color = MaterialTheme.colorScheme.onBackground
             )
             Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = "Профиль",
                 tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(16.dp).padding(start = 4.dp)
+                modifier = Modifier.size(16.dp).padding(start = 4.dp),
             )
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         // Поле поиска
         OutlinedTextField(
@@ -142,11 +144,14 @@ fun UserInfoAndSearch(userName: String) {
             placeholder = { Text("Поиск") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Поиск") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .height(35.dp),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                unfocusedContainerColor = MaterialTheme.extendedColors.lightGrey,
+                focusedContainerColor = SmartBudgetTheme.colors.lightGray,
+                unfocusedContainerColor = SmartBudgetTheme.colors.lightGray,
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
             )
@@ -159,7 +164,7 @@ fun BudgetSummaryCard(budgetName: String, balance: String, term: String, onClick
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 18.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         // Используем Brush для создания градиента как в макете
@@ -242,7 +247,7 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
 
         // Карточка "Выбранные категории"
         SummarySmallCard(modifier = Modifier.weight(1f)) {
-            Text("Выбранные категории", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W700, lineHeight = 23.sp))
+            Text("Выбранные категории", style = MaterialTheme.typography.titleMedium.copy(fontWeight = W700, lineHeight = 23.sp))
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 selectedCategories.take(2).forEach { category ->

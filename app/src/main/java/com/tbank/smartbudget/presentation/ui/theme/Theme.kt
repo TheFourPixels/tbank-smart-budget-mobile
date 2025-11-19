@@ -2,7 +2,6 @@ package com.tbank.smartbudget.presentation.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography as MaterialTypography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -57,7 +56,7 @@ fun SmartBudgetTheme(
     }
 
     // Определяем расширенную цветовую схему на основе стандартной
-    val extendedColors = when {
+    val extendedColors =  when {
         darkTheme -> darkExtendedColors(colorScheme)
         else -> lightExtendedColors(colorScheme)
     }
@@ -66,16 +65,8 @@ fun SmartBudgetTheme(
     CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = AppTypography, // Используем шрифт, определенный в Typography.kt
+            typography = Typography, // Используем шрифт, определенный в Typography.kt
             content = content
         )
     }
 }
-
-// --- 3. ТИПОГРАФИКА (Для справки) ---
-
-/**
- * Заглушка для Типографики.
- * Должна быть определена в файле Typography.kt (или Type.kt).
- */
-val AppTypography = MaterialTypography()

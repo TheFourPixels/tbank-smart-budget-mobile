@@ -23,5 +23,3 @@ val LightSurface = Color(0xFFFFFFFF) // Белая поверхность кар
 val LightOnSurface = Color(0xFF1F1F1F) // Темный текст на светлом фоне
 val LightOnPrimary = Color(0xFFFFFFFF) // Белый текст на акценте (PrimaryLight)
 val LightSurfaceVariant = Color(0xFFFFFFFF) // Слегка серый для карточек/полей
-
-val LightGreyy = Color(0xFFEAEAEA)

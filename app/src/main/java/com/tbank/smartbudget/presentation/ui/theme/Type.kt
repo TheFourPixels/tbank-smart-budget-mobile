@@ -17,7 +17,7 @@ private val RobotoFontFamily = FontFamily(
 
 // Определение стилей типографики
 val Typography = Typography(
-    // Пример настройки Body Large (ваш основной текст)
+    // Body Large (основной текст)
     bodyLarge = TextStyle(
         fontFamily = RobotoFontFamily,
         fontWeight = FontWeight.Normal, // 400 Regular
@@ -26,7 +26,6 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
 
-    // Переопределение других ключевых стилей для единообразия
     titleLarge = TextStyle(
         fontFamily = RobotoFontFamily,
         fontWeight = FontWeight.Bold, // Bold для заголовков
@@ -44,7 +43,6 @@ val Typography = Typography(
     ),
 
     // Остальные стили по умолчанию также будут использовать Roboto:
-    // headline, label, display и т.д.
     bodyMedium = TextStyle(fontFamily = RobotoFontFamily),
     bodySmall = TextStyle(fontFamily = RobotoFontFamily),
     labelLarge = TextStyle(fontFamily = RobotoFontFamily),
