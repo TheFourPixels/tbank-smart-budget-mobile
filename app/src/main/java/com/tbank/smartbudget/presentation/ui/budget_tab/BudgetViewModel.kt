@@ -1,11 +1,10 @@
-package com.tbank.smartbudget.presentation.ui.home
+package com.tbank.smartbudget.presentation.ui.budget_tab
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tbank.smartbudget.domain.model.BudgetPeriod // Предположим, вы создали этот класс
-import com.tbank.smartbudget.domain.model.CategoryLimit // Предположим, вы создали этот класс
-import com.tbank.smartbudget.domain.usecase.GetBudgetSummaryUseCase // Переименованный Use Case
-import com.tbank.smartbudget.domain.usecase.GetCategoryDetailsUseCase // Новый Use Case для категорий
+import com.tbank.smartbudget.domain.model.BudgetPeriod
+import com.tbank.smartbudget.domain.usecase.GetBudgetSummaryUseCase
+import com.tbank.smartbudget.domain.usecase.GetCategoryDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-// --- МОДЕЛИ СОСТОЯНИЯ UI (UI State) ---
 
 data class BudgetSummaryUi(
     val totalIncome: String,
@@ -26,25 +23,23 @@ data class BudgetSummaryUi(
 data class CategoryUi(
     val id: Long,
     val name: String,
-    val iconRes: Int, // Resource ID для иконки
-    val color: Long,  // Цвет для прогресс-бара
+    val iconRes: Int,
+    val color: Long,
     val spentValue: String,
     val limitValue: String,
-    val progress: Float // Прогресс-бар (от 0.0 до 1.0)
+    val progress: Float
 )
 
 
 
 data class BudgetUiState(
-    val period: BudgetPeriod = BudgetPeriod.MONTH, // Месяц или год
+    val period: BudgetPeriod = BudgetPeriod.MONTH,
     val summary: BudgetSummaryUi? = null,
     val categories: List<CategoryUi> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )
 
-
-// --- VIEW MODEL ---
 
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
@@ -63,7 +58,7 @@ class BudgetViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // 1. Загрузка сводки
+            // Загрузка сводки
             val summaryResult = getBudgetSummaryUseCase.execute()
 
             summaryResult.onSuccess { summary ->
@@ -76,7 +71,7 @@ class BudgetViewModel @Inject constructor(
                 _uiState.update { it.copy(summary = summaryUi) }
             }
 
-            // 2. Загрузка категорий (имитация)
+            // Загрузка категорий (имитация)
             val categoriesResult = getCategoryDetailsUseCase.execute(budgetId = 1L)
 
             categoriesResult.onSuccess { domainCategories ->
@@ -85,7 +80,7 @@ class BudgetViewModel @Inject constructor(
                     CategoryUi(
                         id = domainCategory.id,
                         name = domainCategory.name,
-                        iconRes = domainCategory.iconRes, // Предполагается, что Use Case добавил
+                        iconRes = domainCategory.iconRes,
                         color = domainCategory.color,
                         spentValue = "%,.0f".format(domainCategory.spentAmount),
                         limitValue = "%,.0f".format(domainCategory.limitAmount),

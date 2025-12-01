@@ -16,7 +16,9 @@ import androidx.compose.ui.graphics.Color
 @Immutable
 data class ExtendedColors(
     // Кастомные цвета
-    val lightGray: Color
+    val lightGray: Color,
+    val gradientGreen: Color,
+    val gradientDarkBlue: Color
 )
 /**
  * Создает набор ExtendedColors для темного режима.
@@ -25,6 +27,8 @@ data class ExtendedColors(
  */
 fun darkExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColors(
     lightGray = colorScheme.surfaceVariant, // В темной теме фон поиска может быть как у карточек
+    gradientGreen = Color(0xFF8EAF48),
+    gradientDarkBlue = Color(0xFF363E4E)
 
 )
 
@@ -35,11 +39,15 @@ fun darkExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColor
  */
 fun lightExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColors(
     lightGray = Color(0xFFEAEAEA), // Используем ваш кастомный светло-серый цвет
+    gradientGreen = Color(0xFF8EAF48),
+    gradientDarkBlue = Color(0xFF363E4E)
 )
 
 val LocalExtendedColors = staticCompositionLocalOf {
     ExtendedColors(
-        lightGray = Color(0xFFEAEAEA)
+        lightGray = Color(0xFFEAEAEA),
+        gradientGreen = Color(0xFF8EAF48),
+        gradientDarkBlue = Color(0xFF363E4E)
     )
 }
 object SmartBudgetTheme {
