@@ -12,12 +12,14 @@ foundation = "1.9.4"
 coroutines = "1.10.2"
 hilt = "2.51.1"
 hiltNavigationCompose = "1.3.0"
+materialZ = "1.10.0-rc01"
 retrofit = "3.0.0"
 okhttpLogging = "4.12.0"
 ksp = "2.0.21-1.0.28"
 
 [libraries]
 # --- Compose и Core (Существующие) ---
+androidx-compose-material-z = { module = "androidx.compose.material:material-*", version.ref = "materialZ" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -32,6 +34,7 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-material = { group = "androidx.compose.material", name = "material" }
 androidx-compose-material-icons = { group = "androidx.compose.material", name = "material-icons-core" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
 # --- Lifecycle, ViewModel и Coroutines (Новые) ---
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" } # Существующая
