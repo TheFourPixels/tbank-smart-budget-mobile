@@ -20,12 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -38,7 +42,8 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 @Composable
 fun BudgetTabScreen(
     viewModel: BudgetSetupViewModel = hiltViewModel(),
-    onBudgetClick: () -> Unit = {} // Для перехода к деталям/редактированию
+    onBudgetClick: () -> Unit = {}, // Для перехода к деталям/редактированию
+    onSearchClick: () -> Unit = {} // НОВЫЙ КОЛБЭК ДЛЯ ПЕРЕХОДА К ПОИСКУ
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -58,6 +63,7 @@ fun BudgetTabScreen(
                         // --- 1. Профиль и Поиск ---
                         UserInfoAndSearch(
                             userName = state.userName,
+                            onSearchClick = onSearchClick // Передаем колбэк
                         )
 
                         Spacer(Modifier.height(16.dp))
@@ -91,13 +97,19 @@ fun BudgetTabScreen(
 
 @Composable
 fun WhiteBackgroundContainer(content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        // Закругляем только нижние углы
-        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        // Тень для визуального отделения от серого фона Scaffold
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    // Используем Box с кастомной тенью
+    val shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 10.dp,
+                shape = shape,
+                ambientColor = Color.Black.copy(alpha = 0.4f),
+                spotColor = Color.Black.copy(alpha = 0.5f)
+            )
+            .background(Color.White, shape = shape)
     ) {
         content()
     }
@@ -140,12 +152,15 @@ fun BasicSearchBar(
             )
 
             // Основное поле ввода
+            // Внимание: мы оставляем BasicTextField пустым и некликабельным,
+            // чтобы он просто показывал placeholder и не активировал клавиатуру
             BasicTextField(
                 value = searchText,
                 onValueChange = onSearchTextChange, // Используем функцию, переданную снаружи
                 singleLine = true,
                 textStyle = textStyle,
                 modifier = Modifier.weight(1f),
+                enabled = false, // Отключаем ввод
 
                 // Плейсхолдер
                 decorationBox = { innerTextField ->
@@ -165,7 +180,7 @@ fun BasicSearchBar(
 }
 
 @Composable
-fun UserInfoAndSearch(userName: String) {
+fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit) { // Принимаем колбэк
     // 1. Управление состоянием поиска внутри родителя (Hoisting State)
     var searchText by remember { mutableStateOf("") }
 
@@ -210,67 +225,76 @@ fun UserInfoAndSearch(userName: String) {
         Spacer(Modifier.height(8.dp))
 
         // 2. Вызов переиспользуемого компонента поиска
-        BasicSearchBar(
-            searchText = searchText,
-            onSearchTextChange = { searchText = it },
-            backgroundColor = SmartBudgetTheme.colors.lightGray, // Цвет вашей темы
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp)
-        )
+                .clickable(onClick = onSearchClick) // *** Добавляем клик для перехода ***
+        ) {
+            BasicSearchBar(
+                // В этом контексте searchText используется только для отображения плейсхолдера,
+                // так как фактический поиск происходит на CategorySearchScreen.
+                searchText = searchText,
+                onSearchTextChange = { /* Не делаем ничего, так как переходим на другой экран */ },
+                backgroundColor = SmartBudgetTheme.colors.lightGray, // Цвет вашей темы
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
 @Composable
 fun BudgetSummaryCard(budgetName: String, balance: String, term: String, onClick: () -> Unit) {
-    Card(
+    // Используем Box с кастомной тенью
+    val shape = RoundedCornerShape(16.dp)
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        // Используем Brush для создания градиента как в макете
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            .shadow(
+                elevation = 10.dp,
+                shape = shape,
+                ambientColor = Color.Black.copy(alpha = 0.4f),
+                spotColor = Color.Black.copy(alpha = 0.5f)
+            )
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(SmartBudgetTheme.colors.gradientDarkBlue, SmartBudgetTheme.colors.gradientGreen)
+                ),
+                shape = shape
+            )
+            .clip(shape) // Обрезаем рипл эффект по форме
+            .clickable(onClick = onClick)
+            .padding(20.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.horizontalGradient(
-                            colors = listOf(SmartBudgetTheme.colors.gradientDarkBlue, SmartBudgetTheme.colors.gradientGreen)
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(20.dp)
-        ) {
-            Column {
-                Text(
-                    text = "Бюджет “$budgetName”",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
-                )
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column {
-                        Text("Баланс", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
-                        Text(
-                            balance,
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                            color = Color.White
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(18.dp))
+        Column {
+            Text(
+                text = "Бюджет “$budgetName”",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = Color.White
+            )
+            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    Text("Баланс", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
+                    Text(
+                        balance,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                        color = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.width(18.dp))
 
-                    Column(horizontalAlignment = Alignment.Start) {
-                        Text("Срок", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
-                        Text(
-                            term,
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                            color = Color.White
-                        )
-                    }
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text("Срок", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
+                    Text(
+                        term,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                        color = Color.White
+                    )
                 }
             }
         }
@@ -279,14 +303,30 @@ fun BudgetSummaryCard(budgetName: String, balance: String, term: String, onClick
 
 @Composable
 fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCategories: List<BudgetTabCategoryUi>) {
+    // Состояние для хранения измеренной высоты
+    var measuredHeightDp by remember { mutableStateOf(Dp.Unspecified) }
+    val density = LocalDensity.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        // Карточка "Все операции"
-        SummarySmallCard (modifier = Modifier.weight(1f)) {
+        // Карточка "Все операции" (измеряем высоту)
+        SummarySmallCard(
+            modifier = Modifier
+                .weight(1f)
+                //Измеряем высоту этой карточки
+                .onGloballyPositioned { coordinates ->
+                    if (measuredHeightDp == Dp.Unspecified) {
+                        // Переводим высоту из пикселей в Dp
+                        measuredHeightDp = with(density) { coordinates.size.height.toDp() }
+                    }
+                },
+            minHeight = measuredHeightDp // Передаем измеренную высоту (если она уже есть)
+        ) {
             Text("Все операции", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(6.dp))
             Text("$totalSpentDescription\n$totalSpent",
@@ -299,14 +339,17 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
+                    .height(7.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.error)
             )
         }
 
-        // Карточка "Выбранные категории"
-        SummarySmallCard(modifier = Modifier.weight(1f)) {
+        // Карточка "Выбранные категории" (применяем высоту)
+        SummarySmallCard(
+            modifier = Modifier.weight(1f),
+            minHeight = measuredHeightDp // Применяем высоту, измеренную первой карточкой
+        ) {
             Text("Выбранные категории", style = MaterialTheme.typography.titleMedium.copy(fontWeight = W700, lineHeight = 23.sp))
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -319,20 +362,29 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
 }
 
 @Composable
-fun SummarySmallCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = modifier.height(height = 129.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 5.dp, // Используйте значение от 1.dp (легкая тень) до 24.dp (сильная тень)
-            pressedElevation = 1.dp, // Тень при нажатии (эффект "утопания")
-            // Настройка цвета тени для более мягкого эффекта, чем стандартный черный
-        ),
+fun SummarySmallCard(modifier: Modifier = Modifier, minHeight: Dp, content: @Composable ColumnScope.() -> Unit) {
 
+    val shape = RoundedCornerShape(16.dp)
+
+    // Определяем модификатор высоты: используем переданное значение, если оно есть
+    val heightModifier = if (minHeight != Dp.Unspecified) Modifier.height(minHeight) else Modifier
+
+    Box(
+        modifier = modifier
+            .then(heightModifier)
+            .shadow(
+                elevation = 10.dp,
+                shape = shape,
+                ambientColor = Color.Black.copy(alpha = 0.4f),
+                spotColor = Color.Black.copy(alpha = 0.5f)
+            )
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = shape
+            )
+            .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
             content = content
         )
     }
@@ -351,41 +403,6 @@ fun CategoryIconPlaceholder(color: Color) {
         Text("🛒", fontSize = 16.sp)
     }
 }
-
-/*@Composable
-fun CategoryOperationItem(category: BudgetTabCategoryUi) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp)
-            .clickable { *//* Перейти к деталям категории *//* },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Иконка категории
-            CategoryIconPlaceholder(Color(category.color))
-
-            Spacer(Modifier.width(16.dp))
-
-            Column {
-                Text(
-                    text = category.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = category.operationsCount,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}*/
 
 @Preview(showBackground = true)
 @Composable
