@@ -10,7 +10,7 @@ import javax.inject.Inject
 class GetBudgetSummaryUseCase @Inject constructor(
     private val repository: BudgetRepository
 ) {
-    // В реальном приложении здесь будет Logic для определения текущего периода
+    // Здесь будет логика для определения текущего периода
     suspend fun execute(year: Int = 2025, month: Int = 10): Result<BudgetSummary> {
         return repository.getActiveBudgetSummary(year, month)
     }

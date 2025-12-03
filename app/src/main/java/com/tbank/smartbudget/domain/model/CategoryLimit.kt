@@ -8,8 +8,8 @@ data class CategoryLimit(
     val name: String,
     val limitAmount: Double,
     val spentAmount: Double,
-    val iconRes: Int, // Placeholder for resource ID
-    val color: Long // Hex long for Compose Color
+    val iconRes: Int, // Placeholder для ID
+    val color: Long
 ) {
     val usagePercentage: Double
         get() = if (limitAmount > 0) spentAmount / limitAmount else 0.0

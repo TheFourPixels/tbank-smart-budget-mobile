@@ -18,8 +18,10 @@ data class ExtendedColors(
     // Кастомные цвета
     val lightGray: Color,
     val gradientGreen: Color,
-    val gradientDarkBlue: Color
+    val gradientDarkBlue: Color,
+    val blue: Color
 )
+
 /**
  * Создает набор ExtendedColors для темного режима.
  *
@@ -28,7 +30,8 @@ data class ExtendedColors(
 fun darkExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColors(
     lightGray = colorScheme.surfaceVariant, // В темной теме фон поиска может быть как у карточек
     gradientGreen = Color(0xFF8EAF48),
-    gradientDarkBlue = Color(0xFF363E4E)
+    gradientDarkBlue = Color(0xFF363E4E),
+    blue = Color(0xFF5589F1)
 
 )
 
@@ -40,14 +43,18 @@ fun darkExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColor
 fun lightExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColors(
     lightGray = Color(0xFFEAEAEA), // Используем ваш кастомный светло-серый цвет
     gradientGreen = Color(0xFF8EAF48),
-    gradientDarkBlue = Color(0xFF363E4E)
+    gradientDarkBlue = Color(0xFF363E4E),
+    blue = Color(0xFF5589F1)
+
 )
 
 val LocalExtendedColors = staticCompositionLocalOf {
     ExtendedColors(
         lightGray = Color(0xFFEAEAEA),
         gradientGreen = Color(0xFF8EAF48),
-        gradientDarkBlue = Color(0xFF363E4E)
+        gradientDarkBlue = Color(0xFF363E4E),
+        blue = Color(0xFF5589F1)
+
     )
 }
 object SmartBudgetTheme {
