@@ -13,12 +13,12 @@ class CreateCategoryUseCase @Inject constructor(
 ) {
     suspend fun execute(name: String, iconRes: Int, color: Long): Result<BudgetCategory> {
 
-        // 1. Валидация: Имя категории
+        // Валидация: Имя категории
         if (name.isBlank()) {
             return Result.failure(IllegalArgumentException("Имя категории не может быть пустым."))
         }
 
-        // 2. Сохранение в слое Data
+        // Сохранение в слое Data
         return repository.createCustomCategory(name, iconRes, color)
     }
 }

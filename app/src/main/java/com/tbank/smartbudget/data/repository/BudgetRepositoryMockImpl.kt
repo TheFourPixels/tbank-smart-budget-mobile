@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 /**
- * Заглушка (Mock) для BudgetRepository.
+ * Mock для BudgetRepository.
  * Используется для проверки UI и ViewModel до интеграции с реальным API.
  */
 class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
