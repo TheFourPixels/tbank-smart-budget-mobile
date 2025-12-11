@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -27,6 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tbank.smartbudget.presentation.ui.budget_details.components.DetailsCard
+import com.tbank.smartbudget.presentation.ui.budget_details.components.InfoRow
+import com.tbank.smartbudget.presentation.ui.budget_details.components.SettingSwitchRow
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -272,11 +274,15 @@ fun BudgetDetailsScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
 
                                 Column {
-                                    Text(state.linkedAccountBalance,
-                                        fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                    Text(state.linkedAccountName,
+                                    Text(
+                                        state.linkedAccountBalance,
+                                        fontWeight = FontWeight.Bold, fontSize = 16.sp
+                                    )
+                                    Text(
+                                        state.linkedAccountName,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.Black)
+                                        color = Color.Black
+                                    )
                                 }
                             }
                         }
@@ -312,69 +318,6 @@ fun BudgetDetailsScreen(
                 }
             }
         }
-    }
-}
-
-// --- ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ ---
-
-@Composable
-fun DetailsCard(content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(16.dp)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 10.dp,
-                shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.4f),
-                spotColor = Color.Black.copy(alpha = 0.5f)
-            )
-            .background(
-                color = Color(0xFFF5F6F8),
-                shape = shape
-            )
-    ) {
-        Column(
-            modifier = Modifier.padding(25.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
-        Text(value, style = MaterialTheme.typography.bodyLarge.copy(
-            fontWeight = FontWeight.W600,
-            color = Color(0xFF333333))
-        )
-    }
-}
-
-@Composable
-fun SettingSwitchRow(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge,
-            color = Color(0xFF424242))
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = SmartBudgetTheme.colors.blue,
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color.LightGray
-            )
-        )
     }
 }
 
