@@ -29,12 +29,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.tbank.smartbudget.presentation.ui.budget_details.components.DetailsCard
 import com.tbank.smartbudget.presentation.ui.budget_details.components.InfoRow
 import com.tbank.smartbudget.presentation.ui.budget_details.components.SettingSwitchRow
+import com.tbank.smartbudget.presentation.ui.budget_edit.BudgetEditScreen
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetDetailsScreen(
     onNavigateBack: () -> Unit,
+    onEditClick: () -> Unit,
     viewModel: BudgetDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -154,7 +156,7 @@ fun BudgetDetailsScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
-                            onClick = { /* TODO */ },
+                            onClick = onEditClick,
                             modifier = Modifier
                                 .width(320.dp)
                                 .height(50.dp)
@@ -328,7 +330,7 @@ private fun Modifier.clickable(onClick: () -> Unit): Modifier = this.then(Modifi
 @Composable
 fun BudgetDetailsScreenPreviewLight() {
     SmartBudgetTheme(darkTheme = false) {
-        BudgetDetailsScreen(onNavigateBack = {})
+        BudgetDetailsScreen(onNavigateBack = {}, onEditClick = {})
     }
 }
 
@@ -336,6 +338,6 @@ fun BudgetDetailsScreenPreviewLight() {
 @Composable
 fun BudgetDetailsScreenPreviewDark() {
     SmartBudgetTheme(darkTheme = true) {
-        BudgetDetailsScreen(onNavigateBack = {})
+        BudgetDetailsScreen(onNavigateBack = {}, onEditClick = {})
     }
 }
