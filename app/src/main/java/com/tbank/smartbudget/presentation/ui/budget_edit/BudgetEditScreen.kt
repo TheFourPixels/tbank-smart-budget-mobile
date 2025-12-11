@@ -6,33 +6,32 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.DarkSourceCard
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.EditCategoryRow
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.EditDetailsCard
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.InputBox
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.PeriodChip
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
-import com.tbank.smartbudget.presentation.ui.theme.lightExtendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -216,7 +215,8 @@ fun BudgetEditScreen(
                         EditDetailsCard {
                             Text(
                                 "Категории",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.titleMedium
+                                    .copy(fontWeight = FontWeight.Bold),
                                 fontSize = 20.sp
                             )
 
@@ -251,155 +251,6 @@ fun BudgetEditScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-// --- КОМПОНЕНТЫ ---
-
-@Composable
-fun EditDetailsCard(content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(24.dp)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 10.dp,
-                shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.4f),
-                spotColor = Color.Black.copy(alpha = 0.5f)
-            )
-            .background(Color.White, shape)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-fun PeriodChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) Color(0xFFC6FF00) /* Lime Green */ else Color(0xFFF9F9F9)
-    val textColor = Color.Black
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50)) // Полностью круглые края
-            .background(backgroundColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            color = textColor
-        )
-    }
-}
-
-@Composable
-fun InputBox(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    isValueSecondary: Boolean = false
-) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFF9F9F9)) // Очень светло-серый фон
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = if (isValueSecondary) Color.Black else Color(0xFF333333),
-            fontSize = 16.sp
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = if (isValueSecondary) Color.Gray else Color.Black,
-            fontSize = if (isValueSecondary) 13.sp else 22.sp
-        )
-    }
-}
-
-@Composable
-fun DarkSourceCard(amount: String, cardNumber: String, cardName: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth().height(140.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C)) // Почти черный
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = amount,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
-                color = Color.White
-            )
-
-            Column {
-                Text(
-                    text = cardNumber,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
-                )
-                Text(
-                    text = cardName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun EditCategoryRow(category: EditCategoryUi) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Иконка
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(category.color)),
-            contentAlignment = Alignment.Center
-        ) {
-            // Иконка-заглушка
-            Icon(
-                // В реальности здесь будет category.iconRes
-                imageVector = Icons.Default.ArrowBack, // TODO: Заменить на иконку категории
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        Spacer(Modifier.width(16.dp))
-
-        Column {
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-            )
-            Text(
-                text = "Лимит: ${category.limit}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
         }
     }
 }
