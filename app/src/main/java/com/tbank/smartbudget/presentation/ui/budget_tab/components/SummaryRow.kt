@@ -34,7 +34,8 @@ fun SummaryRow(
     totalSpent: String,
     totalSpentDescription: String,
     selectedCategories: List<BudgetTabCategoryUi>,
-    onAllOperationsClick: () -> Unit ) {
+    onAllOperationsClick: () -> Unit,
+    onSelectedCategoriesClick: () -> Unit) {
     // Состояние для хранения измеренной высоты
     var measuredHeightDp by remember { mutableStateOf(Dp.Companion.Unspecified) }
     val density = LocalDensity.current
@@ -86,8 +87,9 @@ fun SummaryRow(
 
         // Карточка "Выбранные категории" (применяем высоту)
         SummarySmallCard(
-            modifier = Modifier.Companion.weight(1f),
+            modifier = Modifier.Companion.weight(1f).clickable(onClick = onSelectedCategoriesClick),
             minHeight = measuredHeightDp // Применяем высоту, измеренную первой карточкой
+
         ) {
             Text(
                 "Выбранные категории",

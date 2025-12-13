@@ -11,6 +11,7 @@ import com.tbank.smartbudget.presentation.ui.category_search.CategorySearchScree
 import com.tbank.smartbudget.presentation.ui.budget_details.BudgetDetailsScreen
 import com.tbank.smartbudget.presentation.ui.budget_edit.BudgetEditScreen
 import com.tbank.smartbudget.presentation.ui.all_operations.AllOperationsScreen
+import com.tbank.smartbudget.presentation.ui.selected_categories.SelectedCategoriesScreen
 
 // Определяем маршруты для навигации
 object Routes {
@@ -18,7 +19,8 @@ object Routes {
     const val CATEGORY_SEARCH = "category_search"
     const val BUDGET_DETAILS = "budget_details"
     const val BUDGET_EDIT = "budget_edit"
-    const val ALL_OPERATIONS = "all_operations" // Новый маршрут
+    const val ALL_OPERATIONS = "all_operations"
+    const val SELECTED_CATEGORIES = "selected_categories" // Новый маршрут
 }
 
 /**
@@ -46,6 +48,10 @@ fun SmartBudgetNavHost() {
                 // Переход ко всем операциям
                 onAllOperationsClick = {
                     navController.navigate(Routes.ALL_OPERATIONS)
+                },
+                // *** НОВЫЙ ПЕРЕХОД: Выбранные категории ***
+                onSelectedCategoriesClick = {
+                    navController.navigate(Routes.SELECTED_CATEGORIES)
                 }
             )
         }
@@ -94,7 +100,7 @@ fun SmartBudgetNavHost() {
             )
         }
 
-        // 5. Экран всех операций (Новый)
+        // 5. Экран всех операций
         composable(
             Routes.ALL_OPERATIONS,
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
@@ -102,6 +108,18 @@ fun SmartBudgetNavHost() {
             popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
         ) {
             AllOperationsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // 6. Экран выбранных категорий (Новый)
+        composable(
+            Routes.SELECTED_CATEGORIES,
+            enterTransition = { slideInVertically(initialOffsetY = { it }) },
+            exitTransition = { slideOutVertically(targetOffsetY = { it }) },
+            popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
+        ) {
+            SelectedCategoriesScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
