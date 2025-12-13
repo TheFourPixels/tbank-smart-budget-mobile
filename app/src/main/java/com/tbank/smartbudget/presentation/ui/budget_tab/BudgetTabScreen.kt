@@ -22,7 +22,8 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 fun BudgetTabScreen(
     viewModel: BudgetSetupViewModel = hiltViewModel(),
     onBudgetClick: () -> Unit = {}, // Для перехода к деталям/редактированию
-    onSearchClick: () -> Unit = {} // НОВЫЙ КОЛБЭК ДЛЯ ПЕРЕХОДА К ПОИСКУ
+    onSearchClick: () -> Unit = {}, // НОВЫЙ КОЛБЭК ДЛЯ ПЕРЕХОДА К ПОИСКУ
+    onAllOperationsClick: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -65,7 +66,8 @@ fun BudgetTabScreen(
                 SummaryRow(
                     totalSpent = state.totalSpent,
                     totalSpentDescription = state.totalSpentDescription,
-                    selectedCategories = state.selectedCategories
+                    selectedCategories = state.selectedCategories,
+                    onAllOperationsClick = onAllOperationsClick
                 )
             }
         }
