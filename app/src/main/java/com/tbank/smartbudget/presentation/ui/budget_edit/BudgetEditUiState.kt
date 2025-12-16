@@ -8,7 +8,9 @@ data class BudgetEditUiState(
     val periods: List<String> = listOf("2 мес", "3 мес", "4 мес", "6 мес", "Другой"),
 
     val amount: String = "", // Сумма общего дохода
-    val currency: String = "Рубли",
+
+    // Новое поле: режим отображения лимитов (Проценты или Валюта)
+    val isPercentMode: Boolean = true,
 
     val sourceCardName: String = "Дебетовая карта",
     val sourceCardPan: String = "• 8563",
@@ -16,7 +18,6 @@ data class BudgetEditUiState(
 
     val categories: List<EditCategoryUi> = emptyList(),
 
-    // Состояния экрана
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val isSavedSuccess: Boolean = false,
@@ -26,7 +27,7 @@ data class BudgetEditUiState(
 data class EditCategoryUi(
     val id: Long,
     val name: String,
-    val limitValue: String, // Строка для TextField
-    val limitType: BudgetLimitType, // PERCENT или AMOUNT
+    val limitValue: String,
+    val limitType: BudgetLimitType,
     val color: Long
 )

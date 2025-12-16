@@ -54,11 +54,10 @@ fun BudgetEditScreen(
     val gradientHeight = 406.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
 
-    // Логика навигации при успешном сохранении
     LaunchedEffect(state.isSavedSuccess) {
         if (state.isSavedSuccess) {
-            viewModel.onSuccessShown() // Сбрасываем флаг
-            onNavigateBack() // Возвращаемся назад
+            viewModel.onSuccessShown()
+            onNavigateBack()
         }
     }
 
@@ -77,13 +76,8 @@ fun BudgetEditScreen(
                     }
                 },
                 actions = {
-                    // Кнопка сохранения изменений
                     IconButton(onClick = { viewModel.onSaveClicked() }) {
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = "Сохранить",
-                            tint = Color.White
-                        )
+                        Icon(Icons.Default.Check, contentDescription = "Сохранить", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -91,34 +85,27 @@ fun BudgetEditScreen(
         }
     ) { paddingValues ->
 
-        // Диалог ошибки
         if (state.error != null) {
             AlertDialog(
                 onDismissRequest = { viewModel.onErrorShown() },
                 title = { Text("Ошибка") },
                 text = { Text(state.error ?: "Неизвестная ошибка") },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.onErrorShown() }) {
-                        Text("OK")
-                    }
-                }
+                confirmButton = { TextButton(onClick = { viewModel.onErrorShown() }) { Text("OK") } }
             )
         }
 
-        // Индикатор загрузки
         if (state.isLoading || state.isSaving) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
-            // Основной контент
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    // --- ФОН (Градиент + Маска) ---
+                    // --- ФОН ---
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -161,11 +148,9 @@ fun BudgetEditScreen(
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Отступ под TopBar
                         Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Заголовок
                         Text(
                             modifier = Modifier.padding(horizontal = 24.dp),
                             text = "Бюджет “${state.budgetName}”",
@@ -178,12 +163,11 @@ fun BudgetEditScreen(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Контент с карточками
                         Column(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // --- КАРТОЧКА 1: Настройки бюджета ---
+                            // --- КАРТОЧКА 1: Настройки ---
                             DetailsCard {
                                 Text(
                                     "Настройки бюджета",
@@ -193,7 +177,6 @@ fun BudgetEditScreen(
 
                                 Spacer(Modifier.height(16.dp))
 
-                                // Выбор периода (Чипсы)
                                 LazyRow(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -209,32 +192,26 @@ fun BudgetEditScreen(
 
                                 Spacer(Modifier.height(16.dp))
 
-                                // Поля ввода (Сумма и Тип)
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    // Поле суммы (СВЯЗАНО С VIEWMODEL)
                                     InputBox(
                                         label = "Сумма вклада",
                                         value = state.amount,
                                         onValueChange = { viewModel.onAmountChanged(it) },
                                         modifier = Modifier.weight(1f)
                                     )
-                                    // Поле валюты (Только чтение)
-                                    InputBox(
-                                        label = state.currency,
-                                        value = "Проценты",
-                                        onValueChange = {},
-                                        modifier = Modifier.weight(1f),
-                                        isValueSecondary = true,
-                                        readOnly = true
+                                    // *** ИЗМЕНЕНИЕ: Новый компонент переключателя ***
+                                    UnitSwitchBox(
+                                        isPercentMode = state.isPercentMode,
+                                        onToggle = { viewModel.onGlobalLimitTypeToggle() },
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
 
                                 Spacer(Modifier.height(16.dp))
 
-                                // Текст и ссылка "Изменить"
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -255,7 +232,6 @@ fun BudgetEditScreen(
 
                                 Spacer(Modifier.height(12.dp))
 
-                                // Черная карточка счета
                                 DarkSourceCard(
                                     amount = state.sourceCardBalance,
                                     cardNumber = state.sourceCardPan,
@@ -275,7 +251,6 @@ fun BudgetEditScreen(
 
                                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                     state.categories.forEach { category ->
-                                        // СВЯЗАНО С VIEWMODEL
                                         EditCategoryRow(
                                             category = category,
                                             onLimitChange = { viewModel.onCategoryLimitChanged(category.id, it) },
@@ -286,7 +261,6 @@ fun BudgetEditScreen(
 
                                 Spacer(Modifier.height(24.dp))
 
-                                // Кнопка "Добавить категорию"
                                 Button(
                                     onClick = onAddCategoryClick,
                                     modifier = Modifier
@@ -316,12 +290,12 @@ fun BudgetEditScreen(
 
 @Composable
 fun PeriodChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) Color(0xFFC6FF00) /* Lime Green */ else Color(0xFFF5F5F5)
+    val backgroundColor = if (isSelected) Color(0xFFC6FF00) else Color(0xFFF5F5F5)
     val textColor = Color.Black
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(50)) // Полностью круглые края
+            .clip(RoundedCornerShape(50))
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -342,13 +316,16 @@ fun InputBox(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     isValueSecondary: Boolean = false,
-    readOnly: Boolean = false
+    onClick: (() -> Unit)? = null // Опциональный клик (для режима кнопки)
 ) {
+    val rootModifier = modifier
+        .clip(RoundedCornerShape(16.dp))
+        .background(Color(0xFFF9F9F9))
+        .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+        .padding(vertical = 16.dp)
+
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFF9F9F9)) // Очень светло-серый фон
-            .padding(vertical = 16.dp),
+        modifier = rootModifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -358,18 +335,20 @@ fun InputBox(
         )
         Spacer(Modifier.height(4.dp))
 
-        // Поле ввода значения
+        val isReadOnly = onClick != null
+
         BasicTextField(
             value = value,
-            onValueChange = onValueChange,
-            readOnly = readOnly,
+            onValueChange = if (isReadOnly) {{}} else onValueChange,
+            enabled = !isReadOnly,
+            readOnly = isReadOnly,
             textStyle = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
                 color = if (isValueSecondary) Color.Gray else Color.Black,
                 fontSize = if (isValueSecondary) 14.sp else 18.sp,
                 textAlign = TextAlign.Center
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), // Цифровая клавиатура
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->
@@ -381,12 +360,67 @@ fun InputBox(
     }
 }
 
+// *** НОВЫЙ КОМПОНЕНТ ДЛЯ ПЕРЕКЛЮЧАТЕЛЯ ЕДИНИЦ ***
+@Composable
+fun UnitSwitchBox(
+    isPercentMode: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF9F9F9))
+            .clickable(onClick = onToggle)
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Единицы",
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+            color = Color.Black // Лейбл черный, как в isValueSecondary=true
+        )
+        Spacer(Modifier.height(4.dp))
+
+        // Ряд с переключателем
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Рубли
+            Text(
+                text = "₽",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = if (!isPercentMode) FontWeight.Bold else FontWeight.Normal,
+                    color = if (!isPercentMode) Color.Black else Color.Gray,
+                    fontSize = 16.sp
+                )
+            )
+
+            Text(
+                text = " / ",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = Color.Gray,
+                    fontSize = 16.sp
+                )
+            )
+
+            // Проценты
+            Text(
+                text = "%",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = if (isPercentMode) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isPercentMode) Color.Black else Color.Gray,
+                    fontSize = 16.sp
+                )
+            )
+        }
+    }
+}
+
 @Composable
 fun DarkSourceCard(amount: String, cardNumber: String, cardName: String) {
     Card(
         modifier = Modifier.fillMaxWidth().height(140.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C)) // Почти черный
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C))
     ) {
         Column(
             modifier = Modifier
@@ -426,7 +460,6 @@ fun EditCategoryRow(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Иконка
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -434,7 +467,6 @@ fun EditCategoryRow(
                 .background(Color(category.color)),
             contentAlignment = Alignment.Center
         ) {
-            // Иконка-заглушка (в реале здесь иконка)
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
@@ -451,7 +483,6 @@ fun EditCategoryRow(
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
             )
 
-            // Редактирование лимита
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Лимит: ",
@@ -459,7 +490,6 @@ fun EditCategoryRow(
                     color = Color.Gray
                 )
 
-                // Поле ввода лимита
                 BasicTextField(
                     value = category.limitValue,
                     onValueChange = onLimitChange,
@@ -474,7 +504,6 @@ fun EditCategoryRow(
 
                 Spacer(Modifier.width(4.dp))
 
-                // Кнопка переключения типа (₽ / %)
                 Box(
                     modifier = Modifier
                         .clickable(onClick = onTypeToggle)
