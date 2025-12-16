@@ -12,6 +12,7 @@ import kotlin.collections.map
 class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
 
     private var currentIncome = 100000.0
+    private var currentPeriod = "2 мес" // Храним текущий период (дефолт)
 
     // Текущие лимиты (Selected Categories)
     private var currentLimits = mutableListOf(
@@ -20,7 +21,7 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
         BudgetLimitModel(3, "Маркетплейсы", 5000.0, BudgetLimitType.AMOUNT, 0, 0xFF1E88E5)
     )
 
-    // Справочник всех категорий (Available Categories)
+    // Справочник всех категорий
     private val allCategoriesDb = listOf(
         BudgetCategory(1, "Продукты", 0, 0xFF43A047),
         BudgetCategory(2, "Транспорт", 0, 0xFFFBC02D),
@@ -40,23 +41,19 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
                 year = year,
                 month = month,
                 totalIncome = currentIncome,
+                period = currentPeriod, // Возвращаем сохраненный период
                 limits = currentLimits.toList()
             )
         )
     }
 
-    override suspend fun getAllAvailableCategories(): Result<List<BudgetCategory>> {
-        delay(300)
-        return Result.success(allCategoriesDb)
-    }
-
     override suspend fun saveBudget(
-        year: Int, month: Int, totalIncome: Double, limits: List<BudgetLimitData>
+        year: Int, month: Int, totalIncome: Double, period: String, limits: List<BudgetLimitData>
     ): Result<Unit> {
         delay(500)
         currentIncome = totalIncome
+        currentPeriod = period // Сохраняем период
 
-        // Полное обновление списка лимитов (Save кнопка)
         val updatedLimits = limits.map { newLimit ->
             val catInfo = allCategoriesDb.find { it.id == newLimit.categoryId }
             BudgetLimitModel(
@@ -72,43 +69,21 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
         return Result.success(Unit)
     }
 
-    // --- РЕАЛИЗАЦИЯ НОВЫХ МЕТОДОВ ---
-
-    override suspend fun addCategoryToBudget(year: Int, month: Int, categoryId: Long): Result<Unit> {
-        // Проверяем, есть ли уже
-        if (currentLimits.any { it.categoryId == categoryId }) return Result.success(Unit)
-
-        val catInfo = allCategoriesDb.find { it.id == categoryId }
-            ?: return Result.failure(Exception("Категория не найдена"))
-
-        // Добавляем с дефолтным лимитом 0
-        currentLimits.add(
-            BudgetLimitModel(
-                categoryId = catInfo.id,
-                categoryName = catInfo.name,
-                limitValue = 0.0,
-                limitType = BudgetLimitType.AMOUNT, // По умолчанию рубли
-                iconRes = catInfo.iconRes,
-                color = catInfo.color
-            )
-        )
-        return Result.success(Unit)
-    }
-
-    override suspend fun removeCategoryFromBudget(year: Int, month: Int, categoryId: Long): Result<Unit> {
-        currentLimits.removeAll { it.categoryId == categoryId }
-        return Result.success(Unit)
-    }
-
-    // --- Остальные методы ---
-
     override suspend fun getActiveBudgetSummary(year: Int, month: Int): Result<BudgetSummary> {
         delay(300)
         val totalLimitsAmount = currentLimits.sumOf {
             if (it.limitType == BudgetLimitType.AMOUNT) it.limitValue
             else currentIncome * (it.limitValue / 100)
         }
-        return Result.success(BudgetSummary(currentIncome, totalLimitsAmount, totalLimitsAmount * 0.4, currentIncome - totalLimitsAmount))
+        return Result.success(
+            BudgetSummary(
+                totalIncome = currentIncome,
+                totalLimit = totalLimitsAmount,
+                totalSpent = totalLimitsAmount * 0.4,
+                freeFunds = currentIncome - totalLimitsAmount,
+                period = currentPeriod // Возвращаем период для Summary
+            )
+        )
     }
 
     override suspend fun getCategoryLimits(budgetId: Long): Result<List<CategoryLimit>> {
@@ -119,7 +94,26 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
         })
     }
 
+    override suspend fun getAllAvailableCategories(): Result<List<BudgetCategory>> {
+        delay(300)
+        return Result.success(allCategoriesDb)
+    }
+
     override suspend fun createCustomCategory(name: String, iconRes: Int, color: Long): Result<BudgetCategory> {
         return Result.failure(Exception("Not implemented"))
+    }
+
+    override suspend fun addCategoryToBudget(year: Int, month: Int, categoryId: Long): Result<Unit> {
+        if (currentLimits.any { it.categoryId == categoryId }) return Result.success(Unit)
+        val catInfo = allCategoriesDb.find { it.id == categoryId } ?: return Result.failure(Exception("Категория не найдена"))
+        currentLimits.add(
+            BudgetLimitModel(catInfo.id, catInfo.name, 0.0, BudgetLimitType.AMOUNT, catInfo.iconRes, catInfo.color)
+        )
+        return Result.success(Unit)
+    }
+
+    override suspend fun removeCategoryFromBudget(year: Int, month: Int, categoryId: Long): Result<Unit> {
+        currentLimits.removeAll { it.categoryId == categoryId }
+        return Result.success(Unit)
     }
 }

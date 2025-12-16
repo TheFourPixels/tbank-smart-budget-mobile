@@ -16,9 +16,9 @@ import javax.inject.Inject
 data class BudgetSummaryUi(
     val totalIncome: String,
     val totalLimit: String,
+    val totalSpent: String,
     val freeFunds: String
 )
-
 
 data class CategoryUi(
     val id: Long,
@@ -30,16 +30,16 @@ data class CategoryUi(
     val progress: Float
 )
 
-
-
 data class BudgetUiState(
     val period: BudgetPeriod = BudgetPeriod.MONTH,
+    val userName: String = "Валерия",
+    val budgetName: String = "Кубышка",
+    val budgetTerm: String = "2 месяца", // Отображается на главной карточке
     val summary: BudgetSummaryUi? = null,
     val categories: List<CategoryUi> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )
-
 
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
@@ -58,56 +58,49 @@ class BudgetViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // Загрузка сводки
             val summaryResult = getBudgetSummaryUseCase.execute()
-
-            summaryResult.onSuccess { summary ->
-                // Форматирование данных Domain-слоя в UI-модель
-                val summaryUi = BudgetSummaryUi(
-                    totalIncome = "%,.2f ₽".format(summary.totalIncome),
-                    totalLimit = "%,.2f ₽".format(summary.totalLimit),
-                    freeFunds = "%,.2f ₽".format(summary.freeFunds)
-                )
-                _uiState.update { it.copy(summary = summaryUi) }
-            }
-
-            // Загрузка категорий (имитация)
             val categoriesResult = getCategoryDetailsUseCase.execute(budgetId = 1L)
 
-            categoriesResult.onSuccess { domainCategories ->
-                // Преобразование Domain-моделей в UI-модели (CategoryUi)
+            if (summaryResult.isSuccess && categoriesResult.isSuccess) {
+                val summary = summaryResult.getOrNull()!!
+                val domainCategories = categoriesResult.getOrNull()!!
+
+                val summaryUi = BudgetSummaryUi(
+                    totalIncome = formatMoney(summary.totalIncome),
+                    totalLimit = formatMoney(summary.totalLimit),
+                    totalSpent = formatMoney(summary.totalSpent),
+                    freeFunds = formatMoney(summary.freeFunds)
+                )
+
                 val uiCategories = domainCategories.map { domainCategory ->
                     CategoryUi(
                         id = domainCategory.id,
                         name = domainCategory.name,
                         iconRes = domainCategory.iconRes,
                         color = domainCategory.color,
-                        spentValue = "%,.0f".format(domainCategory.spentAmount),
-                        limitValue = "%,.0f".format(domainCategory.limitAmount),
-                        progress = (domainCategory.spentAmount / domainCategory.limitAmount).toFloat().coerceIn(0f, 1f)
+                        spentValue = formatMoney(domainCategory.spentAmount),
+                        limitValue = formatMoney(domainCategory.limitAmount),
+                        progress = if (domainCategory.limitAmount > 0)
+                            (domainCategory.spentAmount / domainCategory.limitAmount).toFloat().coerceIn(0f, 1f)
+                        else 0f
                     )
                 }
 
                 _uiState.update {
                     it.copy(
+                        budgetTerm = summary.period, // Обновляем срок из сохраненного значения
+                        summary = summaryUi,
                         categories = uiCategories,
                         isLoading = false
                     )
                 }
-            }.onFailure { e ->
-                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            } else {
+                _uiState.update { it.copy(error = "Ошибка загрузки", isLoading = false) }
             }
         }
     }
 
-    fun onPeriodToggle(newPeriod: BudgetPeriod) {
-        _uiState.update { it.copy(period = newPeriod) }
-        // В реальном приложении здесь нужно перезагрузить loadData() с новым периодом
-    }
-
-    // Функция для перехода к редактированию
-    fun onEditClicked() {
-
-        // ... логика навигации ...
+    private fun formatMoney(amount: Double): String {
+        return "%,.0f ₽".format(amount).replace(',', ' ')
     }
 }

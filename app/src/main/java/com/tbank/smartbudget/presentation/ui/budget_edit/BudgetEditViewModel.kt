@@ -37,37 +37,22 @@ class BudgetEditViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Вызывается, когда экран становится активным (например, вернулись с выбора категорий).
-     * Цель: Подтянуть новые категории, но НЕ потерять введенные пользователем цифры.
-     */
     fun refreshCategories() {
         viewModelScope.launch {
-            // Получаем актуальные данные из репозитория (там обновленный список категорий)
             getBudgetDetailsUseCase.execute(currentYear, currentMonth)
                 .onSuccess { budget ->
                     val currentUiCategories = _uiState.value.categories
-
-                    // Формируем новый список для UI
                     val mergedCategories = budget.limits.map { serverLimit ->
-                        // Ищем, есть ли эта категория уже у нас на экране (с введенными значениями)
                         val existingUi = currentUiCategories.find { it.id == serverLimit.categoryId }
-
-                        if (existingUi != null) {
-                            // Если есть, оставляем пользовательский ввод (value, type)
-                            existingUi
-                        } else {
-                            // Если нет (новая), берем данные с сервера (дефолтные)
-                            EditCategoryUi(
-                                id = serverLimit.categoryId,
-                                name = serverLimit.categoryName,
-                                limitValue = formatValue(serverLimit.limitValue),
-                                limitType = serverLimit.limitType,
-                                color = serverLimit.color
-                            )
-                        }
+                        if (existingUi != null) existingUi
+                        else EditCategoryUi(
+                            id = serverLimit.categoryId,
+                            name = serverLimit.categoryName,
+                            limitValue = formatValue(serverLimit.limitValue),
+                            limitType = serverLimit.limitType,
+                            color = serverLimit.color
+                        )
                     }
-
                     _uiState.update { it.copy(categories = mergedCategories) }
                 }
         }
@@ -85,11 +70,17 @@ class BudgetEditViewModel @Inject constructor(
                         color = limit.color
                     )
                 }
+
+                // Находим индекс сохраненного периода в нашем списке
+                val periods = _uiState.value.periods
+                val periodIndex = periods.indexOf(budget.period).takeIf { it >= 0 } ?: 0
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         amount = formatValue(budget.totalIncome),
                         categories = uiCategories,
+                        selectedPeriodIndex = periodIndex, // Устанавливаем выбранный период
                         isPercentMode = uiCategories.any { cat -> cat.limitType == BudgetLimitType.PERCENT }
                     )
                 }
@@ -99,11 +90,11 @@ class BudgetEditViewModel @Inject constructor(
             }
     }
 
+    // ... (методы onGlobalLimitTypeToggle, onAmountChanged, onCategoryLimitChanged и т.д. без изменений)
     fun onGlobalLimitTypeToggle() {
         val currentState = _uiState.value
         val newModeIsPercent = !currentState.isPercentMode
         val totalIncome = currentState.amount.replace(" ", "").replace(",", ".").toDoubleOrNull() ?: 0.0
-
         val updatedCategories = currentState.categories.map { cat ->
             val currentValue = cat.limitValue.replace(" ", "").replace(",", ".").toDoubleOrNull() ?: 0.0
             val newValue = if (newModeIsPercent) {
@@ -111,10 +102,7 @@ class BudgetEditViewModel @Inject constructor(
             } else {
                 (currentValue / 100) * totalIncome
             }
-            cat.copy(
-                limitValue = formatValue(newValue),
-                limitType = if (newModeIsPercent) BudgetLimitType.PERCENT else BudgetLimitType.AMOUNT
-            )
+            cat.copy(limitValue = formatValue(newValue), limitType = if (newModeIsPercent) BudgetLimitType.PERCENT else BudgetLimitType.AMOUNT)
         }
         _uiState.update { it.copy(isPercentMode = newModeIsPercent, categories = updatedCategories) }
     }
@@ -152,9 +140,14 @@ class BudgetEditViewModel @Inject constructor(
         }
     }
 
+    // ...
+
     fun onSaveClicked() {
         val currentState = _uiState.value
         val income = currentState.amount.replace(" ", "").replace(",", ".").toDoubleOrNull() ?: 0.0
+
+        // Получаем строку выбранного периода
+        val selectedPeriod = currentState.periods.getOrElse(currentState.selectedPeriodIndex) { "2 мес" }
 
         val limitsData = currentState.categories.mapNotNull { uiCat ->
             val value = uiCat.limitValue.replace(" ", "").replace(",", ".").toDoubleOrNull()
@@ -169,7 +162,7 @@ class BudgetEditViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
-            saveBudgetUseCase.execute(currentYear, currentMonth, income, limitsData)
+            saveBudgetUseCase.execute(currentYear, currentMonth, income, selectedPeriod, limitsData)
                 .onSuccess {
                     _uiState.update { it.copy(isSaving = false, isSavedSuccess = true) }
                 }
