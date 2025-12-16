@@ -32,4 +32,7 @@ interface BudgetRepository {
 
     // 6. Создание новой категории
     suspend fun createCustomCategory(name: String, iconRes: Int, color: Long): Result<BudgetCategory>
+
+    suspend fun addCategoryToBudget(year: Int, month: Int, categoryId: Long): Result<Unit>
+    suspend fun removeCategoryFromBudget(year: Int, month: Int, categoryId: Long): Result<Unit>
 }

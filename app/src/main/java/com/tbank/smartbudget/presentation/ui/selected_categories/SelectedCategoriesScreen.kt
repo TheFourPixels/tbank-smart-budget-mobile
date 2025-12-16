@@ -1,5 +1,6 @@
 package com.tbank.smartbudget.presentation.ui.selected_categories
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,7 +29,7 @@ fun SelectedCategoriesScreen(
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = Color(0xFFF8F8F8) // Очень светлый серый фон как на скриншоте
+        containerColor = Color(0xFFF8F8F8)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -63,36 +64,56 @@ fun SelectedCategoriesScreen(
 
                         // Список выбранных
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            state.selectedCategories.forEach { category ->
-                                CategoryRowItem(category)
+                            if (state.selectedCategories.isEmpty()) {
+                                Text("Нет выбранных категорий", color = Color.Gray)
+                            } else {
+                                state.selectedCategories.forEach { category ->
+                                    // Оборачиваем в Box для кликабельности (удаление)
+                                    Box(modifier = Modifier.clickable { viewModel.onCategoryRemoved(category) }) {
+                                        CategoryRowItem(category)
+                                    }
+                                }
                             }
                         }
 
                         Spacer(Modifier.height(24.dp))
 
-                        // Кнопка "Добавить категорию"
+                        // Кнопка "Создать категорию" (если нужно, можно оставить)
                         Button(
                             onClick = { viewModel.onAddCategoryClick() },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFF5F5F5), // Светло-серый фон кнопки
+                                containerColor = Color(0xFFF5F5F5),
                                 contentColor = SmartBudgetTheme.colors.blue
                             ),
                             shape = RoundedCornerShape(12.dp),
                             elevation = ButtonDefaults.buttonElevation(0.dp)
                         ) {
-                            Text("Добавить категорию", fontSize = 16.sp)
+                            Text("Создать категорию", fontSize = 16.sp)
                         }
                     }
                 }
             }
 
-            // 3. Список доступных категорий (карточки ниже)
+            // Заголовок для доступных
+            if (state.availableCategories.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Доступные категории",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                    )
+                }
+            }
+
+            // 3. Список доступных категорий
             items(state.availableCategories) { category ->
-                // Используем отдельные карточки для списка внизу, как на макете
-                SingleCategoryCard(category)
+                // Оборачиваем в Box для обработки клика (добавление)
+                Box(modifier = Modifier.clickable { viewModel.onCategorySelected(category) }) {
+                    SingleCategoryCard(category)
+                }
             }
 
             item { Spacer(Modifier.height(32.dp)) }
