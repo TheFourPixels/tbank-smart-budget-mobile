@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_details.components
+package com.tbank.smartbudget.presentation.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -27,7 +27,7 @@ fun DetailsCard(content: @Composable ColumnScope.() -> Unit) {
                 spotColor = Color.Companion.Black.copy(alpha = 0.5f)
             )
             .background(
-                color = Color(0xFFF5F6F8),
+                color = Color.White,
                 shape = shape
             )
     ) {

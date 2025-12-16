@@ -1,6 +1,7 @@
 package com.tbank.smartbudget.presentation.ui.budget_tab.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -29,7 +30,12 @@ import androidx.compose.ui.unit.sp
 import com.tbank.smartbudget.presentation.ui.setup.BudgetTabCategoryUi
 
 @Composable
-fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCategories: List<BudgetTabCategoryUi>) {
+fun SummaryRow(
+    totalSpent: String,
+    totalSpentDescription: String,
+    selectedCategories: List<BudgetTabCategoryUi>,
+    onAllOperationsClick: () -> Unit,
+    onSelectedCategoriesClick: () -> Unit) {
     // Состояние для хранения измеренной высоты
     var measuredHeightDp by remember { mutableStateOf(Dp.Companion.Unspecified) }
     val density = LocalDensity.current
@@ -45,6 +51,7 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
         SummarySmallCard(
             modifier = Modifier.Companion
                 .weight(1f)
+                .clickable(onClick = onAllOperationsClick)
                 //Измеряем высоту этой карточки
                 .onGloballyPositioned { coordinates ->
                     if (measuredHeightDp == Dp.Companion.Unspecified) {
@@ -80,8 +87,9 @@ fun SummaryRow(totalSpent: String, totalSpentDescription: String, selectedCatego
 
         // Карточка "Выбранные категории" (применяем высоту)
         SummarySmallCard(
-            modifier = Modifier.Companion.weight(1f),
+            modifier = Modifier.Companion.weight(1f).clickable(onClick = onSelectedCategoriesClick),
             minHeight = measuredHeightDp // Применяем высоту, измеренную первой карточкой
+
         ) {
             Text(
                 "Выбранные категории",
