@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.domain.model
+package com.tbank.smartbudget.presentation.ui.category_search
 
 import androidx.compose.ui.graphics.Color
 
