@@ -1,14 +1,14 @@
 package com.tbank.smartbudget.domain.model
-
 /**
- * Модель лимита категории (для детализации).
+ * Модель лимита категории для ОТОБРАЖЕНИЯ (Dashboard).
+ * Содержит информацию о том, сколько потрачено.
  */
 data class CategoryLimit(
     val id: Long,
     val name: String,
     val limitAmount: Double,
     val spentAmount: Double,
-    val iconRes: Int, // Placeholder для ID
+    val iconRes: Int,
     val color: Long
 ) {
     val usagePercentage: Double
@@ -17,9 +17,3 @@ data class CategoryLimit(
     val remainingAmount: Double
         get() = limitAmount - spentAmount
 }
-
-data class BudgetLimitData(
-    val categoryId: Long,
-    val limitValue: Double,
-    val limitType: String
-)
