@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_edit.components
+package com.tbank.smartbudget.presentation.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,8 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun EditDetailsCard(content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(24.dp)
+fun DetailsCard(content: @Composable ColumnScope.() -> Unit) {
+    val shape = RoundedCornerShape(16.dp)
+
     Box(
         modifier = Modifier.Companion
             .fillMaxWidth()
@@ -25,10 +26,13 @@ fun EditDetailsCard(content: @Composable ColumnScope.() -> Unit) {
                 ambientColor = Color.Companion.Black.copy(alpha = 0.4f),
                 spotColor = Color.Companion.Black.copy(alpha = 0.5f)
             )
-            .background(Color.Companion.White, shape)
+            .background(
+                color = Color.White,
+                shape = shape
+            )
     ) {
         Column(
-            modifier = Modifier.Companion.padding(24.dp),
+            modifier = Modifier.Companion.padding(25.dp),
             content = content
         )
     }

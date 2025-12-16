@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.tbank.smartbudget.presentation.ui.budget_details.components.DetailsCard
+import com.tbank.smartbudget.presentation.ui.common.DetailsCard
 import com.tbank.smartbudget.presentation.ui.budget_details.components.InfoRow
 import com.tbank.smartbudget.presentation.ui.budget_details.components.SettingSwitchRow
 import com.tbank.smartbudget.presentation.ui.budget_edit.BudgetEditScreen
