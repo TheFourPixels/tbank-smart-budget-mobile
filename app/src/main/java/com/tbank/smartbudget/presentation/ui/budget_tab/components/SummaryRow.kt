@@ -68,23 +68,6 @@ fun SummaryRow(
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color.Black
             )
-
-            Row(
-                modifier = Modifier.clickable { onAllOperationsClick() },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Все операции",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SmartBudgetTheme.colors.blue
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = SmartBudgetTheme.colors.blue,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
         }
 
         Spacer(Modifier.height(12.dp))
