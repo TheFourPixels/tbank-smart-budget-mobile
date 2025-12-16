@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.domain.model.BudgetCategory
-import com.tbank.smartbudget.domain.model.SearchCategoryItem
+import com.tbank.smartbudget.presentation.ui.category_search.SearchCategoryItem
 import com.tbank.smartbudget.domain.usecase.GetCategoriesForSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.tbank.smartbudget.domain.model.SearchCategoryItem
+import com.tbank.smartbudget.presentation.ui.category_search.SearchCategoryItem
 
 @Composable
 fun CategoryItemRow(category: SearchCategoryItem, onClick: () -> Unit) {
