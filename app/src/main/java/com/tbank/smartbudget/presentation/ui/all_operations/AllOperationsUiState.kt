@@ -1,65 +1,52 @@
 package com.tbank.smartbudget.presentation.ui.all_operations
 
 import androidx.compose.ui.graphics.Color
+import java.time.LocalDate
 
 data class AllOperationsUiState(
-    val selectedMonth: String = "Октябрь",
-    val selectedFilter: String = "Все",
-    val totalAmount: String = "5 878 ₽",
+    val isLoading: Boolean = false,
+    val error: String? = null,
+
+    // Строка для отображения диапазона (например "16 окт - 22 окт")
+    val dateRangeLabel: String = "",
+
+    // Выбранный месяц (для заголовка, если нужно, или убираем если заменяем календарем)
+    val selectedMonth: String = "",
+
+    // Убираем selectedFilter, так как вкладку "Все" удаляем
+    // val selectedFilter: String = "Все",
+
+    val totalExpense: String = "0 ₽",
     val periodType: PeriodType = PeriodType.MONTH,
 
-    // Данные для диаграммы и списка
-    val categories: List<OperationCategoryUi> = listOf(
-        OperationCategoryUi(1, "Сервис", "800 ₽", 0xFF9575CD), // Purple
-        OperationCategoryUi(2, "ЖКХ", "100 ₽", 0xFFF06292),    // Pink
-        OperationCategoryUi(3, "Переводы", "900 ₽", 0xFF4DD0E1) // Cyan
-    ),
+    val selectedCategoryNames: Set<String> = emptySet(),
 
-    val transactions: List<TransactionGroupUi> = listOf(
-        TransactionGroupUi(
-            date = "Сегодня",
-            totalAmount = "-3 500 ₽",
-            items = listOf(
-                TransactionUi(
-                    id = 1,
-                    name = "Парковки России",
-                    categoryName = "Транспорт",
-                    amount = "-50 ₽",
-                    iconColor = 0xFF7CB342 // Light Green
-                ),
-                TransactionUi(
-                    id = 2,
-                    name = "Мтс",
-                    categoryName = "Связь",
-                    amount = "-100 ₽",
-                    iconColor = 0xFFE53935 // Red
-                )
-            )
-        )
-    )
+    val chartData: List<ChartDataUi> = emptyList(),
+    val transactionGroups: List<TransactionGroupUi> = emptyList()
+)
+
+data class ChartDataUi(
+    val categoryName: String,
+    val amount: String,
+    val color: Color,
+    val percentage: Float
 )
 
 enum class PeriodType {
-    WEEK, MONTH
+    WEEK, MONTH, CUSTOM // Добавили CUSTOM для выбора через календарь
 }
 
-data class OperationCategoryUi(
-    val id: Long,
-    val name: String,
-    val amount: String,
-    val color: Long
-)
-
 data class TransactionGroupUi(
-    val date: String,
-    val totalAmount: String,
+    val dateHeader: String,
+    val dayTotal: String,
     val items: List<TransactionUi>
 )
 
 data class TransactionUi(
     val id: Long,
-    val name: String,
-    val categoryName: String,
+    val title: String,
+    val subtitle: String,
     val amount: String,
-    val iconColor: Long
+    val amountColor: Color,
+    val iconColor: Color
 )

@@ -20,14 +20,15 @@ import com.tbank.smartbudget.presentation.ui.category_search.components.SearchAp
 @Composable
 fun CategorySearchScreen(
     onNavigateBack: () -> Unit,
+    onCategoryClick: (String) -> Unit = {}, // Добавлен колбэк для возврата результата
     viewModel: CategorySearchViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    // 1. Создаем объект FocusRequester
+    // 1. Создаем объект FocusRequester для управления фокусом ввода
     val focusRequester = remember { FocusRequester() }
 
-    // Логика разделения списка
+    // Логика разделения списка: ищем "Самое подходящее" (Top Result)
     val topResult = state.searchResults.firstOrNull { it.isTopResult }
 
     val otherCategories = remember(state.searchResults, topResult) {
@@ -47,15 +48,15 @@ fun CategorySearchScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            // 2. Передаем FocusRequester в SearchAppBar
+            // 2. Строка поиска
             SearchAppBar(
                 searchText = state.searchQuery,
                 onSearchTextChange = viewModel::onSearchQueryChanged,
                 onCancelClick = onNavigateBack,
-                focusRequester = focusRequester // Передача FocusRequester
+                focusRequester = focusRequester
             )
 
-            // 3. Запрашиваем фокус сразу после входа на экран
+            // 3. Запрашиваем фокус на поле ввода сразу после открытия экрана
             LaunchedEffect(Unit) {
                 focusRequester.requestFocus()
             }
@@ -66,7 +67,7 @@ fun CategorySearchScreen(
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Секция "Самое подходящее"
+                // Секция "Самое подходящее" (если есть точное совпадение)
                 if (topResult != null) {
                     item {
                         Text(
@@ -75,6 +76,7 @@ fun CategorySearchScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
+                        // Карточка для топ-результата с тенью
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -93,13 +95,13 @@ fun CategorySearchScreen(
                         ){
                             CategoryItemRow(
                                 category = topResult,
-                                onClick = { /* TODO: Обработка выбора */ }
+                                onClick = { onCategoryClick(topResult.name) } // Возвращаем результат
                             )
                         }
                     }
                 }
 
-                // Секция "Все категории"
+                // Секция "Все категории" или "Похожие категории"
                 if (otherCategories.isNotEmpty()) {
                     item {
                         Text(
@@ -108,6 +110,7 @@ fun CategorySearchScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
+                        // Общий контейнер для списка остальных категорий
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -126,7 +129,7 @@ fun CategorySearchScreen(
                                 otherCategories.forEach { category ->
                                     CategoryItemRow(
                                         category = category,
-                                        onClick = { /* TODO: Обработка выбора */ }
+                                        onClick = { onCategoryClick(category.name) } // Возвращаем результат
                                     )
                                 }
                             }
@@ -137,4 +140,3 @@ fun CategorySearchScreen(
         }
     }
 }
-

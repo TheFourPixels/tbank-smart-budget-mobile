@@ -1,6 +1,7 @@
 package com.tbank.smartbudget.presentation.ui.all_operations.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,34 +19,43 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tbank.smartbudget.presentation.ui.all_operations.OperationCategoryUi
+import com.tbank.smartbudget.presentation.ui.all_operations.ChartDataUi
 
 @Composable
-fun CategoryTag(category: OperationCategoryUi) {
-    val categoryColor = Color(category.color)
-    val backgroundColor = categoryColor.copy(alpha = 0.15f)
+fun CategoryTag(
+    chartItem: ChartDataUi,
+    isSelected: Boolean,
+    isDimmed: Boolean, // Если true, элемент становится бледным
+    onClick: () -> Unit
+) {
+    // Если элемент "затемнен", делаем его серым и прозрачным
+    val baseColor = if (isDimmed) Color.Gray.copy(alpha = 0.3f) else chartItem.color
+    val backgroundColor = if (isDimmed) Color(0xFFF5F5F5) else baseColor.copy(alpha = 0.15f)
+    val textColor = if (isDimmed) Color.Gray else Color.Black.copy(alpha = 0.7f)
+
+    // Если элемент выбран, можно добавить обводку или более яркий фон (опционально)
+    // В текущем дизайне просто оставляем его цветным, пока остальные серые.
 
     Row(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(backgroundColor)
+            .clickable(onClick = onClick)
             .padding(start = 4.dp, top = 4.dp, bottom = 4.dp, end = 12.dp),
-        verticalAlignment = Alignment.Companion.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Цветной круг (иконка)
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(categoryColor)
+                .background(baseColor)
         )
-        Spacer(Modifier.Companion.width(8.dp))
-        // Текст категории и сумма
+        Spacer(Modifier.width(8.dp))
         Text(
-            text = "${category.name} ${category.amount}",
-            color = Color.Companion.Black.copy(alpha = 0.7f),
+            text = "${chartItem.categoryName} ${chartItem.amount}",
+            color = textColor,
             fontSize = 14.sp,
-            fontWeight = FontWeight.Companion.Medium
+            fontWeight = FontWeight.Medium
         )
     }
 }

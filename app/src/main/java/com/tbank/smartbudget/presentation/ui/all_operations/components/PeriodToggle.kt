@@ -18,72 +18,31 @@ import androidx.compose.ui.unit.dp
 import com.tbank.smartbudget.presentation.ui.all_operations.PeriodType
 
 @Composable
-fun PeriodToggle(
-    selectedType: PeriodType,
-    onTypeSelected: (PeriodType) -> Unit
-) {
+fun PeriodToggle(selectedType: PeriodType, onTypeSelected: (PeriodType) -> Unit) {
     Box(
-        modifier = Modifier.Companion
-            .background(Color(0xFFF5F5F5), RoundedCornerShape(50)) // Серый фон
+        modifier = Modifier.Companion.background(Color(0xFFF5F5F5), RoundedCornerShape(50))
             .padding(4.dp)
     ) {
         Row {
-            // Неделя
-            Box(
-                modifier = if (selectedType == PeriodType.WEEK) {
-                    Modifier.Companion.weight(1f)
-                        .shadow(
-                            elevation = 1.dp,
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
-                        )
+            listOf(PeriodType.WEEK to "Нед", PeriodType.MONTH to "Мес").forEach { (type, label) ->
+                Box(
+                    modifier = if (selectedType == type) Modifier.Companion.weight(1f)
+                        .shadow(1.dp, androidx.compose.foundation.shape.RoundedCornerShape(50))
                         .background(
                             Color.Companion.White,
                             androidx.compose.foundation.shape.RoundedCornerShape(50)
-                        ) // Белый активный
-                        .clickable { onTypeSelected(PeriodType.WEEK) }
-                        .padding(vertical = 8.dp)
-                } else {
-                    Modifier.Companion.weight(1f)
+                        ).clickable { onTypeSelected(type) }.padding(vertical = 8.dp)
+                    else Modifier.Companion.weight(1f)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
-                        .clickable { onTypeSelected(PeriodType.WEEK) }
-                        .padding(vertical = 8.dp)
-                },
-                contentAlignment = Alignment.Companion.Center
-            ) {
-                Text(
-                    "Нед",
-                    fontWeight = FontWeight.Companion.Medium,
-                    color = Color.Companion.Black
-                )
-            }
-
-            // Месяц
-            Box(
-                modifier = if (selectedType == PeriodType.MONTH) {
-                    Modifier.Companion.weight(1f)
-                        .shadow(
-                            elevation = 1.dp,
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
-                        )
-                        .background(
-                            Color.Companion.White,
-                            androidx.compose.foundation.shape.RoundedCornerShape(50)
-                        ) // Белый активный
-                        .clickable { onTypeSelected(PeriodType.MONTH) }
-                        .padding(vertical = 8.dp)
-                } else {
-                    Modifier.Companion.weight(1f)
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
-                        .clickable { onTypeSelected(PeriodType.MONTH) }
-                        .padding(vertical = 8.dp)
-                },
-                contentAlignment = Alignment.Companion.Center
-            ) {
-                Text(
-                    "Мес",
-                    fontWeight = FontWeight.Companion.Medium,
-                    color = Color.Companion.Black
-                )
+                        .clickable { onTypeSelected(type) }.padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Companion.Center
+                ) {
+                    Text(
+                        label,
+                        fontWeight = FontWeight.Companion.Medium,
+                        color = Color.Companion.Black
+                    )
+                }
             }
         }
     }

@@ -22,31 +22,13 @@ import com.tbank.smartbudget.presentation.ui.all_operations.TransactionUi
 
 @Composable
 fun TransactionItem(transaction: TransactionUi) {
-    Row(
-        modifier = Modifier.Companion.fillMaxWidth(),
-        verticalAlignment = Alignment.Companion.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier.Companion
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(transaction.iconColor)),
-            contentAlignment = Alignment.Companion.Center
-        ) {
-            // Заглушка
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(transaction.iconColor))
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(transaction.title, fontWeight = FontWeight.Bold)
+            Text(transaction.subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
-
-        Spacer(Modifier.Companion.width(12.dp))
-
-        Column(modifier = Modifier.Companion.weight(1f)) {
-            Text(transaction.name, fontWeight = FontWeight.Companion.Bold)
-            Text(
-                transaction.categoryName,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Companion.Gray
-            )
-        }
-
-        Text(transaction.amount, fontWeight = FontWeight.Companion.Bold)
+        Text(text = transaction.amount, fontWeight = FontWeight.Bold, color = transaction.amountColor)
     }
 }
