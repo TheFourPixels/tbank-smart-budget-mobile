@@ -24,12 +24,17 @@ interface BudgetRepository {
         year: Int,
         month: Int,
         totalIncome: Double,
+        period: String, // Добавили параметр period
         limits: List<BudgetLimitData>
     ): Result<Unit>
 
-    // 5. Получение списка всех категорий (для модального окна)
+    // 5. Получение списка всех категорий
     suspend fun getAllAvailableCategories(): Result<List<BudgetCategory>>
 
     // 6. Создание новой категории
     suspend fun createCustomCategory(name: String, iconRes: Int, color: Long): Result<BudgetCategory>
+
+    // --- МЕТОДЫ ДЛЯ ВЫБОРА КАТЕГОРИЙ ---
+    suspend fun addCategoryToBudget(year: Int, month: Int, categoryId: Long): Result<Unit>
+    suspend fun removeCategoryFromBudget(year: Int, month: Int, categoryId: Long): Result<Unit>
 }

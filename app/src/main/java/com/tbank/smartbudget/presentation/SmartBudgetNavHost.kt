@@ -3,29 +3,30 @@ package com.tbank.smartbudget.presentation
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.tbank.smartbudget.presentation.ui.budget_tab.BudgetTabScreen
-import com.tbank.smartbudget.presentation.ui.category_search.CategorySearchScreen
+import com.tbank.smartbudget.presentation.ui.all_operations.AllOperationsScreen
+import com.tbank.smartbudget.presentation.ui.all_operations.AllOperationsViewModel
 import com.tbank.smartbudget.presentation.ui.budget_details.BudgetDetailsScreen
 import com.tbank.smartbudget.presentation.ui.budget_edit.BudgetEditScreen
-import com.tbank.smartbudget.presentation.ui.all_operations.AllOperationsScreen
+import com.tbank.smartbudget.presentation.ui.budget_tab.BudgetTabScreen
+import com.tbank.smartbudget.presentation.ui.category_search.CategorySearchScreen
 import com.tbank.smartbudget.presentation.ui.selected_categories.SelectedCategoriesScreen
 
-// Определяем маршруты для навигации
 object Routes {
     const val BUDGET_TAB = "budget_tab"
     const val CATEGORY_SEARCH = "category_search"
     const val BUDGET_DETAILS = "budget_details"
     const val BUDGET_EDIT = "budget_edit"
     const val ALL_OPERATIONS = "all_operations"
-    const val SELECTED_CATEGORIES = "selected_categories" // Новый маршрут
+    const val SELECTED_CATEGORIES = "selected_categories"
 }
 
-/**
- * Главный контейнер навигации для всего приложения SmartBudget.
- */
 @Composable
 fun SmartBudgetNavHost() {
     val navController = rememberNavController()
@@ -34,43 +35,34 @@ fun SmartBudgetNavHost() {
         navController = navController,
         startDestination = Routes.BUDGET_TAB
     ) {
-        // 1. Экран вкладки бюджета
         composable(Routes.BUDGET_TAB) {
             BudgetTabScreen(
-                // Переход на экран поиска
-                onSearchClick = {
-                    navController.navigate(Routes.CATEGORY_SEARCH)
-                },
-                // Переход к деталям бюджета
-                onBudgetClick = {
-                    navController.navigate(Routes.BUDGET_DETAILS)
-                },
-                // Переход ко всем операциям
-                onAllOperationsClick = {
-                    navController.navigate(Routes.ALL_OPERATIONS)
-                },
-                // *** НОВЫЙ ПЕРЕХОД: Выбранные категории ***
-                onSelectedCategoriesClick = {
-                    navController.navigate(Routes.SELECTED_CATEGORIES)
-                }
+                onSearchClick = { navController.navigate(Routes.CATEGORY_SEARCH) },
+                onBudgetClick = { navController.navigate(Routes.BUDGET_DETAILS) },
+                onAllOperationsClick = { navController.navigate(Routes.ALL_OPERATIONS) },
+                onSelectedCategoriesClick = { navController.navigate(Routes.SELECTED_CATEGORIES) }
             )
         }
 
-        // 2. Экран поиска категорий
         composable(
             Routes.CATEGORY_SEARCH,
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
             exitTransition = { slideOutVertically(targetOffsetY = { it }) },
             popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
         ) {
+            // Экран поиска категорий
             CategorySearchScreen(
-                onNavigateBack = {
+                onNavigateBack = { navController.popBackStack() },
+                // Обработка клика на категорию: возвращаем результат предыдущему экрану
+                onCategoryClick = { categoryName ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("selected_category_name", categoryName)
                     navController.popBackStack()
                 }
             )
         }
 
-        // 3. Экран деталей бюджета
         composable(
             Routes.BUDGET_DETAILS,
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
@@ -78,16 +70,11 @@ fun SmartBudgetNavHost() {
             popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
         ) {
             BudgetDetailsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onEditClick = {
-                    navController.navigate(Routes.BUDGET_EDIT)
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onEditClick = { navController.navigate(Routes.BUDGET_EDIT) }
             )
         }
 
-        // 4. Экран редактирования бюджета
         composable(
             Routes.BUDGET_EDIT,
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
@@ -96,32 +83,45 @@ fun SmartBudgetNavHost() {
         ) {
             BudgetEditScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onAddCategoryClick = { navController.navigate(Routes.CATEGORY_SEARCH) }
+                onAddCategoryClick = { navController.navigate(Routes.SELECTED_CATEGORIES) }
             )
         }
 
-        // 5. Экран всех операций
         composable(
             Routes.ALL_OPERATIONS,
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
             exitTransition = { slideOutVertically(targetOffsetY = { it }) },
             popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
-        ) {
+        ) { backStackEntry ->
+            val viewModel: AllOperationsViewModel = hiltViewModel()
+
+            // Слушаем результат возврата с экрана поиска
+            val selectedCategoryName = backStackEntry.savedStateHandle
+                .get<String>("selected_category_name")
+
+            // Если результат пришел, передаем его во ViewModel
+            LaunchedEffect(selectedCategoryName) {
+                selectedCategoryName?.let {
+                    viewModel.onCategorySearchResult(it)
+                    // Очищаем результат, чтобы не обрабатывать его повторно при пересоздании
+                    backStackEntry.savedStateHandle.remove<String>("selected_category_name")
+                }
+            }
+
             AllOperationsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onSearchClick = { navController.navigate(Routes.CATEGORY_SEARCH) },
+                viewModel = viewModel
             )
         }
 
-        // 6. Экран выбранных категорий (Новый)
         composable(
             Routes.SELECTED_CATEGORIES,
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
             exitTransition = { slideOutVertically(targetOffsetY = { it }) },
             popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
         ) {
-            SelectedCategoriesScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
+            SelectedCategoriesScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

@@ -9,6 +9,7 @@ data class BudgetDetails(
     val year: Int,
     val month: Int,
     val totalIncome: Double,
+    val period: String, // Новое поле: выбранный период (например, "2 мес")
     val limits: List<BudgetLimitModel>
 )
 
