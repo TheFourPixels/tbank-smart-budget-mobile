@@ -3,6 +3,8 @@ package com.tbank.smartbudget.di
 import com.tbank.smartbudget.data.repository.BudgetRepositoryMockImpl
 import com.tbank.smartbudget.data.repository.MockCategorySearchRepositoryImpl
 import com.tbank.smartbudget.data.repository.MockTransactionRepositoryImpl
+import com.tbank.smartbudget.data.repository.MockAuthRepositoryImpl // Добавлено
+import com.tbank.smartbudget.domain.repository.AuthRepository // Добавлено
 import com.tbank.smartbudget.domain.repository.BudgetRepository
 import com.tbank.smartbudget.domain.repository.CategorySearchRepository
 import com.tbank.smartbudget.domain.repository.TransactionRepository
@@ -33,4 +35,11 @@ abstract class AppModule {
     abstract fun bindTransactionRepository(
         impl: MockTransactionRepositoryImpl
     ): TransactionRepository
+
+    // --- Биндинг AuthRepository ---
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        impl: MockAuthRepositoryImpl
+    ): AuthRepository
 }

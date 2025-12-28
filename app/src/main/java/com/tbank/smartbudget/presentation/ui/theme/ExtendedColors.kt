@@ -19,7 +19,8 @@ data class ExtendedColors(
     val lightGray: Color,
     val gradientGreen: Color,
     val gradientDarkBlue: Color,
-    val blue: Color
+    val blue: Color,
+    val yellow: Color
 )
 
 /**
@@ -31,7 +32,8 @@ fun darkExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColor
     lightGray = colorScheme.surfaceVariant, // В темной теме фон поиска может быть как у карточек
     gradientGreen = Color(0xFF8EAF48),
     gradientDarkBlue = Color(0xFF363E4E),
-    blue = Color(0xFF5589F1)
+    blue = Color(0xFF5589F1),
+    yellow = Color(0xFFFFDD2D)
 
 )
 
@@ -44,7 +46,8 @@ fun lightExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColo
     lightGray = Color(0xFFEAEAEA), // Используем ваш кастомный светло-серый цвет
     gradientGreen = Color(0xFF8EAF48),
     gradientDarkBlue = Color(0xFF363E4E),
-    blue = Color(0xFF5589F1)
+    blue = Color(0xFF5589F1),
+    yellow = Color(0xFFFFDD2D)
 
 )
 
@@ -53,7 +56,8 @@ val LocalExtendedColors = staticCompositionLocalOf {
         lightGray = Color(0xFFEAEAEA),
         gradientGreen = Color(0xFF8EAF48),
         gradientDarkBlue = Color(0xFF363E4E),
-        blue = Color(0xFF5589F1)
+        blue = Color(0xFF5589F1),
+        yellow = Color(0xFFFFDD2D)
 
     )
 }
