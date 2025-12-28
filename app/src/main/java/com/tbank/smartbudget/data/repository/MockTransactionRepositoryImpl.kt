@@ -11,15 +11,15 @@ class MockTransactionRepositoryImpl @Inject constructor() : TransactionRepositor
 
     // Данные для теста (даты специально подобраны под октябрь 2025)
     private val mockTransactions = listOf(
-        Transaction(1, 4500.25, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-28T03:38:00"), "Еженедельная закупка продуктов", "Супермаркет 'Лента'", "Продукты", 0xFF43A047, 7),
-        Transaction(2, 95000.0, TransactionType.INCOME, LocalDateTime.parse("2025-10-27T16:23:00"), "Зарплата за текущий месяц", "Работодатель ООО", "Зарплата", 0xFF1E88E5, 999),
-        Transaction(4, 3200.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-24T16:03:00"), "Оплата электроэнергии", "МосЭнергоСбыт", "Коммунальные услуги", 0xFFFBC02D, 8),
-        Transaction(7, 5000.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-18T02:55:00"), "Перевод долга", "Перевод Другу", "Не распределено", 0xFF9E9E9E, 999),
-        Transaction(5, 2100.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-17T12:26:00"), "Бензин АИ-95", "АЗС Лукойл", "Проезд", 0xFFE53935, 4),
-        Transaction(6, 7999.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-14T00:10:00"), "Покупка рубашки", "Zara Store", "Одежда", 0xFF8E24AA, 3),
-        Transaction(3, 1250.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-12T03:23:00"), "Ужин с друзьями", "Ресторан 'Уют'", "Рестораны", 0xFFFF7043, 10),
-        Transaction(8, 150.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-10T10:00:00"), "Кофе", "Кофейня", "Рестораны", 0xFFFF7043, 10),
-        Transaction(9, 650.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-10-10T11:00:00"), "Такси", "Яндекс Go", "Проезд", 0xFFE53935, 4),
+        Transaction(1, 4500.25, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-28T03:38:00"), "Еженедельная закупка продуктов", "Супермаркет 'Лента'", "Продукты", 0xFF43A047, 7),
+        Transaction(2, 95000.0, TransactionType.INCOME, LocalDateTime.parse("2025-12-27T16:23:00"), "Зарплата за текущий месяц", "Работодатель ООО", "Зарплата", 0xFF1E88E5, 999),
+        Transaction(4, 3200.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-24T16:03:00"), "Оплата электроэнергии", "МосЭнергоСбыт", "Коммунальные услуги", 0xFFFBC02D, 8),
+        Transaction(7, 5000.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-18T02:55:00"), "Перевод долга", "Перевод Другу", "Не распределено", 0xFF9E9E9E, 999),
+        Transaction(5, 2100.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-17T12:26:00"), "Бензин АИ-95", "АЗС Лукойл", "Проезд", 0xFFE53935, 4),
+        Transaction(6, 7999.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-14T00:10:00"), "Покупка рубашки", "Zara Store", "Одежда", 0xFF8E24AA, 3),
+        Transaction(3, 1250.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-12T03:23:00"), "Ужин с друзьями", "Ресторан 'Уют'", "Рестораны", 0xFFFF7043, 10),
+        Transaction(8, 150.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-10T10:00:00"), "Кофе", "Кофейня", "Рестораны", 0xFFFF7043, 10),
+        Transaction(9, 650.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-12-10T11:00:00"), "Такси", "Яндекс Go", "Проезд", 0xFFE53935, 4),
 
         // Добавим транзакции в другой месяц для проверки фильтра (Ноябрь)
         Transaction(10, 1000.0, TransactionType.EXPENSE, LocalDateTime.parse("2025-11-01T10:00:00"), "Интернет", "Ростелеком", "Связь", 0xFF039BE5, 2)
