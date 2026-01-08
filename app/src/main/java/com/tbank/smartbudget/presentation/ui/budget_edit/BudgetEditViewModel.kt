@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.domain.model.BudgetLimitData
 import com.tbank.smartbudget.domain.model.BudgetLimitType
+import com.tbank.smartbudget.domain.usecase.DeleteBudgetUseCase // Добавили
 import com.tbank.smartbudget.domain.usecase.GetBudgetDetailsUseCase
 import com.tbank.smartbudget.domain.usecase.SaveBudgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class BudgetEditViewModel @Inject constructor(
     private val getBudgetDetailsUseCase: GetBudgetDetailsUseCase,
-    private val saveBudgetUseCase: SaveBudgetUseCase
+    private val saveBudgetUseCase: SaveBudgetUseCase,
+    private val deleteBudgetUseCase: DeleteBudgetUseCase // Добавили
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BudgetEditUiState(isLoading = true))
@@ -71,7 +73,6 @@ class BudgetEditViewModel @Inject constructor(
                     )
                 }
 
-                // Находим индекс сохраненного периода в нашем списке
                 val periods = _uiState.value.periods
                 val periodIndex = periods.indexOf(budget.period).takeIf { it >= 0 } ?: 0
 
@@ -80,7 +81,7 @@ class BudgetEditViewModel @Inject constructor(
                         isLoading = false,
                         amount = formatValue(budget.totalIncome),
                         categories = uiCategories,
-                        selectedPeriodIndex = periodIndex, // Устанавливаем выбранный период
+                        selectedPeriodIndex = periodIndex,
                         isPercentMode = uiCategories.any { cat -> cat.limitType == BudgetLimitType.PERCENT }
                     )
                 }
@@ -90,7 +91,6 @@ class BudgetEditViewModel @Inject constructor(
             }
     }
 
-    // ... (методы onGlobalLimitTypeToggle, onAmountChanged, onCategoryLimitChanged и т.д. без изменений)
     fun onGlobalLimitTypeToggle() {
         val currentState = _uiState.value
         val newModeIsPercent = !currentState.isPercentMode
@@ -140,13 +140,9 @@ class BudgetEditViewModel @Inject constructor(
         }
     }
 
-    // ...
-
     fun onSaveClicked() {
         val currentState = _uiState.value
         val income = currentState.amount.replace(" ", "").replace(",", ".").toDoubleOrNull() ?: 0.0
-
-        // Получаем строку выбранного периода
         val selectedPeriod = currentState.periods.getOrElse(currentState.selectedPeriodIndex) { "2 мес" }
 
         val limitsData = currentState.categories.mapNotNull { uiCat ->
@@ -168,6 +164,20 @@ class BudgetEditViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isSaving = false, error = e.message) }
+                }
+        }
+    }
+
+    // --- НОВАЯ ФУНКЦИЯ: Удаление бюджета ---
+    fun onDeleteClicked() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            deleteBudgetUseCase.execute(currentYear, currentMonth)
+                .onSuccess {
+                    _uiState.update { it.copy(isSaving = false, isSavedSuccess = true) } // Успешное удаление тоже закрывает экран
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isSaving = false, error = "Ошибка удаления: ${e.message}") }
                 }
         }
     }

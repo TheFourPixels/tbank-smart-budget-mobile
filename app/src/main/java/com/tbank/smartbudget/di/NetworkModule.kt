@@ -1,12 +1,11 @@
 package com.tbank.smartbudget.di
 
 import com.tbank.smartbudget.data.remote.api.BudgetApi
+import com.tbank.smartbudget.data.remote.api.CategoryApi // Добавили
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -15,26 +14,28 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BUDGET_BASE_URL = "http://158.160.208.149:8081/api/v1/"
+    // Для эмулятора Android используем 10.0.2.2
+    // Если тестируете на реальном устройстве, поменяйте на IP вашего компьютера
+    private const val BASE_URL = "http://10.0.2.2:8080/"
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY // Логируем тело запросов
-            })
+    fun provideRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideBudgetApi(okHttpClient: OkHttpClient): BudgetApi {
-        return Retrofit.Builder()
-            .baseUrl(BUDGET_BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(BudgetApi::class.java)
+    fun provideBudgetApi(retrofit: Retrofit): BudgetApi {
+        return retrofit.create(BudgetApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryApi(retrofit: Retrofit): CategoryApi { // Добавили
+        return retrofit.create(CategoryApi::class.java)
     }
 }

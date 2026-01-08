@@ -6,14 +6,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,19 +24,18 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.tbank.smartbudget.domain.model.BudgetLimitType
 import com.tbank.smartbudget.presentation.ui.common.DetailsCard
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.presentation.ui.budget_edit.components.DarkSourceCard
 import com.tbank.smartbudget.presentation.ui.budget_edit.components.EditCategoryRow
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.InputBox
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.PeriodChip
+import com.tbank.smartbudget.presentation.ui.budget_edit.components.UnitSwitchBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,9 +48,6 @@ fun BudgetEditScreen(
     val density = LocalDensity.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // --- ОБНОВЛЕНИЕ ДАННЫХ ПРИ ВОЗВРАТЕ ---
-    // Когда экран становится RESUMED (например, вернулись с выбора категорий),
-    // обновляем список, чтобы подтянуть новые добавленные категории.
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -91,6 +85,11 @@ fun BudgetEditScreen(
                     }
                 },
                 actions = {
+                    // Кнопка удаления (иконка корзины)
+                    IconButton(onClick = { viewModel.onDeleteClicked() }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.White)
+                    }
+                    // Кнопка сохранения
                     IconButton(onClick = { viewModel.onSaveClicked() }) {
                         Icon(Icons.Default.Check, contentDescription = "Сохранить", tint = Color.White)
                     }
@@ -231,52 +230,5 @@ fun BudgetEditScreen(
                 }
             }
         }
-    }
-}
-
-// Повторное определение компонентов для полноты файла
-@Composable
-fun PeriodChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
-    val backgroundColor = if (isSelected) Color(0xFFC6FF00) else Color(0xFFF5F5F5)
-    Box(
-        modifier = Modifier.clip(RoundedCornerShape(50)).background(backgroundColor)
-            .clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), color = Color.Black)
-    }
-}
-
-@Composable
-fun UnitSwitchBox(isPercentMode: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.clip(RoundedCornerShape(16.dp)).background(Color(0xFFF9F9F9))
-            .clickable(onClick = onToggle).padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Единицы", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold), color = Color.Black)
-        Spacer(Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("₽", style = MaterialTheme.typography.titleMedium.copy(fontWeight = if (!isPercentMode) FontWeight.Bold else FontWeight.Normal, color = if (!isPercentMode) Color.Black else Color.Gray, fontSize = 16.sp))
-            Text(" / ", style = MaterialTheme.typography.titleMedium.copy(color = Color.Gray, fontSize = 16.sp))
-            Text("%", style = MaterialTheme.typography.titleMedium.copy(fontWeight = if (isPercentMode) FontWeight.Bold else FontWeight.Normal, color = if (isPercentMode) Color.Black else Color.Gray, fontSize = 16.sp))
-        }
-    }
-}
-
-@Composable
-fun InputBox(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.clip(RoundedCornerShape(16.dp)).background(Color(0xFFF9F9F9)).padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(label, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold), color = Color(0xFF333333))
-        Spacer(Modifier.height(4.dp))
-        BasicTextField(
-            value = value, onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp, textAlign = TextAlign.Center),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true,
-            modifier = Modifier.fillMaxWidth(), decorationBox = { Box(contentAlignment = Alignment.Center) { it() } }
-        )
     }
 }

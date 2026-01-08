@@ -11,4 +11,8 @@ interface CategorySearchRepository {
      * @return Список объектов BudgetCategory.
      */
     suspend fun getAllCategories(): List<BudgetCategory>
+
+    // Сохраним searchCategories для совместимости с BudgetRepositoryImpl,
+    // но пометим, что он делегирует к getAllCategories с фильтрацией.
+    // Или лучше обновим BudgetRepositoryImpl.
 }
