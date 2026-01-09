@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,13 +39,13 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 fun BudgetDetailsScreen(
     onNavigateBack: () -> Unit,
     onEditClick: () -> Unit,
+    onCalculationsClick: () -> Unit = {}, // Добавлен колбэк с дефолтным значением
     viewModel: BudgetDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
     val density = LocalDensity.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // --- ОБНОВЛЕНИЕ ДАННЫХ ПРИ ВОЗВРАТЕ ---
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -59,7 +58,6 @@ fun BudgetDetailsScreen(
         }
     }
 
-    // Высота градиентного фона
     val gradientHeight = 406.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
 
@@ -87,8 +85,7 @@ fun BudgetDetailsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
-
-                // --- ФОН ---
+                // Фон
                 Box(modifier = Modifier.fillMaxWidth().height(gradientHeight)) {
                     Box(modifier = Modifier.fillMaxSize().background(
                         brush = Brush.radialGradient(
@@ -106,9 +103,9 @@ fun BudgetDetailsScreen(
                     ))
                 }
 
-                // --- КОНТЕНТ ---
+                // Контент
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    // === ШАПКА ===
+                    // Шапка
                     Column(modifier = Modifier.padding(horizontal = 18.dp)) {
                         Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
                         Spacer(modifier = Modifier.height(16.dp))
@@ -152,9 +149,9 @@ fun BudgetDetailsScreen(
 
                     Spacer(modifier = Modifier.height(30.dp))
 
-                    // === КАРТОЧКИ ===
+                    // Карточки
                     Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                        // --- КАРТОЧКА 1 ---
+                        // Карточка 1
                         DetailsCard {
                             Text("По вашему бюджету", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                             Spacer(modifier = Modifier.height(16.dp))
@@ -164,8 +161,10 @@ fun BudgetDetailsScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             InfoRow("Свободные средства", state.freeFunds)
                             Spacer(modifier = Modifier.height(24.dp))
+
+                            // Кнопка "Посмотреть расчеты"
                             Button(
-                                onClick = { /* TODO */ },
+                                onClick = onCalculationsClick, // Вызов колбэка
                                 modifier = Modifier.fillMaxWidth().height(48.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDD2D), contentColor = Color.Black),
                                 shape = RoundedCornerShape(12.dp)
@@ -176,7 +175,7 @@ fun BudgetDetailsScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // --- КАРТОЧКА 2 ---
+                        // Остальные карточки...
                         DetailsCard {
                             Text("Лимит не установлен", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                             Text("Можно тратить всю сумму с бюджета", style = MaterialTheme.typography.bodyMedium, color = Color.Black, modifier = Modifier.padding(top = 4.dp, bottom = 16.dp))
@@ -192,7 +191,6 @@ fun BudgetDetailsScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // --- КАРТОЧКА 3 ---
                         DetailsCard {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("Привязана к счету", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
@@ -213,7 +211,6 @@ fun BudgetDetailsScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // --- КАРТОЧКА 4 ---
                         DetailsCard {
                             Text("Настройки", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                             Spacer(modifier = Modifier.height(16.dp))
