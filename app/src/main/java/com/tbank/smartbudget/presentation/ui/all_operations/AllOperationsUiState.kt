@@ -1,8 +1,6 @@
 package com.tbank.smartbudget.presentation.ui.all_operations
 
 import androidx.compose.ui.graphics.Color
-import java.time.LocalDate
-
 data class AllOperationsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,

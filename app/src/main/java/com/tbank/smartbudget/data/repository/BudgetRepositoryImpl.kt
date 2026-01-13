@@ -2,7 +2,6 @@ package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.data.remote.api.BudgetApi
 import com.tbank.smartbudget.data.remote.api.CategoryApi
-import com.tbank.smartbudget.data.remote.dto.BudgetDashboardDto
 import com.tbank.smartbudget.data.remote.dto.CreateCategoryRequest
 import com.tbank.smartbudget.data.remote.dto.LimitRequestDto
 import com.tbank.smartbudget.data.remote.dto.SaveBudgetRequest
