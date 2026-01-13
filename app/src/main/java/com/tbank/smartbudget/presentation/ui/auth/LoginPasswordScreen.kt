@@ -29,22 +29,13 @@ fun LoginPasswordScreen(
     onNavigateNext: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    // Инициализируем ViewModel данными из навигации
     LaunchedEffect(Unit) {
         viewModel.initAuthData(email, isUserExisting, userName)
     }
 
     val state by viewModel.uiState.collectAsState()
 
-    // Логика заголовка (используем state, который только что обновили)
-    // Важно: state обновляется асинхронно, но LaunchedEffect запустится очень быстро.
-    // Для мгновенного отображения можно использовать переданные аргументы напрямую для заголовка,
-    // но правильнее полагаться на стейт. Чтобы избежать "мигания", можно использовать
-    // данные из аргументов для дефолтного значения или просто ждать обновления.
-    // В данном случае используем state, так как он source of truth.
 
-    // Но так как initAuthData обновляет StateFlow, Compose перерисуется с новыми данными.
-    // Если хотите мгновенно показать заголовок, используйте аргументы функции:
     val displayUserName = state.userName ?: userName
     val displayIsExisting = if (state.email.isNotEmpty()) state.isUserExisting else isUserExisting
 

@@ -33,9 +33,6 @@ fun CategoryTag(
     val backgroundColor = if (isDimmed) Color(0xFFF5F5F5) else baseColor.copy(alpha = 0.15f)
     val textColor = if (isDimmed) Color.Gray else Color.Black.copy(alpha = 0.7f)
 
-    // Если элемент выбран, можно добавить обводку или более яркий фон (опционально)
-    // В текущем дизайне просто оставляем его цветным, пока остальные серые.
-
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(50))

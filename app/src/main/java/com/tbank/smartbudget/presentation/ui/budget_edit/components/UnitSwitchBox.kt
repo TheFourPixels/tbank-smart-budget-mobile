@@ -36,7 +36,7 @@ fun UnitSwitchBox(
         Text(
             text = "Единицы",
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Companion.SemiBold),
-            color = Color.Companion.Black // Лейбл черный, как в isValueSecondary=true
+            color = Color.Companion.Black
         )
         Spacer(Modifier.Companion.height(4.dp))
 

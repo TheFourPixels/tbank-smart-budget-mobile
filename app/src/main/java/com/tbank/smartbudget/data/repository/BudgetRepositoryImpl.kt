@@ -29,8 +29,6 @@ class BudgetRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val dto = response.body()!!
 
-                // Исправление: используем getAllCategories вместо searchCategories,
-                // так как интерфейс репозитория категорий был изменен.
                 val allCategories = categoryRepository.getAllCategories()
 
                 val limits = dto.limits.map { limitDto ->
@@ -56,7 +54,6 @@ class BudgetRepositoryImpl @Inject constructor(
 
     override suspend fun saveBudget(year: Int, month: Int, totalIncome: Double, period: String, limits: List<BudgetLimitData>): Result<Unit> {
         return try {
-            // Исправлено: limitType в BudgetLimitData это String, поэтому .name не нужен
             val requestLimits = limits.map { LimitRequestDto(it.categoryId, it.limitValue, it.limitType) }
             val request = SaveBudgetRequest(year, month, totalIncome, requestLimits)
             val response = budgetApi.saveBudget(request)
@@ -86,7 +83,6 @@ class BudgetRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllAvailableCategories(): Result<List<BudgetCategory>> {
-        // Исправление: используем getAllCategories
         return Result.success(categoryRepository.getAllCategories())
     }
 

@@ -22,7 +22,7 @@ fun DarkSourceCard(amount: String, cardNumber: String, cardName: String) {
     Card(
         modifier = Modifier.Companion.fillMaxWidth().height(140.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C)) // Почти черный
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C))
     ) {
         Column(
             modifier = Modifier.Companion

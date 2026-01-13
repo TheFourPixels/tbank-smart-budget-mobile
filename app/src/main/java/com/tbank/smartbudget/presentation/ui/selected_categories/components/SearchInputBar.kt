@@ -31,8 +31,6 @@ fun SearchInputBar(
     onSearchTextChange: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    // Используем стиль как в BudgetTab, но без стрелки "Назад" внутри поля
-    // Если нужна кнопка назад снаружи, раскомментируйте IconButton ниже
     Row(
         verticalAlignment = Alignment.Companion.CenterVertically,
         modifier = Modifier.Companion.fillMaxWidth()

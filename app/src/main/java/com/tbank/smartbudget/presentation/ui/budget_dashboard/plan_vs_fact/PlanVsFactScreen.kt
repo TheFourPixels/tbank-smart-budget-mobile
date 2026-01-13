@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,17 +34,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tbank.smartbudget.presentation.ui.budget_dashboard.components.SummaryCard
 import com.tbank.smartbudget.presentation.ui.common.DetailsCard
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme.colors
-import com.tbank.smartbudget.presentation.ui.all_operations.AllOperationsUiState
 
 
 // Цвета из макета
 val PlanColorCategory = Color(0xFF528ECE)
 val FactColorCategory = Color(0xFF295C9E)
-private val LabelYellow = Color(0xFFFFD600) // Желтый акцент
-private val AlertColor = Color(0xFFE53935) // Красный для превышения
+private val LabelYellow = Color(0xFFFFD600)
 
 @Composable
 fun PlanVsFactScreen(
@@ -54,7 +52,6 @@ fun PlanVsFactScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    // Передаем состояние в чистый Composable, свободный от Hilt
     PlanVsFactContent(
         state = state,
         onNavigateBack = onNavigateBack
@@ -144,7 +141,7 @@ fun PlanVsFactContent(
                         // Заголовок: Жирный и крупный
                         Text(
                             text = "План vs Факт",
-                            style = MaterialTheme.typography.titleLarge.copy( // Используем displaySmall для большого размера
+                            style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.W700
                             ),
                             color = Color.White
@@ -161,7 +158,7 @@ fun PlanVsFactContent(
                                 lineHeight = 20.sp,
                                 fontSize = 14.sp
                             ),
-                            color = Color.LightGray // Серый цвет, читаемый на темном фоне
+                            color = Color.LightGray
                         )
                     }
 
@@ -410,7 +407,7 @@ fun PlanVsFactContent(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // 5. Карточка ЛИНЕЙНЫЙ ГРАФИК (Новая, с желтой кнопкой)
+                    // 5. Карточка ЛИНЕЙНЫЙ ГРАФИК
                     Box(
                         modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.BottomCenter
@@ -484,44 +481,12 @@ private fun String.parseMoney(): Double {
 }
 
 @Composable
-fun SummaryCard(
-    title: String,
-    amount: String,
-    backgroundColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(84.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = amount,
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
 fun BarChartComparison(
     planValue: Double,
     factValue: Double,
     diffLabel: String,
     listOfColors: List<Color>,
-    isSmall: Boolean = false // Флаг для компактного режима (на будущее, если понадобится)
+    isSmall: Boolean = false
 ) {
     // Определяем масштаб графика
     val maxValue = maxOf(planValue, factValue) * 1.2
@@ -826,69 +791,6 @@ fun ExpensesLineChart(
                 Text("25", fontSize = 10.sp, color = Color.Gray)
                 Text("30", fontSize = 10.sp, color = Color.Gray)
             }
-        }
-    }
-}
-
-@Composable
-fun CategoryItem(category: PlanVsFactCategoryUi) {
-    // Получаем числовые значения из строк для построения графиков
-    val planVal = category.planAmount.replace(Regex("[^0-9]"), "").toDoubleOrNull() ?: 0.0
-    val factVal = category.factAmount.replace(Regex("[^0-9]"), "").toDoubleOrNull() ?: 0.0
-
-    Row(
-        modifier = Modifier.fillMaxWidth().height(60.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-            // Иконка
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(category.color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingCart, // Заглушка
-                    contentDescription = null,
-                    tint = category.color,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Название и суммы
-            Column {
-                Text(
-                    text = category.name,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = Color.Black
-                )
-                Text(
-                    text = "${category.factAmount} / ${category.planAmount}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
-                )
-            }
-        }
-
-        // Мини-график (столбцы) справа
-        Box(
-            modifier = Modifier
-                .width(40.dp)
-                .height(40.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            BarChartComparison(
-                planValue = planVal,
-                factValue = factVal,
-                diffLabel = "",
-                isSmall = true,
-                listOfColors = listOf(PlanColorCategory, FactColorCategory)
-            )
         }
     }
 }

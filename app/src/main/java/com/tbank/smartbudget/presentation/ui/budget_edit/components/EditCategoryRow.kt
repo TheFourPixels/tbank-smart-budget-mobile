@@ -35,8 +35,8 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 @Composable
 fun EditCategoryRow(
     category: EditCategoryUi,
-    onLimitChange: (String) -> Unit, // Параметр добавлен
-    onTypeToggle: () -> Unit // Параметр добавлен
+    onLimitChange: (String) -> Unit,
+    onTypeToggle: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),

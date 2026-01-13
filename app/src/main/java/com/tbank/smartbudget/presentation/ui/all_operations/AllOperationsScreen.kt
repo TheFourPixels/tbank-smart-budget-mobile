@@ -1,6 +1,5 @@
 package com.tbank.smartbudget.presentation.ui.all_operations
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,14 +27,13 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 @Composable
 fun AllOperationsScreen(
     onNavigateBack: () -> Unit,
-    onSearchClick: () -> Unit, // Колбэк для перехода на экран поиска категорий
+    onSearchClick: () -> Unit,
     viewModel: AllOperationsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 
     // Поисковый текст здесь может быть именем выбранной категории, если мы ищем по категории
     // Или пустым, если мы используем экран поиска только для выбора фильтра
-    // Для простоты пока оставим пустым
     val searchText by remember { mutableStateOf("") }
 
     var showDatePicker by remember { mutableStateOf(false) }
@@ -81,10 +79,7 @@ fun AllOperationsScreen(
                                 .weight(1f)
                                 .clickable { onSearchClick() } // Переход на экран поиска
                         ) {
-                            // Используем BasicSearchBar, но блокируем ввод (в реальном приложении лучше добавить параметр enabled/readOnly в BasicSearchBar)
-                            // Здесь мы просто накладываем прозрачный Box поверх, чтобы перехватить клик,
-                            // или полагаемся на то, что BasicSearchBar сам по себе не перехватывает клики контейнера если не в фокусе.
-                            // Для надежности лучше использовать Box с кликом.
+
                             BasicSearchBar(
                                 searchText = searchText,
                                 onSearchTextChange = { }, // Игнорируем ввод здесь

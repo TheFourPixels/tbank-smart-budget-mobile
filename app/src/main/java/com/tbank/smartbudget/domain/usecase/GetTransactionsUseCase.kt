@@ -25,8 +25,8 @@ class GetTransactionsUseCase @Inject constructor(
 ) {
     suspend fun execute(
         query: String = "",
-        startDate: LocalDateTime? = null, // Добавили параметр
-        endDate: LocalDateTime? = null     // Добавили параметр
+        startDate: LocalDateTime? = null,
+        endDate: LocalDateTime? = null
     ): Result<TransactionsResult> {
 
         // Передаем даты в репозиторий

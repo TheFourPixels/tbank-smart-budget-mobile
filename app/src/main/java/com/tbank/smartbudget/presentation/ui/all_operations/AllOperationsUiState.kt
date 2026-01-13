@@ -13,8 +13,7 @@ data class AllOperationsUiState(
     // Выбранный месяц (для заголовка, если нужно, или убираем если заменяем календарем)
     val selectedMonth: String = "",
 
-    // Убираем selectedFilter, так как вкладку "Все" удаляем
-    // val selectedFilter: String = "Все",
+
 
     val totalExpense: String = "0 ₽",
     val periodType: PeriodType = PeriodType.MONTH,

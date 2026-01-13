@@ -23,9 +23,9 @@ class PlanVsFactViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlanVsFactUiState(isLoading = true))
     val uiState: StateFlow<PlanVsFactUiState> = _uiState.asStateFlow()
 
-    // Используем дату демо-режима для согласованности с другими экранами
-    private val currentYear = 2025
-    private val currentMonth = 12
+
+    private val currentYear = 2026
+    private val currentMonth = 1
 
     init {
         loadData()
@@ -35,7 +35,7 @@ class PlanVsFactViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            // 1. Формируем строку даты (например, "Декабрь 2025")
+            // 1. Формируем строку даты (например, "Январь 2026")
             val date = LocalDate.of(currentYear, currentMonth, 1)
             val formatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru"))
             val formattedPeriod = date.format(formatter)

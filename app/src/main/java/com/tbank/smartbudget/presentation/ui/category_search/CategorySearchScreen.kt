@@ -20,7 +20,7 @@ import com.tbank.smartbudget.presentation.ui.category_search.components.SearchAp
 @Composable
 fun CategorySearchScreen(
     onNavigateBack: () -> Unit,
-    onCategoryClick: (String) -> Unit = {}, // Добавлен колбэк для возврата результата
+    onCategoryClick: (String) -> Unit = {},
     viewModel: CategorySearchViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()

@@ -14,9 +14,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // Для эмулятора Android используем 10.0.2.2
-    // Если тестируете на реальном устройстве, поменяйте на IP вашего компьютера
-    private const val BASE_URL = "https://158.160.143.253/api/"
+
+    private const val BASE_URL = "http://51.250.32.92:8081/api/v1"
 
     @Provides
     @Singleton
@@ -35,7 +34,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideCategoryApi(retrofit: Retrofit): CategoryApi { // Добавили
+    fun provideCategoryApi(retrofit: Retrofit): CategoryApi {
         return retrofit.create(CategoryApi::class.java)
     }
 }

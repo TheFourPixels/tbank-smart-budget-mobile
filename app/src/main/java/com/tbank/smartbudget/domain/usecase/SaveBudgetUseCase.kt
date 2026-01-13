@@ -17,7 +17,7 @@ class SaveBudgetUseCase @Inject constructor(
         year: Int,
         month: Int,
         totalIncome: Double,
-        period: String, // Добавили период
+        period: String,
         limits: List<BudgetLimitData>
     ): Result<Unit> {
 
@@ -39,7 +39,7 @@ class SaveBudgetUseCase @Inject constructor(
             return Result.failure(IllegalStateException("Сумма лимитов (в рублях) превышает доступный доход."))
         }
 
-        // 5. Вызов репозитория для сохранения
+        // 3. Вызов репозитория для сохранения
         return repository.saveBudget(year, month, totalIncome, period, limits)
     }
 }

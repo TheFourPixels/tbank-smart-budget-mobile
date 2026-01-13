@@ -47,9 +47,8 @@ class BudgetDashboardViewModel @Inject constructor(
                         else -> 0xFF43A047 // Зеленый
                     }
 
-                    // Расчет "Сколько можно тратить в день"
-                    // Упрощенно считаем дни до конца месяца
-                    val daysRemaining = 30 // Для демо ставим константу или высчитываем java.time
+
+                    val daysRemaining = 30
                     val dailySafe = if (daysRemaining > 0) summary.freeFunds / daysRemaining else 0.0
 
                     _uiState.update {

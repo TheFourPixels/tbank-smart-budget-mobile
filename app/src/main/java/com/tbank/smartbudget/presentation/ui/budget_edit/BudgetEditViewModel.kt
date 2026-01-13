@@ -19,7 +19,7 @@ import javax.inject.Inject
 class BudgetEditViewModel @Inject constructor(
     private val getBudgetDetailsUseCase: GetBudgetDetailsUseCase,
     private val saveBudgetUseCase: SaveBudgetUseCase,
-    private val deleteBudgetUseCase: DeleteBudgetUseCase // Добавили
+    private val deleteBudgetUseCase: DeleteBudgetUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BudgetEditUiState(isLoading = true))

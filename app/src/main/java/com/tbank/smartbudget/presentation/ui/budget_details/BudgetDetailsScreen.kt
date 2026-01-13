@@ -39,7 +39,7 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 fun BudgetDetailsScreen(
     onNavigateBack: () -> Unit,
     onEditClick: () -> Unit,
-    onCalculationsClick: () -> Unit = {}, // Добавлен колбэк с дефолтным значением
+    onCalculationsClick: () -> Unit = {},
     viewModel: BudgetDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -164,7 +164,7 @@ fun BudgetDetailsScreen(
 
                             // Кнопка "Посмотреть расчеты"
                             Button(
-                                onClick = onCalculationsClick, // Вызов колбэка
+                                onClick = onCalculationsClick,
                                 modifier = Modifier.fillMaxWidth().height(48.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDD2D), contentColor = Color.Black),
                                 shape = RoundedCornerShape(12.dp)

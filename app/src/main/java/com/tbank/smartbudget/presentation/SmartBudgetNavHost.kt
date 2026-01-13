@@ -25,6 +25,7 @@ import com.tbank.smartbudget.presentation.ui.budget_details.BudgetDetailsScreen
 import com.tbank.smartbudget.presentation.ui.budget_edit.BudgetEditScreen
 import com.tbank.smartbudget.presentation.ui.budget_tab.BudgetTabScreen
 import com.tbank.smartbudget.presentation.ui.category_search.CategorySearchScreen
+import com.tbank.smartbudget.presentation.ui.profile.ProfileScreen
 import com.tbank.smartbudget.presentation.ui.selected_categories.SelectedCategoriesScreen
 
 object Routes {
@@ -41,6 +42,7 @@ object Routes {
     const val ALL_OPERATIONS = "all_operations"
     const val SELECTED_CATEGORIES = "selected_categories"
     const val  CATEGORIES_DASHBOARD = "categories_dashboard"
+    const val PROFILE = "profile"
 }
 
 @Composable
@@ -101,6 +103,7 @@ fun SmartBudgetNavHost() {
         composable(Routes.BUDGET_TAB) {
             BudgetTabScreen(
                 onSearchClick = { navController.navigate(Routes.CATEGORY_SEARCH) },
+                onProfileClick = {navController.navigate(Routes.PROFILE)},
                 onBudgetClick = { navController.navigate(Routes.BUDGET_DETAILS) },
                 onAllOperationsClick = { navController.navigate(Routes.ALL_OPERATIONS) },
                 onSelectedCategoriesClick = { navController.navigate(Routes.SELECTED_CATEGORIES) }
@@ -187,6 +190,12 @@ fun SmartBudgetNavHost() {
 
         composable(Routes.SELECTED_CATEGORIES) {
             SelectedCategoriesScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }
