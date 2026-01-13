@@ -1,6 +1,8 @@
 package com.tbank.smartbudget.di
 
+import com.tbank.smartbudget.data.repository.BudgetRepositoryImpl
 import com.tbank.smartbudget.data.repository.BudgetRepositoryMockImpl
+import com.tbank.smartbudget.data.repository.CategorySearchRepositoryImpl
 import com.tbank.smartbudget.data.repository.MockCategorySearchRepositoryImpl
 import com.tbank.smartbudget.data.repository.MockTransactionRepositoryImpl
 import com.tbank.smartbudget.data.repository.MockAuthRepositoryImpl // Добавлено

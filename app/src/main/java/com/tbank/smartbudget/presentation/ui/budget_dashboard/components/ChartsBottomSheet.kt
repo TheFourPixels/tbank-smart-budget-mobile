@@ -52,7 +52,7 @@ fun ChartsBottomSheet(
                 emoji = "🍩",
                 title = "Категории",
                 subtitle = "Список категорий с наибольшими тратами",
-                onClick = { onChartSelected("categories") }
+                onClick = { onChartSelected("categories_dashboard") }
             )
 
             // 3. Цели

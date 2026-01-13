@@ -16,7 +16,7 @@ object NetworkModule {
 
     // Для эмулятора Android используем 10.0.2.2
     // Если тестируете на реальном устройстве, поменяйте на IP вашего компьютера
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "https://158.160.143.253/api/"
 
     @Provides
     @Singleton

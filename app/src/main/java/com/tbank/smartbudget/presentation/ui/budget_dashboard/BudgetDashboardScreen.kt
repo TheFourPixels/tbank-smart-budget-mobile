@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -36,6 +35,7 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 fun BudgetDashboardScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPlanVsFact: () -> Unit, // Добавили колбэк
+    onNavigateToCategoriesDashboard: () -> Unit,
     viewModel: BudgetDashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -43,7 +43,8 @@ fun BudgetDashboardScreen(
     BudgetDashboardContent(
         state = state,
         onNavigateBack = onNavigateBack,
-        onNavigateToPlanVsFact = onNavigateToPlanVsFact // Передаем
+        onNavigateToPlanVsFact = onNavigateToPlanVsFact, // Передаем
+        onNavigateToCategoriesDashboard = onNavigateToCategoriesDashboard
     )
 }
 
@@ -52,7 +53,8 @@ fun BudgetDashboardScreen(
 fun BudgetDashboardContent(
     state: BudgetDashboardUiState,
     onNavigateBack: () -> Unit,
-    onNavigateToPlanVsFact: () -> Unit
+    onNavigateToPlanVsFact: () -> Unit,
+    onNavigateToCategoriesDashboard: () -> Unit,
 ) {
     // Состояние видимости нижнего экрана (Bottom Sheet)
     var showChartsSheet by remember { mutableStateOf(false) }
@@ -69,6 +71,9 @@ fun BudgetDashboardContent(
                     onNavigateToPlanVsFact()
                 }
                 // Для других типов пока заглушки
+                if (chartType == "categories_dashboard") {
+                    onNavigateToCategoriesDashboard()
+                }
             }
         )
     }
@@ -115,7 +120,7 @@ fun BudgetDashboardContent(
                     Box(modifier = Modifier.fillMaxWidth().height(gradientHeight)) {
                         Box(modifier = Modifier.fillMaxSize().background(
                             brush = Brush.radialGradient(
-                                colors = listOf(SmartBudgetTheme.colors.gradientGreen, SmartBudgetTheme.colors.gradientDarkBlue),
+                                colors = listOf(SmartBudgetTheme.colors.gradientYellow, SmartBudgetTheme.colors.gradientBlue),
                                 center = Offset(Float.POSITIVE_INFINITY, 750.0f),
                                 radius = 700f,
                                 tileMode = TileMode.Clamp
@@ -139,19 +144,12 @@ fun BudgetDashboardContent(
                     ) {
                         Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
 
-                        // Заголовок
-                        Text(
-                            text = "Расчеты бюджета",
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
                         // --- ГРАФИК (Hero section) ---
                         Column {
                             // Крупный текст с оставшейся суммой
                             Text(
-                                text = "Денег осталось ${state.remainingAmount}",
+                                text = "Денег осталось " + "\n" +
+                                        "${state.remainingAmount}",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                                 color = Color.White.copy(alpha = 0.9f)
                             )
@@ -176,7 +174,7 @@ fun BudgetDashboardContent(
                                     .fillMaxWidth()
                                     .height(200.dp),
                                 lineColor = Color.White,
-                                dotColor = SmartBudgetTheme.colors.gradientGreen
+                                dotColor = SmartBudgetTheme.colors.gradientYellow
                             )
                         }
 
@@ -235,41 +233,7 @@ fun BudgetDashboardContent(
                                     )
                                 }
                             }
-
-                            Spacer(Modifier.height(24.dp))
-
-                            // Разделитель
-                            HorizontalDivider(color = Color(0xFFEEEEEE))
-                            Spacer(Modifier.height(24.dp))
-
-                            // План на день и Дни
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column {
-                                    Text("Доступно в день", color = Color.Gray, fontSize = 12.sp)
-                                    Text(
-                                        state.dailyBudget,
-                                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = SmartBudgetTheme.colors.blue
-                                    )
-                                }
-
-                                Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color(0xFFEEEEEE)))
-
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text("Дней осталось", color = Color.Gray, fontSize = 12.sp)
-                                    Text(
-                                        state.daysLeft.toString(),
-                                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = Color.Black
-                                    )
-                                }
-                            }
-
-                            Spacer(Modifier.height(24.dp))
+                            Spacer(Modifier.height(20.dp))
 
                             // Кнопка "Посмотреть расчеты"
                             Button(
@@ -400,7 +364,7 @@ fun BudgetDashboardScreenPreview() {
                 periodDescription = "Декабрь"
             ),
             onNavigateBack = {},
-            onNavigateToPlanVsFact = {}
-        )
+            onNavigateToPlanVsFact = {},
+        ) {}
     }
 }

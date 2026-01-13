@@ -30,18 +30,20 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextAlign.Companion.Center
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tbank.smartbudget.presentation.ui.common.DetailsCard
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
-import kotlin.math.roundToInt
+import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme.colors
+import com.tbank.smartbudget.presentation.ui.all_operations.AllOperationsUiState
+
 
 // Цвета из макета
-private val PlanColor = Color(0xFF7986CB) // Светло-фиолетовый
-private val FactColor = Color(0xFF283593) // Темно-синий
+val PlanColorCategory = Color(0xFF528ECE)
+val FactColorCategory = Color(0xFF295C9E)
 private val LabelYellow = Color(0xFFFFD600) // Желтый акцент
 private val AlertColor = Color(0xFFE53935) // Красный для превышения
 
@@ -75,6 +77,10 @@ fun PlanVsFactContent(
 
     val selectedCategory = state.categories.getOrNull(selectedCategoryIndex)
 
+    val PlanColor = colors.gradientViolet // Светло-фиолетовый
+    val FactColor = colors.gradientDarkViolet // Темно-фиолетовый
+
+
     Scaffold(
         containerColor = Color.White,
         topBar = {
@@ -103,9 +109,9 @@ fun PlanVsFactContent(
                 Box(modifier = Modifier.fillMaxWidth().height(gradientHeight)) {
                     Box(modifier = Modifier.fillMaxSize().background(
                         brush = Brush.radialGradient(
-                            colors = listOf(SmartBudgetTheme.colors.gradientGreen, SmartBudgetTheme.colors.gradientDarkBlue),
+                            colors = listOf(colors.gradientViolet, colors.gradientDarkViolet),
                             center = Offset(Float.POSITIVE_INFINITY, 750.0f),
-                            radius = 700f,
+                            radius = 900f,
                             tileMode = TileMode.Clamp
                         )
                     ))
@@ -138,8 +144,8 @@ fun PlanVsFactContent(
                         // Заголовок: Жирный и крупный
                         Text(
                             text = "План vs Факт",
-                            style = MaterialTheme.typography.displaySmall.copy( // Используем displaySmall для большого размера
-                                fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleLarge.copy( // Используем displaySmall для большого размера
+                                fontWeight = FontWeight.W700
                             ),
                             color = Color.White
                         )
@@ -174,9 +180,9 @@ fun PlanVsFactContent(
 
                                     // Заголовок внутри карточки
                                     Text(
-                                        text = "Общая сводка",
+                                        text = "Общие траты",
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        modifier = Modifier.align(Alignment.Start)
+                                        modifier = Modifier.align(Alignment.CenterHorizontally)
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -212,7 +218,8 @@ fun PlanVsFactContent(
                                         BarChartComparison(
                                             planValue = state.totalPlan.parseMoney(),
                                             factValue = state.totalFact.parseMoney(),
-                                            diffLabel = state.percentageDiffLabel
+                                            diffLabel = state.percentageDiffLabel,
+                                            listOfColors = listOf(PlanColor, FactColor)
                                         )
                                     }
 
@@ -330,14 +337,14 @@ fun PlanVsFactContent(
                                             SummaryCard(
                                                 title = "План",
                                                 amount = selectedCategory.planAmount,
-                                                backgroundColor = PlanColor,
+                                                backgroundColor = PlanColorCategory,
                                                 modifier = Modifier.weight(1f)
                                             )
 
                                             SummaryCard(
                                                 title = "Факт",
                                                 amount = selectedCategory.factAmount,
-                                                backgroundColor = FactColor,
+                                                backgroundColor = FactColorCategory,
                                                 modifier = Modifier.weight(1f)
                                             )
                                         }
@@ -361,7 +368,8 @@ fun PlanVsFactContent(
                                             BarChartComparison(
                                                 planValue = pVal,
                                                 factValue = fVal,
-                                                diffLabel = catDiffLabel
+                                                diffLabel = catDiffLabel,
+                                                listOfColors = listOf(PlanColorCategory, FactColorCategory)
                                             )
                                         }
                                     } else {
@@ -412,9 +420,9 @@ fun PlanVsFactContent(
                             DetailsCard {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = "График расходов",
+                                        text = "График расходов за \n ${state.periodName}",
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        modifier = Modifier.align(Alignment.Start)
+                                        textAlign = Center
                                     )
                                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -512,6 +520,7 @@ fun BarChartComparison(
     planValue: Double,
     factValue: Double,
     diffLabel: String,
+    listOfColors: List<Color>,
     isSmall: Boolean = false // Флаг для компактного режима (на будущее, если понадобится)
 ) {
     // Определяем масштаб графика
@@ -590,7 +599,7 @@ fun BarChartComparison(
                         .width(barWidth)
                         .fillMaxHeight(planHeightRatio.coerceAtLeast(0.01f))
                         .clip(RoundedCornerShape(topStart = radius, topEnd = radius))
-                        .background(PlanColor)
+                        .background(listOfColors.component1())
                 )
 
                 if (isSmall) Spacer(Modifier.width(4.dp))
@@ -601,7 +610,7 @@ fun BarChartComparison(
                         .width(barWidth)
                         .fillMaxHeight(factHeightRatio.coerceAtLeast(0.01f))
                         .clip(RoundedCornerShape(topStart = radius, topEnd = radius))
-                        .background(FactColor)
+                        .background(listOfColors.component2())
                 )
             }
 
@@ -877,7 +886,8 @@ fun CategoryItem(category: PlanVsFactCategoryUi) {
                 planValue = planVal,
                 factValue = factVal,
                 diffLabel = "",
-                isSmall = true
+                isSmall = true,
+                listOfColors = listOf(PlanColorCategory, FactColorCategory)
             )
         }
     }

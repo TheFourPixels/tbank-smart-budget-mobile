@@ -9,6 +9,9 @@ data class PlanVsFactUiState(
     val totalPlan: String = "0 ₽",
     val totalFact: String = "0 ₽",
 
+    // Название периода (например, "Декабрь 2025")
+    val periodName: String = "",
+
     // Сырые данные для построения графика
     val planValue: Double = 0.0,
     val factValue: Double = 0.0,

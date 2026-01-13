@@ -10,8 +10,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.abs
 
 @HiltViewModel
 class PlanVsFactViewModel @Inject constructor(
@@ -21,6 +23,10 @@ class PlanVsFactViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlanVsFactUiState(isLoading = true))
     val uiState: StateFlow<PlanVsFactUiState> = _uiState.asStateFlow()
 
+    // Используем дату демо-режима для согласованности с другими экранами
+    private val currentYear = 2025
+    private val currentMonth = 12
+
     init {
         loadData()
     }
@@ -28,6 +34,12 @@ class PlanVsFactViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+
+            // 1. Формируем строку даты (например, "Декабрь 2025")
+            val date = LocalDate.of(currentYear, currentMonth, 1)
+            val formatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru"))
+            val formattedPeriod = date.format(formatter)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
             // Используем ID бюджета = 1 (хардкод для примера)
             getCategoryDetailsUseCase.execute(budgetId = 1L)
@@ -43,7 +55,7 @@ class PlanVsFactViewModel @Inject constructor(
                     val sign = if (diffPercent > 0) "+" else ""
                     val diffLabel = "$sign%.1f%%".format(diffPercent)
 
-                    // Маппим категории (оставляем старую логику для списка, если он понадобится ниже)
+                    // Маппим категории
                     val uiCategories = categories.map { cat ->
                         val catProgress = if (cat.limitAmount > 0) (cat.spentAmount / cat.limitAmount).toFloat() else 0f
                         PlanVsFactCategoryUi(
@@ -66,7 +78,8 @@ class PlanVsFactViewModel @Inject constructor(
                             planValue = totalPlanVal,
                             factValue = totalFactVal,
                             percentageDiffLabel = diffLabel,
-                            categories = uiCategories
+                            categories = uiCategories,
+                            periodName = formattedPeriod
                         )
                     }
                 }

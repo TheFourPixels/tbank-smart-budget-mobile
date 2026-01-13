@@ -1,19 +1,48 @@
 package com.tbank.smartbudget.presentation.ui.budget_dashboard.categories
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +62,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tbank.smartbudget.presentation.ui.common.DetailsCard
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
+
+// Цвета
+private val LabelYellow = Color(0xFFFFD600)
 
 @Composable
 fun CategoriesDashboardScreen(
@@ -56,6 +88,9 @@ fun CategoriesDashboardContent(
     val density = LocalDensity.current
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
+
+    // Состояние видимости графиков во второй карточке
+    var isExpensesChartVisible by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.White,
@@ -81,13 +116,13 @@ fun CategoriesDashboardContent(
             }
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
-                // --- ФОН (Градиент как в PlanVsFact) ---
+                // --- ФОН (Градиент) ---
                 Box(modifier = Modifier.fillMaxWidth().height(gradientHeight)) {
                     Box(modifier = Modifier.fillMaxSize().background(
                         brush = Brush.radialGradient(
-                            colors = listOf(SmartBudgetTheme.colors.gradientGreen, SmartBudgetTheme.colors.gradientDarkBlue),
+                            colors = listOf(SmartBudgetTheme.colors.gradientViolet, SmartBudgetTheme.colors.gradientDarkViolet),
                             center = Offset(Float.POSITIVE_INFINITY, 750.0f),
-                            radius = 700f,
+                            radius = 900f,
                             tileMode = TileMode.Clamp
                         )
                     ))
@@ -117,12 +152,12 @@ fun CategoriesDashboardContent(
                     ) {
                         Text(
                             text = "Категории",
-                            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Анализ ваших расходов\nпо категориям за месяц",
+                            text = "Тут мы посчитали, в каких категориях \nВы потратили больше всего",
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp, lineHeight = 20.sp),
                             color = Color.White.copy(alpha = 0.7f)
                         )
@@ -134,15 +169,20 @@ fun CategoriesDashboardContent(
                             Text(
                                 text = "Самые популярные категории",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                modifier = Modifier.align(Alignment.Start)
+                                modifier = Modifier.align(Alignment.CenterHorizontally  )
+                            )
+                            Text(
+                                text = "Круговая диаграмма",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Black.copy(alpha = 0.5f)
                             )
                             Spacer(modifier = Modifier.height(24.dp))
 
                             Box(contentAlignment = Alignment.Center) {
-                                // Диаграмма с выпирающим сегментом и отступами
+                                // Диаграмма
                                 CategoriesDonutChart(
                                     categories = state.categories,
-                                    modifier = Modifier.size(180.dp)
+                                    modifier = Modifier.size(155.dp)
                                 )
                                 // Текст в центре
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -161,7 +201,7 @@ fun CategoriesDashboardContent(
 
                             Spacer(modifier = Modifier.height(32.dp))
 
-                            // Легенда в столбик (Column) с процентами
+                            // Легенда в столбик
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -171,7 +211,6 @@ fun CategoriesDashboardContent(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                                     ) {
-                                        // Цветной кружок
                                         Box(
                                             modifier = Modifier
                                                 .size(12.dp)
@@ -181,7 +220,6 @@ fun CategoriesDashboardContent(
 
                                         Spacer(modifier = Modifier.width(12.dp))
 
-                                        // Название категории
                                         Text(
                                             text = item.name,
                                             style = MaterialTheme.typography.bodyMedium,
@@ -189,7 +227,6 @@ fun CategoriesDashboardContent(
                                             modifier = Modifier.weight(1f)
                                         )
 
-                                        // Процент
                                         Text(
                                             text = "${(item.percent * 100).toInt()}%",
                                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
@@ -205,25 +242,85 @@ fun CategoriesDashboardContent(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // --- КАРТОЧКА 2: Топ категорий (Горизонтальная столбчатая диаграмма) ---
-                    DetailsCard {
-                        Column {
-                            Text(
-                                text = "Топ категорий",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
+                    // --- КАРТОЧКА 2: Топ категорий с раскрывающимися графиками ---
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        // Карточка с отступом под кнопку
+                        Box(modifier = Modifier.padding(bottom = 28.dp)) {
+                            DetailsCard {
+                                Column {
+                                    Text(
+                                        text = "Топ категорий",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
 
-                            // Горизонтальный график (Bar Chart)
-                            CategoriesHorizontalBarChart(
-                                categories = state.categories.take(5) // Берем топ-5 для графика
+                                    // Список категорий (всегда виден) с использованием CategoriesHorizontalBarChart
+                                    // Раньше здесь был CategoryProgressItem, теперь используем график
+                                    CategoriesHorizontalBarChartPercent(
+                                        categories = state.categories.take(5)
+                                    )
+
+                                    // Анимированное появление "мини-карточки" с графиками (дублирование для демонстрации функционала)
+                                    // Если вы хотели просто заменить основной список на графики и оставить кнопку для *дополнительных* действий или скрытия,
+                                    // то логика может отличаться.
+                                    // Сейчас я оставлю только основной список графиков, а по кнопке будет показываться/скрываться *дополнительная* информация
+                                    // или просто продублирую как в запросе (мини-карточка по кнопке).
+
+                                    AnimatedVisibility(
+                                        visible = isExpensesChartVisible,
+                                        enter = expandVertically() + fadeIn(),
+                                        exit = shrinkVertically() + fadeOut()
+                                    ) {
+                                        Column {
+                                            Spacer(modifier = Modifier.height(24.dp))
+
+                                            // Мини-карточка (серый фон, скругление)
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .background(Color(0xFFF9F9F9))
+                                                    .padding(16.dp)
+                                            ) {
+                                                // Дублируем график или показываем расширенный
+                                                CategoriesHorizontalBarChartRubles(
+                                                    categories = state.categories.take(5)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Отступ внутри карточки для кнопки
+                                    Spacer(modifier = Modifier.height(32.dp))
+                                }
+                            }
+                        }
+
+                        // Желтая кнопка
+                        Button(
+                            onClick = { isExpensesChartVisible = !isExpensesChartVisible },
+                            modifier = Modifier
+                                .width(300.dp)
+                                .height(56.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LabelYellow,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                        ) {
+                            Text(
+                                text = if (isExpensesChartVisible) "Скрыть описание" else "Текстовое описание для Вас",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Normal
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // --- КАРТОЧКА 3: Динамика (График) ---
+                    /*// --- КАРТОЧКА 3: Динамика (График) ---
                     DetailsCard {
                         Column {
                             Text(
@@ -240,8 +337,7 @@ fun CategoriesDashboardContent(
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(32.dp))
+*/
                 }
             }
         }
@@ -262,8 +358,8 @@ fun CategoriesDonutChart(
         var startAngle = -90f
         val gapAngle = 3f
 
-        val baseStrokeWidth = 25.dp.toPx()
-        val maxStrokeWidth = 35.dp.toPx()
+        val baseStrokeWidth = 20.dp.toPx()
+        val maxStrokeWidth = 30.dp.toPx()
 
         if (total == 0.0) {
             drawCircle(
@@ -293,9 +389,8 @@ fun CategoriesDonutChart(
     }
 }
 
-// Компонент для горизонтальной столбчатой диаграммы категорий
 @Composable
-fun CategoriesHorizontalBarChart(
+fun CategoriesHorizontalBarChartPercent(
     categories: List<CategoryDashboardItem>
 ) {
     if (categories.isEmpty()) return
@@ -331,7 +426,7 @@ fun CategoriesHorizontalBarChart(
                         .height(24.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    // Вычисляем длину столбца относительно МАКСИМАЛЬНОГО элемента, а не суммы
+                    // Вычисляем длину столбца относительно МАКСИМАЛЬНОГО элемента
                     val fillFraction = (item.amountValue / maxAmount).toFloat().coerceIn(0.01f, 1f)
 
                     Row(
@@ -359,7 +454,7 @@ fun CategoriesHorizontalBarChart(
                                 Text(
                                     text = "${(item.percent * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = Color.Black, // Черный цвет текста
+                                    color = Color.Black, // Черный текст (было Color.White, но пользователь просил черный)
                                     modifier = Modifier.padding(end = 8.dp)
                                 )
                             }
@@ -371,7 +466,94 @@ fun CategoriesHorizontalBarChart(
                             Text(
                                 text = "${(item.percent * 100).toInt()}%",
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = Color.Black // Черный цвет текста
+                                color = Color.Black
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoriesHorizontalBarChartRubles(
+    categories: List<CategoryDashboardItem>
+) {
+    if (categories.isEmpty()) return
+
+    // Вычисляем максимальное значение для масштабирования столбцов
+    val maxAmount = categories.maxOfOrNull { it.amountValue } ?: 1.0
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        categories.forEach { item ->
+            // Строка с названием и баром
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Название категории (слева, фиксированной ширины)
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black,
+                    modifier = Modifier.width(100.dp),
+                    maxLines = 1
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Горизонтальный столбец
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(24.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    // Вычисляем длину столбца относительно МАКСИМАЛЬНОГО элемента
+                    val fillFraction = (item.amountValue / maxAmount).toFloat().coerceIn(0.01f, 1f)
+
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Цветная часть (столбец)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fillFraction)
+                                .fillMaxHeight()
+                                .background(
+                                    color = item.color,
+                                    shape = RoundedCornerShape(
+                                        topStart = 0.dp,
+                                        bottomStart = 0.dp,
+                                        topEnd = 12.dp, // Закругление справа
+                                        bottomEnd = 12.dp
+                                    )
+                                ),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            // Сумма внутри, если бар достаточно широкий
+                            if (fillFraction > 0.4f) {
+                                Text(
+                                    text = item.amountStr, // ОТОБРАЖАЕМ СУММУ В РУБЛЯХ
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.Black,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+                        }
+
+                        // Сумма снаружи, если бар узкий
+                        if (fillFraction <= 0.4f) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = item.amountStr, // ОТОБРАЖАЕМ СУММУ В РУБЛЯХ
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = Color.Black
                             )
                         }
                     }

@@ -19,6 +19,7 @@ import com.tbank.smartbudget.presentation.ui.auth.EnterPinScreen
 import com.tbank.smartbudget.presentation.ui.auth.LoginEmailScreen
 import com.tbank.smartbudget.presentation.ui.auth.LoginPasswordScreen
 import com.tbank.smartbudget.presentation.ui.budget_dashboard.BudgetDashboardScreen
+import com.tbank.smartbudget.presentation.ui.budget_dashboard.categories.CategoriesDashboardScreen
 import com.tbank.smartbudget.presentation.ui.budget_dashboard.plan_vs_fact.PlanVsFactScreen // Новый импорт
 import com.tbank.smartbudget.presentation.ui.budget_details.BudgetDetailsScreen
 import com.tbank.smartbudget.presentation.ui.budget_edit.BudgetEditScreen
@@ -39,6 +40,7 @@ object Routes {
     const val PLAN_VS_FACT = "plan_vs_fact" // Новый маршрут
     const val ALL_OPERATIONS = "all_operations"
     const val SELECTED_CATEGORIES = "selected_categories"
+    const val  CATEGORIES_DASHBOARD = "categories_dashboard"
 }
 
 @Composable
@@ -133,7 +135,8 @@ fun SmartBudgetNavHost() {
             BudgetDashboardScreen(
                 onNavigateBack = { navController.popBackStack() },
                 // Передаем колбэк для навигации на План-Факт
-                onNavigateToPlanVsFact = { navController.navigate(Routes.PLAN_VS_FACT) }
+                onNavigateToPlanVsFact = { navController.navigate(Routes.PLAN_VS_FACT) },
+                onNavigateToCategoriesDashboard = { navController.navigate(Routes.CATEGORIES_DASHBOARD) }
             )
         }
 
@@ -144,6 +147,16 @@ fun SmartBudgetNavHost() {
             exitTransition = { slideOutHorizontally { it } }
         ) {
             PlanVsFactScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Routes.CATEGORIES_DASHBOARD,
+            enterTransition = { slideInHorizontally { it } },
+            exitTransition = { slideOutHorizontally { it } }
+        ) {
+            CategoriesDashboardScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
