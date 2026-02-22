@@ -1,5 +1,6 @@
 package com.tbank.smartbudget.presentation
 
+import android.util.Log
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
@@ -36,7 +37,7 @@ object Routes {
     const val BUDGET_DETAILS = "budget_details"
     const val BUDGET_EDIT = "budget_edit"
     const val BUDGET_DASHBOARD = "budget_dashboard"
-    const val PLAN_VS_FACT = "plan_vs_fact" // Новый маршрут
+    const val PLAN_VS_FACT = "plan_vs_fact"
     const val ALL_OPERATIONS = "all_operations"
     const val SELECTED_CATEGORIES = "selected_categories"
     const val  CATEGORIES_DASHBOARD = "categories_dashboard"
@@ -83,15 +84,19 @@ fun SmartBudgetNavHost() {
                 isUserExisting = isExisting,
                 userName = userName,
                 viewModel = viewModel,
-                onNavigateNext = { navController.navigate(Routes.ENTER_PIN) }
+                onSuccess = { navController.navigate(Routes.ENTER_PIN) },
+                onBack = {navController.navigate(Routes.LOGIN_EMAIL)}
             )
         }
 
-        composable(Routes.ENTER_PIN) {
+        composable("enter_pin") {
+            val viewModel = hiltViewModel<AuthViewModel>()
             EnterPinScreen(
+                viewModel = viewModel,
                 onLoginSuccess = {
-                    navController.navigate(Routes.BUDGET_TAB) {
-                        popUpTo(Routes.LOGIN_EMAIL) { inclusive = true }
+                    Log.d("Navigation", "Pin entered, navigating to Budget Tab")
+                    navController.navigate("budget_tab") {
+                        popUpTo("enter_pin") { inclusive = true }
                     }
                 }
             )

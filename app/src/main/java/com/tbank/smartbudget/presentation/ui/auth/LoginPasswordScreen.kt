@@ -26,7 +26,8 @@ fun LoginPasswordScreen(
     email: String,
     isUserExisting: Boolean,
     userName: String?,
-    onNavigateNext: () -> Unit,
+    onSuccess: () -> Unit,
+    onBack: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -74,12 +75,21 @@ fun LoginPasswordScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
+            if (state.error != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = state.error ?: "Неизвестная ошибка",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     viewModel.onSubmitPassword {
-                        onNavigateNext()
+                        onSuccess()
                     }
                 },
                 enabled = state.isPasswordValid && !state.isLoading,

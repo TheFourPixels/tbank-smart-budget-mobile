@@ -1,40 +1,166 @@
 package com.tbank.smartbudget.di
 
+import com.tbank.smartbudget.data.remote.api.AuthApi
 import com.tbank.smartbudget.data.remote.api.BudgetApi
-import com.tbank.smartbudget.data.remote.api.CategoryApi // Добавили
+import com.tbank.smartbudget.data.remote.api.CategoryApi
+import com.tbank.smartbudget.data.remote.api.DashboardApi
+import com.tbank.smartbudget.data.remote.api.GoalApi
+import com.tbank.smartbudget.data.remote.api.TransactionApi
+import com.tbank.smartbudget.data.remote.interceptor.AuthInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    // --- Base URLs ---
+    private const val AUTH_URL = "http://192.168.0.188:8089/"
+    private const val BUDGET_URL = "http://192.168.0.188:8081/"
+    private const val TRANSACTION_URL = "http://192.168.0.188:8083/"
+    private const val GOAL_URL = "http://192.168.0.188:8087/"
+    private const val DASHBOARD_URL = "http://192.168.0.188:8088/"
 
-    private const val BASE_URL = "http://51.250.32.92:8081/api/v1"
+    // --- Qualifiers ---
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class AuthService
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class BudgetService
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class TransactionService
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class GoalService
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class DashboardService
+
+    // --- Shared OkHttpClient with AuthInterceptor ---
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor // Внедряем наш интерцептор
+    ): OkHttpClient {
+        val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor) // Добавляем токен в заголовки
+            .addInterceptor(logging)         // Логируем запросы
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    // --- Retrofit Instances ---
 
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    @AuthService
+    fun provideAuthRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(AUTH_URL)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideBudgetApi(retrofit: Retrofit): BudgetApi {
+    @BudgetService
+    fun provideBudgetRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BUDGET_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @TransactionService
+    fun provideTransactionRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(TRANSACTION_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @GoalService
+    fun provideGoalRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(GOAL_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @DashboardService
+    fun provideDashboardRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(DASHBOARD_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    // --- API Interfaces ---
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(@AuthService retrofit: Retrofit): AuthApi {
+        return retrofit.create(AuthApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBudgetApi(@BudgetService retrofit: Retrofit): BudgetApi {
         return retrofit.create(BudgetApi::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideCategoryApi(retrofit: Retrofit): CategoryApi {
+    fun provideCategoryApi(@BudgetService retrofit: Retrofit): CategoryApi {
         return retrofit.create(CategoryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTransactionApi(@TransactionService retrofit: Retrofit): TransactionApi {
+        return retrofit.create(TransactionApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGoalApi(@GoalService retrofit: Retrofit): GoalApi {
+        return retrofit.create(GoalApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDashboardApi(@DashboardService retrofit: Retrofit): DashboardApi {
+        return retrofit.create(DashboardApi::class.java)
     }
 }

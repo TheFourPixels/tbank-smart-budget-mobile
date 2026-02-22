@@ -3,8 +3,8 @@ package com.tbank.smartbudget.presentation.ui.profile
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tbank.smartbudget.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor() : ViewModel() {
+class ProfileViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState(isLoading = true))
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -25,9 +27,14 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
     private fun loadProfileData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            // Имитация запроса в сеть
-            delay(500)
 
+            // 1. Делаем запрос к API через репозиторий
+            val result = authRepository.getProfile()
+
+            // 2. Извлекаем имя. Если ошибка или null - ставим дефолтное
+            val loadedUserName = result.getOrNull()?.name ?: "Пользователь"
+
+            // 3. Моковые бюджеты оставляем для UI (пока нет реального API для них)
             val mockBudgets = listOf(
                 BudgetProfileItem(
                     id = 1,
@@ -52,10 +59,11 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
                 )
             )
 
+            // 4. Обновляем UI
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    userName = "Валерия",
+                    userName = loadedUserName,
                     budgets = mockBudgets
                 )
             }
