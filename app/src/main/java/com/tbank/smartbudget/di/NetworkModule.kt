@@ -7,6 +7,7 @@ import com.tbank.smartbudget.data.remote.api.DashboardApi
 import com.tbank.smartbudget.data.remote.api.GoalApi
 import com.tbank.smartbudget.data.remote.api.TransactionApi
 import com.tbank.smartbudget.data.remote.interceptor.AuthInterceptor
+import com.tbank.smartbudget.data.remote.interceptor.ErrorInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,17 +56,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        authInterceptor: AuthInterceptor // Внедряем наш интерцептор
+        authInterceptor: AuthInterceptor,
+        errorInterceptor: ErrorInterceptor // Инжектим наш новый интерсептор
     ): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor) // Добавляем токен в заголовки
-            .addInterceptor(logging)         // Логируем запросы
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
+            .addInterceptor(errorInterceptor) // Добавляем централизованную обработку ошибок
             .build()
     }
 
