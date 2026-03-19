@@ -23,10 +23,10 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun BasicSearchBar(
-    searchText: String, // Текущее состояние текста
-    onSearchTextChange: (String) -> Unit, // Функция для обновления состояния
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
     modifier: Modifier = Modifier.Companion,
-    backgroundColor: Color = Color(0xFFE0E0E0) // Устанавливаем разумное значение по умолчанию
+    backgroundColor: Color = Color(0xFFE0E0E0)
 ) {
     // Стиль текста (для value и placeholder)
     val textStyle = TextStyle(
@@ -35,7 +35,7 @@ fun BasicSearchBar(
     )
 
     Box(
-        modifier = modifier // Принимаем модификатор от родителя
+        modifier = modifier
             .height(35.dp)
             .background(
                 color = backgroundColor,

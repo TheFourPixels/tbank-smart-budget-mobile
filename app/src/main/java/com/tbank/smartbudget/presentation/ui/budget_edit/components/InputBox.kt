@@ -27,15 +27,15 @@ import androidx.compose.ui.unit.sp
 fun InputBox(
     label: String,
     value: String,
-    onValueChange: (String) -> Unit, // Параметр добавлен
+    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     isValueSecondary: Boolean = false,
-    readOnly: Boolean = false // Параметр добавлен
+    readOnly: Boolean = false
 ) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFF9F9F9)) // Очень светло-серый фон
+            .background(Color(0xFFF9F9F9))
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

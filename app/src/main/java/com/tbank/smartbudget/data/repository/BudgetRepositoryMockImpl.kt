@@ -12,7 +12,7 @@ import kotlin.collections.map
 class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
 
     private var currentIncome = 100000.0
-    private var currentPeriod = "2 мес" // Храним текущий период (дефолт)
+    private var currentPeriod = "2 мес"
 
     // Текущие лимиты (Selected Categories)
     private var currentLimits = mutableListOf(
@@ -35,13 +35,14 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
 
     override suspend fun getBudgetDetails(year: Int, month: Int): Result<BudgetDetails> {
         delay(300)
+        // Имитируем, что бюджет найден (200 OK)
         return Result.success(
             BudgetDetails(
                 id = 1,
                 year = year,
                 month = month,
                 totalIncome = currentIncome,
-                period = currentPeriod, // Возвращаем сохраненный период
+                period = currentPeriod,
                 limits = currentLimits.toList()
             )
         )
@@ -52,7 +53,7 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
     ): Result<Unit> {
         delay(500)
         currentIncome = totalIncome
-        currentPeriod = period // Сохраняем период
+        currentPeriod = period
 
         val updatedLimits = limits.map { newLimit ->
             val catInfo = allCategoriesDb.find { it.id == newLimit.categoryId }
@@ -69,6 +70,14 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
         return Result.success(Unit)
     }
 
+    override suspend fun deleteBudget(year: Int, month: Int): Result<Unit> {
+        delay(500)
+        // Имитируем удаление: очищаем лимиты и сбрасываем доход
+        currentIncome = 0.0
+        currentLimits.clear()
+        return Result.success(Unit)
+    }
+
     override suspend fun getActiveBudgetSummary(year: Int, month: Int): Result<BudgetSummary> {
         delay(300)
         val totalLimitsAmount = currentLimits.sumOf {
@@ -81,7 +90,7 @@ class BudgetRepositoryMockImpl @Inject constructor() : BudgetRepository {
                 totalLimit = totalLimitsAmount,
                 totalSpent = totalLimitsAmount * 0.4,
                 freeFunds = currentIncome - totalLimitsAmount,
-                period = currentPeriod // Возвращаем период для Summary
+                period = currentPeriod
             )
         )
     }

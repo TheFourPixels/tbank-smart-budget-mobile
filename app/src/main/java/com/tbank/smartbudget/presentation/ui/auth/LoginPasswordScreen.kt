@@ -26,25 +26,17 @@ fun LoginPasswordScreen(
     email: String,
     isUserExisting: Boolean,
     userName: String?,
-    onNavigateNext: () -> Unit,
+    onSuccess: () -> Unit,
+    onBack: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    // Инициализируем ViewModel данными из навигации
     LaunchedEffect(Unit) {
         viewModel.initAuthData(email, isUserExisting, userName)
     }
 
     val state by viewModel.uiState.collectAsState()
 
-    // Логика заголовка (используем state, который только что обновили)
-    // Важно: state обновляется асинхронно, но LaunchedEffect запустится очень быстро.
-    // Для мгновенного отображения можно использовать переданные аргументы напрямую для заголовка,
-    // но правильнее полагаться на стейт. Чтобы избежать "мигания", можно использовать
-    // данные из аргументов для дефолтного значения или просто ждать обновления.
-    // В данном случае используем state, так как он source of truth.
 
-    // Но так как initAuthData обновляет StateFlow, Compose перерисуется с новыми данными.
-    // Если хотите мгновенно показать заголовок, используйте аргументы функции:
     val displayUserName = state.userName ?: userName
     val displayIsExisting = if (state.email.isNotEmpty()) state.isUserExisting else isUserExisting
 
@@ -83,12 +75,21 @@ fun LoginPasswordScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
+            if (state.error != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = state.error ?: "Неизвестная ошибка",
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     viewModel.onSubmitPassword {
-                        onNavigateNext()
+                        onSuccess()
                     }
                 },
                 enabled = state.isPasswordValid && !state.isLoading,

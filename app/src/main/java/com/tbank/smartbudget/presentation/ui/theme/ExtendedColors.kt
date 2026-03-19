@@ -20,7 +20,11 @@ data class ExtendedColors(
     val gradientGreen: Color,
     val gradientDarkBlue: Color,
     val blue: Color,
-    val yellow: Color
+    val yellow: Color,
+    val gradientBlue: Color,
+    val gradientYellow: Color,
+    val gradientViolet: Color,
+    val gradientDarkViolet: Color,
 )
 
 /**
@@ -33,8 +37,11 @@ fun darkExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColor
     gradientGreen = Color(0xFF8EAF48),
     gradientDarkBlue = Color(0xFF363E4E),
     blue = Color(0xFF5589F1),
-    yellow = Color(0xFFFFDD2D)
-
+    yellow = Color(0xFFFFDD2D),
+    gradientBlue = Color(0xFF21326D),
+    gradientYellow = Color(0xFFF6D583),
+    gradientViolet = Color(0xFF554E95),
+    gradientDarkViolet = Color(0xFF21326D),
 )
 
 /**
@@ -47,7 +54,11 @@ fun lightExtendedColors(colorScheme: ColorScheme): ExtendedColors = ExtendedColo
     gradientGreen = Color(0xFF8EAF48),
     gradientDarkBlue = Color(0xFF363E4E),
     blue = Color(0xFF5589F1),
-    yellow = Color(0xFFFFDD2D)
+    yellow = Color(0xFFFFDD2D),
+    gradientBlue = Color(0xFF21326D),
+    gradientYellow = Color(0xFFF6D583),
+    gradientViolet = Color(0xFF554E95),
+    gradientDarkViolet = Color(0xFF21326D),
 
 )
 
@@ -57,7 +68,11 @@ val LocalExtendedColors = staticCompositionLocalOf {
         gradientGreen = Color(0xFF8EAF48),
         gradientDarkBlue = Color(0xFF363E4E),
         blue = Color(0xFF5589F1),
-        yellow = Color(0xFFFFDD2D)
+        yellow = Color(0xFFFFDD2D),
+        gradientBlue = Color(0xFF21326D),
+        gradientYellow = Color(0xFFF6D583),
+        gradientViolet = Color(0xFF554E95),
+        gradientDarkViolet = Color(0xFF21326D),
 
     )
 }

@@ -32,7 +32,7 @@ import com.tbank.smartbudget.presentation.ui.theme.PrimaryDark
 import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 
 @Composable
-fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit) { // Принимаем колбэк
+fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit, onProfileClick: () -> Unit) { // Принимаем колбэк
     // 1. Управление состоянием поиска внутри родителя (Hoisting State)
     var searchText by remember { mutableStateOf("") }
 
@@ -43,7 +43,7 @@ fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit) { // Прин
             modifier = Modifier.Companion
                 .padding(start = 16.dp)
                 .fillMaxWidth()
-                .clickable { /* Перейти в профиль */ }
+                .clickable (onClick = onProfileClick)
         ) {
             Box(
                 modifier = Modifier.Companion

@@ -136,8 +136,6 @@ class AllOperationsViewModel @Inject constructor(
                             isLoading = false,
                             totalExpense = formatMoney(result.totalExpense),
                             chartData = chartData,
-                            // Не сбрасываем фильтры при перезагрузке, чтобы сохранить контекст поиска
-                            // selectedCategoryNames = emptySet()
                         )
                     }
                     applyLocalFilters()

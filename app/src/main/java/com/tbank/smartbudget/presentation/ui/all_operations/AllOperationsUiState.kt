@@ -1,8 +1,6 @@
 package com.tbank.smartbudget.presentation.ui.all_operations
 
 import androidx.compose.ui.graphics.Color
-import java.time.LocalDate
-
 data class AllOperationsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -13,8 +11,7 @@ data class AllOperationsUiState(
     // Выбранный месяц (для заголовка, если нужно, или убираем если заменяем календарем)
     val selectedMonth: String = "",
 
-    // Убираем selectedFilter, так как вкладку "Все" удаляем
-    // val selectedFilter: String = "Все",
+
 
     val totalExpense: String = "0 ₽",
     val periodType: PeriodType = PeriodType.MONTH,

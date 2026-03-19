@@ -21,7 +21,6 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 
 @Composable
 fun LoginEmailScreen(
-    // Изменили сигнатуру колбэка
     onNavigateNext: (email: String, isExisting: Boolean, userName: String?) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -52,8 +51,6 @@ fun LoginEmailScreen(
             Button(
                 onClick = {
                     viewModel.onEmailSubmit {
-                        // При успехе берем АКТУАЛЬНЫЕ данные из стейта ViewModel
-                        // Важно брать viewModel.uiState.value, так как внутри лямбды state может быть старым (хотя в compose usually ok)
                         val currentState = viewModel.uiState.value
                         onNavigateNext(
                             currentState.email,

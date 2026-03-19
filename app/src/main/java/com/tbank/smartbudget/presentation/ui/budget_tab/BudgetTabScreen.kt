@@ -23,9 +23,10 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 
 @Composable
 fun BudgetTabScreen(
-    viewModel: BudgetViewModel = hiltViewModel(), // Используем реальный ViewModel
+    viewModel: BudgetViewModel = hiltViewModel(),
     onBudgetClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
     onAllOperationsClick: () -> Unit = {},
     onSelectedCategoriesClick: () -> Unit = {}
 ) {
@@ -67,7 +68,8 @@ fun BudgetTabScreen(
                             // 1. Профиль и Поиск
                             UserInfoAndSearch(
                                 userName = state.userName,
-                                onSearchClick = onSearchClick
+                                onSearchClick = onSearchClick,
+                                onProfileClick = onProfileClick
                             )
 
                             Spacer(Modifier.height(16.dp))

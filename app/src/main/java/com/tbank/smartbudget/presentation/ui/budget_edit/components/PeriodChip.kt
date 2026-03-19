@@ -22,7 +22,7 @@ fun PeriodChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 
     Box(
         modifier = Modifier.Companion
-            .clip(RoundedCornerShape(50)) // Полностью круглые края
+            .clip(RoundedCornerShape(50))
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),

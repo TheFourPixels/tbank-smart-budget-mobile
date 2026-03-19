@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ShadowCardContainer(content: @Composable () -> Unit) {
-    val shape = RoundedCornerShape(24.dp) // Более округлые углы как на макете
+    val shape = RoundedCornerShape(24.dp)
     Box(
         modifier = Modifier.Companion
             .fillMaxWidth()

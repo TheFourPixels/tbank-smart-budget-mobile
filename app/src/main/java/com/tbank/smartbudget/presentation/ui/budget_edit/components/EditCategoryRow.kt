@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,8 +34,8 @@ import com.tbank.smartbudget.presentation.ui.theme.SmartBudgetTheme
 @Composable
 fun EditCategoryRow(
     category: EditCategoryUi,
-    onLimitChange: (String) -> Unit, // Параметр добавлен
-    onTypeToggle: () -> Unit // Параметр добавлен
+    onLimitChange: (String) -> Unit,
+    onTypeToggle: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),

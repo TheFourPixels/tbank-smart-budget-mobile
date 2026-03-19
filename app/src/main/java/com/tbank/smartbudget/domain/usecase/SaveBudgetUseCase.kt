@@ -3,7 +3,6 @@ package com.tbank.smartbudget.domain.usecase
 import com.tbank.smartbudget.domain.model.BudgetLimitData
 import com.tbank.smartbudget.domain.repository.BudgetRepository
 import javax.inject.Inject
-import kotlin.math.abs
 
 /**
  * Сценарий: Создание или обновление бюджета с валидацией.
@@ -17,7 +16,7 @@ class SaveBudgetUseCase @Inject constructor(
         year: Int,
         month: Int,
         totalIncome: Double,
-        period: String, // Добавили период
+        period: String,
         limits: List<BudgetLimitData>
     ): Result<Unit> {
 
@@ -39,7 +38,7 @@ class SaveBudgetUseCase @Inject constructor(
             return Result.failure(IllegalStateException("Сумма лимитов (в рублях) превышает доступный доход."))
         }
 
-        // 5. Вызов репозитория для сохранения
+        // 3. Вызов репозитория для сохранения
         return repository.saveBudget(year, month, totalIncome, period, limits)
     }
 }
