@@ -1,0 +1,32 @@
+package com.tbank.smartbudget.feature.budget_edit
+
+import com.tbank.smartbudget.data.domain.model.BudgetLimitType
+
+data class BudgetEditUiState(
+    val budgetName: String = "Кубышка",
+    val selectedPeriodIndex: Int = 0,
+    val periods: List<String> = listOf("2 мес", "3 мес", "4 мес", "6 мес", "Другой"),
+
+    val amount: String = "", // Сумма общего дохода
+
+    val isPercentMode: Boolean = true,
+
+    val sourceCardName: String = "Дебетовая карта",
+    val sourceCardPan: String = "• 8563",
+    val sourceCardBalance: String = "1 000 ₽",
+
+    val categories: List<EditCategoryUi> = emptyList(),
+
+    val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
+    val isSavedSuccess: Boolean = false,
+    val error: String? = null
+)
+
+data class EditCategoryUi(
+    val id: Long,
+    val name: String,
+    val limitValue: String,
+    val limitType: BudgetLimitType,
+    val color: Long
+)

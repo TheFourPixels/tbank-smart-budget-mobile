@@ -1,0 +1,10 @@
+package com.tbank.smartbudget.data.domain.model
+
+data class DashboardData(
+    val month: Int,
+    val totalIncome: Double,
+    val totalSpent: Double,
+    val remainingBudget: Double,
+    val activeGoals: List<Goal>,
+    val recentTransactions: List<Transaction>
+)
