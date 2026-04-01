@@ -13,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tbank.smartbudget.feature.auth.components.AuthSubtitle
 import com.tbank.smartbudget.feature.auth.components.AuthTextField
 import com.tbank.smartbudget.feature.auth.components.AuthTitle
@@ -28,31 +30,49 @@ fun LoginPasswordScreen(
     userName: String?,
     onSuccess: () -> Unit,
     onBack: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel
 ) {
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
-        viewModel.initAuthData(email, isUserExisting, userName)
+        viewModel.onIntent(AuthIntent.InitAuthData(email, isUserExisting, userName))
+    }
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            if (effect == AuthEffect.NavigateNext) {
+                onSuccess()
+            }
+        }
     }
 
-    val state by viewModel.uiState.collectAsState()
+    LoginPasswordContent(
+        state = state,
+        onIntent = viewModel::onIntent
+    )
+}
+
+@Composable
+fun LoginPasswordContent(
+    state: AuthUiState,
+    onIntent: (AuthIntent) -> Unit
+) {
 
 
-    val displayUserName = state.userName ?: userName
-    val displayIsExisting = if (state.email.isNotEmpty()) state.isUserExisting else isUserExisting
 
-    val title = if (displayIsExisting) {
-        "Здравствуйте, ${displayUserName ?: "пользователь"}!"
+    val title = if (state.isUserExisting) {
+        "Здравствуйте, ${state.userName ?: "пользователь"}!"
     } else {
         "Регистрация"
     }
 
-    val subtitle = if (displayIsExisting) {
+    val subtitle = if (state.isUserExisting) {
         "Введите пароль для входа"
     } else {
         "Придумайте пароль для нового аккаунта"
     }
 
-    val buttonText = if (displayIsExisting) "Войти" else "Зарегистрироваться"
+    val buttonText = if (state.isUserExisting) "Войти" else "Зарегистрироваться"
 
     Scaffold(
         containerColor = Color.White
@@ -69,7 +89,7 @@ fun LoginPasswordScreen(
 
             AuthTextField(
                 value = state.password,
-                onValueChange = viewModel::onPasswordChanged,
+                onValueChange = { onIntent(AuthIntent.OnPasswordChanged(it)) },
                 placeholder = "Пароль",
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -78,9 +98,9 @@ fun LoginPasswordScreen(
             if (state.error != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = state.error ?: "Неизвестная ошибка",
+                    text = state.error,
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = 14.sp
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -88,9 +108,7 @@ fun LoginPasswordScreen(
 
             Button(
                 onClick = {
-                    viewModel.onSubmitPassword {
-                        onSuccess()
-                    }
+                    onIntent(AuthIntent.OnPasswordSubmit)
                 },
                 enabled = state.isPasswordValid && !state.isLoading,
                 modifier = Modifier
@@ -113,5 +131,56 @@ fun LoginPasswordScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Login Mode")
+@Composable
+private fun LoginPasswordPreview() {
+    SmartBudgetTheme {
+        LoginPasswordContent(
+            state = AuthUiState(
+                userName = "Александр",
+                isUserExisting = true,
+                password = "password123",
+                isPasswordValid = true
+            ),
+            onIntent = {}
+        )
+    }
+}
+
+/**
+ * Превью для режима регистрации нового пользователя
+ */
+@Preview(showBackground = true, name = "Register Mode")
+@Composable
+private fun RegisterPasswordPreview() {
+    SmartBudgetTheme {
+        LoginPasswordContent(
+            state = AuthUiState(
+                isUserExisting = false,
+                password = "new_password",
+                isPasswordValid = true
+            ),
+            onIntent = {}
+        )
+    }
+}
+
+/**
+ * Превью состояния загрузки
+ */
+@Preview(showBackground = true, name = "Loading State")
+@Composable
+private fun LoadingPasswordPreview() {
+    SmartBudgetTheme {
+        LoginPasswordContent(
+            state = AuthUiState(
+                isUserExisting = true,
+                isLoading = true
+            ),
+            onIntent = {}
+        )
     }
 }

@@ -1,44 +1,46 @@
 package com.tbank.smartbudget.core.network.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 
 // --- Requests ---
-
+@Serializable
 data class LoginRequest(
-    @SerializedName("email") val email: String,
-    @SerializedName("password") val password: String
+    @SerialName("email") val email: String,
+    @SerialName("password") val password: String
 )
-
+@Serializable
 data class RegisterRequest(
-    @SerializedName("email") val email: String,
-    @SerializedName("password") val password: String,
-    @SerializedName("name") val name: String
+    @SerialName("email") val email: String,
+    @SerialName("password") val password: String,
+    @SerialName("name") val name: String
 )
-
+@Serializable
 data class UpdateProfileRequest(
-    @SerializedName("name") val name: String,
-    @SerializedName("avatarUrl") val avatarUrl: String?
+    @SerialName("name") val name: String,
+    @SerialName("avatarUrl") val avatarUrl: String?
 )
-
+@Serializable
 data class CheckEmailRequest(
-    @SerializedName("email") val email: String
+    @SerialName("email") val email: String
 )
 
 // --- Responses ---
-
+@Serializable
 data class AuthResponse(
-    @SerializedName("token") val token: String,
-    @SerializedName("userId") val userId: Long,
-    @SerializedName("name") val name: String
+    @SerialName("token") val token: String,
+    @SerialName("userId") val userId: Long,
+    @SerialName("name") val name: String
 )
-
+@Serializable
 data class UserDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("email") val email: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("avatarUrl") val avatarUrl: String?
+    @SerialName("id") val id: Long,
+    @SerialName("email") val email: String,
+    @SerialName("name") val name: String,
+    @SerialName("avatarUrl") val avatarUrl: String?
 )
-
+@Serializable
 data class CheckEmailResponse(
-    @SerializedName("registered") val registered: Boolean
+    @SerialName("registered") val registered: Boolean
 )

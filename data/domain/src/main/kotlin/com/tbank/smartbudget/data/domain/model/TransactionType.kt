@@ -7,13 +7,13 @@ enum class TransactionType {
 }
 
 data class Transaction(
-    val id: Long,
+    val id: TransactionId,
     val amount: Double,
     val type: TransactionType,
     val date: LocalDateTime,
     val description: String?,
     val merchantName: String?,
     val categoryName: String,
-    val categoryColor: Long, // Цвет категории для UI
-    val categoryId: Long
+    val categoryColor: Long,
+    val categoryId: CategoryId
 )

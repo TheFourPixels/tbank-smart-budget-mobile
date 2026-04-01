@@ -1,5 +1,6 @@
 package com.tbank.smartbudget.core.network.di
 
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.tbank.smartbudget.core.network.remote.api.AuthApi
 import com.tbank.smartbudget.core.network.remote.api.BudgetApi
 import com.tbank.smartbudget.core.network.remote.api.CategoryApi
@@ -12,149 +13,149 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
+/**
+ * Основной модуль сетевого слоя.
+ * Настроен для работы с распределенной микросервисной архитектурой.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+    private const val BASE_URL = "http://192.168.0.188"
+    private const val AUTH_URL = "http://$BASE_URL:8089/"
+    private const val BUDGET_URL = "http://$BASE_URL:8081/"
+    private const val TRANSACTION_URL = "http://$BASE_URL:8083/"
+    private const val GOAL_URL = "http://$BASE_URL:8087/"
+    private const val DASHBOARD_URL = "http://$BASE_URL:8088/"
 
-    // --- Base URLs ---
-    private const val AUTH_URL = "http://192.168.0.188:8089/"
-    private const val BUDGET_URL = "http://192.168.0.188:8081/"
-    private const val TRANSACTION_URL = "http://192.168.0.188:8083/"
-    private const val GOAL_URL = "http://192.168.0.188:8087/"
-    private const val DASHBOARD_URL = "http://192.168.0.188:8088/"
-
-    // --- Qualifiers ---
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class AuthService
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class BudgetService
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class TransactionService
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class GoalService
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class DashboardService
-
-    // --- Shared OkHttpClient with AuthInterceptor ---
     @Provides
     @Singleton
-    fun provideOkHttpClient(
+    fun provideJson(): Json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        encodeDefaults = true
+
+    }
+
+    @Provides
+    @Singleton
+    @PublicClient
+    fun providePublicOkHttpClient(
+        errorInterceptor: ErrorInterceptor
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("User-Agent", "SmartBudget-Android")
+                .header("Accept", "application/json")
+                .build()
+            chain.proceed(request)
+        }
+        .addInterceptor(errorInterceptor)
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        })
+        .build()
+
+    @Provides
+    @Singleton
+    @AuthenticatedClient
+    fun provideAuthenticatedOkHttpClient(
         authInterceptor: AuthInterceptor,
         errorInterceptor: ErrorInterceptor
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .addInterceptor(errorInterceptor)
-            .build()
-    }
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("User-Agent", "SmartBudget-Android")
+                .header("Accept", "application/json")
+                .build()
+            chain.proceed(request)
+        }
+        .addInterceptor(authInterceptor)
+        .addInterceptor(errorInterceptor)
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        })
+        .build()
 
-    // --- Retrofit Instances ---
+    // --- Retrofit Builders ---
 
     @Provides
     @Singleton
-    @AuthService
-    fun provideAuthRetrofit(okHttpClient: OkHttpClient): Retrofit {
+    @AuthRetrofit
+    fun provideAuthRetrofit(@PublicClient client: OkHttpClient, json: Json): Retrofit =
+        createRetrofit(AUTH_URL, client, json)
+
+    @Provides
+    @Singleton
+    @BudgetRetrofit
+    fun provideBudgetRetrofit(@AuthenticatedClient client: OkHttpClient, json: Json): Retrofit =
+        createRetrofit(BUDGET_URL, client, json)
+
+    @Provides
+    @Singleton
+    @DashboardRetrofit
+    fun provideDashboardRetrofit(@AuthenticatedClient client: OkHttpClient, json: Json): Retrofit =
+        createRetrofit(DASHBOARD_URL, client, json)
+
+    @Provides
+    @Singleton
+    @TransactionRetrofit
+    fun provideTransactionRetrofit(
+        @AuthenticatedClient client: OkHttpClient,
+        json: Json
+    ): Retrofit =
+        createRetrofit(TRANSACTION_URL, client, json)
+
+    @Provides
+    @Singleton
+    @GoalRetrofit
+    fun provideGoalRetrofit(@AuthenticatedClient client: OkHttpClient, json: Json): Retrofit =
+        createRetrofit(GOAL_URL, client, json)
+
+    // --- API Providers ---
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(@AuthRetrofit retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideBudgetApi(@BudgetRetrofit retrofit: Retrofit): BudgetApi =
+        retrofit.create(BudgetApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCategoryApi(@BudgetRetrofit retrofit: Retrofit): CategoryApi =
+        retrofit.create(CategoryApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTransactionApi(@TransactionRetrofit retrofit: Retrofit): TransactionApi =
+        retrofit.create(TransactionApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGoalApi(@GoalRetrofit retrofit: Retrofit): GoalApi =
+        retrofit.create(GoalApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideDashboardApi(@DashboardRetrofit retrofit: Retrofit): DashboardApi =
+        retrofit.create(DashboardApi::class.java)
+
+    private fun createRetrofit(baseUrl: String, client: OkHttpClient, json: Json): Retrofit {
+        val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl(AUTH_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(baseUrl)
+            .client(client)
+            .addConverterFactory(json.asConverterFactory(contentType))
             .build()
-    }
-
-    @Provides
-    @Singleton
-    @BudgetService
-    fun provideBudgetRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BUDGET_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    @TransactionService
-    fun provideTransactionRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(TRANSACTION_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    @GoalService
-    fun provideGoalRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(GOAL_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    @DashboardService
-    fun provideDashboardRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(DASHBOARD_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    // --- API Interfaces ---
-
-    @Provides
-    @Singleton
-    fun provideAuthApi(@AuthService retrofit: Retrofit): AuthApi {
-        return retrofit.create(AuthApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideBudgetApi(@BudgetService retrofit: Retrofit): BudgetApi {
-        return retrofit.create(BudgetApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideCategoryApi(@BudgetService retrofit: Retrofit): CategoryApi {
-        return retrofit.create(CategoryApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideTransactionApi(@TransactionService retrofit: Retrofit): TransactionApi {
-        return retrofit.create(TransactionApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGoalApi(@GoalService retrofit: Retrofit): GoalApi {
-        return retrofit.create(GoalApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideDashboardApi(@DashboardService retrofit: Retrofit): DashboardApi {
-        return retrofit.create(DashboardApi::class.java)
     }
 }

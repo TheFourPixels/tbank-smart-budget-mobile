@@ -1,16 +1,20 @@
 package com.tbank.smartbudget.feature.auth
 
-import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tbank.smartbudget.core.network.di.IoDispatcher
+import com.tbank.smartbudget.core.network.remote.AppResult
 import com.tbank.smartbudget.data.domain.repository.AuthRepository
+import com.tbank.smartbudget.feature.auth.AuthEffect.NavigateNext
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,40 +22,58 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AuthUiState())
-    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<AuthUiState>
+        field = MutableStateFlow(AuthUiState())
+
+    private val _effect = Channel<AuthEffect>(
+        capacity = Channel.BUFFERED,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val effect = _effect.receiveAsFlow()
+
 
     init {
-        val email = savedStateHandle.get<String>("email")
-        val isUserExisting = savedStateHandle.get<Boolean>("isExisting")
-        val userName = savedStateHandle.get<String>("userName")
+        restoreFromSavedState()
+    }
 
-        if (email != null && isUserExisting != null) {
-            _uiState.update {
-                it.copy(
-                    email = email,
-                    isUserExisting = isUserExisting,
-                    userName = userName
-                )
-            }
+    fun onIntent(intent: AuthIntent) {
+        when (intent) {
+            is AuthIntent.OnEmailChanged -> handleEmailChanged(intent.email)
+            is AuthIntent.OnEmailSubmit -> handleEmailSubmit()
+            is AuthIntent.OnPasswordChanged -> handlePasswordChanged(intent.password)
+            is AuthIntent.OnPasswordSubmit -> handlePasswordSubmit()
+            is AuthIntent.OnPinDigitEntered -> handlePinDigit(intent.digit)
+            AuthIntent.OnPinBackspace -> handlePinBackspace()
+            AuthIntent.ClearError -> uiState.update { it.copy(error = null) }
+            is AuthIntent.InitAuthData -> handleInit(intent)
         }
     }
 
-    fun initAuthData(email: String, isUserExisting: Boolean, userName: String?) {
-        _uiState.update {
+    fun restoreFromSavedState() {
+        val email = savedStateHandle.get<String>("email")
+        val isExisting = savedStateHandle.get<Boolean>("isExisting")
+        val name = savedStateHandle.get<String>("userName")
+        if (email != null && isExisting != null) {
+            uiState.update { it.copy(email = email, isUserExisting = isExisting, userName = name) }
+        }
+    }
+
+    private fun handleInit(intent: AuthIntent.InitAuthData) {
+        uiState.update {
             it.copy(
-                email = email,
-                isUserExisting = isUserExisting,
-                userName = userName
+                email = intent.email,
+                isUserExisting = intent.isUserExisting,
+                userName = intent.userName
             )
         }
     }
 
-    fun onEmailChanged(email: String) {
-        _uiState.update {
+    private fun handleEmailChanged(email: String) {
+        uiState.update {
             it.copy(
                 email = email,
                 error = null,
@@ -60,125 +82,78 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun onEmailSubmit(onSuccess: () -> Unit) {
-        val email = _uiState.value.email
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-
-            val result = authRepository.checkUserExistence(email)
-
-            if (result.isSuccess) {
-                val isExisting = result.getOrDefault(false)
-
-                _uiState.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        userName = null,
-                        isUserExisting = isExisting
-                    )
+    private fun handleEmailSubmit() {
+        if (!uiState.value.isEmailValid) return
+        viewModelScope.launch(ioDispatcher) {
+            uiState.update { it.copy(isLoading = true) }
+            when (val result = authRepository.checkUserExistence(uiState.value.email)) {
+                is AppResult.Success -> {
+                    uiState.update { it.copy(isLoading = false, isUserExisting = result.data) }
+                    _effect.send(NavigateNext)
                 }
-                onSuccess()
-            } else {
-                val errorMsg = result.exceptionOrNull()?.localizedMessage ?: "Ошибка проверки пользователя"
-                Log.e("AuthViewModel", "checkUserExistence failed: $errorMsg")
-                _uiState.update {
+
+                is AppResult.Error -> uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = errorMsg
+                        error = "Ошибка при проверке почты"
                     )
+                }
+
+            }
+        }
+    }
+
+    private fun handlePinBackspace() {
+        uiState.update { it.copy(pinCode = it.pinCode.dropLast(1), isPinComplete = false) }
+    }
+
+    private fun handlePinDigit(digit: Char) {
+        val currentPin = uiState.value.pinCode
+        if (currentPin.length < 4) {
+            val newPin = currentPin + digit
+            uiState.update { it.copy(pinCode = newPin, isPinComplete = newPin.length == 4) }
+            if (newPin.length == 4) {
+                viewModelScope.launch { _effect.send(NavigateNext) }
+            }
+        }
+
+    }
+
+    private fun handlePasswordSubmit() {
+        if (!uiState.value.isPasswordValid) return
+        viewModelScope.launch(ioDispatcher) {
+            uiState.update { it.copy(isLoading = true, error = null) }
+            val state = uiState.value
+            val result = if (state.isUserExisting) {
+                authRepository.login(state.email, state.password)
+            } else {
+                authRepository.register(
+                    state.email,
+                    state.password,
+                    name = state.userName ?: state.email.substringBefore("@")
+                )
+            }
+            when (result) {
+                is AppResult.Success<*> -> {
+                    uiState.update { it.copy(isLoading = false) }
+                    _effect.send(NavigateNext)
+
+                }
+
+                is AppResult.Error -> {
+                    uiState.update { it.copy(isLoading = false, error = "Ошибка авторизации") }
                 }
             }
         }
     }
 
-    fun onPasswordChanged(password: String) {
-        _uiState.update {
+    private fun handlePasswordChanged(password: String) {
+        uiState.update {
             it.copy(
                 password = password,
                 error = null,
                 isPasswordValid = password.length >= 6
             )
         }
-    }
-
-    fun onPinDigitEntered(digit: Char) {
-        val currentPin = _uiState.value.pinCode
-        if (currentPin.length < 4) {
-            val newPin = currentPin + digit
-            _uiState.update {
-                it.copy(
-                    pinCode = newPin,
-                    isPinComplete = newPin.length == 4
-                )
-            }
-        }
-    }
-
-    fun onPinBackspace() {
-        val currentPin = _uiState.value.pinCode
-        if (currentPin.isNotEmpty()) {
-            _uiState.update {
-                it.copy(
-                    pinCode = currentPin.dropLast(1),
-                    isPinComplete = false
-                )
-            }
-        }
-    }
-
-    fun onSubmitPassword(onSuccess: () -> Unit) {
-        val email = _uiState.value.email
-        val password = _uiState.value.password
-        val isUserExisting = _uiState.value.isUserExisting
-        val userName = _uiState.value.userName
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
-            var result = if (isUserExisting) {
-                authRepository.login(email, password)
-            } else {
-                val name = if (!userName.isNullOrEmpty()) userName else email.substringBefore("@")
-                authRepository.register(email, password, name)
-            }
-
-            // Если регистрация не удалась, потому что email занят, пробуем войти
-            if (result.isFailure && !isUserExisting) {
-                val errorMsg = result.exceptionOrNull()?.message.orEmpty()
-                if (errorMsg.contains("already in use", ignoreCase = true) || errorMsg.contains("400")) {
-                    Log.d("AuthViewModel", "Registration failed (user exists), trying login...")
-                    result = authRepository.login(email, password)
-                }
-            }
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    error = result.exceptionOrNull()?.message
-                )
-            }
-
-            if (result.isSuccess) {
-                Log.d("AuthViewModel", "Auth success, navigating next")
-                onSuccess()
-            } else {
-                Log.e("AuthViewModel", "Auth failed: ${result.exceptionOrNull()?.message}")
-            }
-        }
-    }
-
-    fun onPinComplete(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            delay(500)
-            _uiState.update { it.copy(isLoading = false) }
-            onSuccess()
-        }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
     }
 }
