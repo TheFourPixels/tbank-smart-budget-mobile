@@ -1,42 +1,49 @@
 package com.example.smartbudget.feature.category_search
 
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tbank.smartbudget.core.ui.common.BaseViewModel
+import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.BudgetCategory
 import com.tbank.smartbudget.data.domain.usecase.GetCategoriesForSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CategorySearchViewModel @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesForSearchUseCase
-) : ViewModel() {
+) : BaseViewModel<CategorySearchUiState, CategorySearchIntent, CategorySearchEffect>(
+    CategorySearchUiState()
+) {
 
-    private val _uiState = MutableStateFlow(CategorySearchUiState())
-    val uiState: StateFlow<CategorySearchUiState> = _uiState.asStateFlow()
-
-    // Храним полный список, чтобы фильтровать локально без повторных запросов
     private var allCategories: List<BudgetCategory> = emptyList()
 
     init {
-        loadCategories()
+        onIntent(CategorySearchIntent.LoadCategories)
+    }
+
+    override fun onIntent(intent: CategorySearchIntent) {
+        when (intent) {
+            CategorySearchIntent.LoadCategories -> loadCategories()
+            is CategorySearchIntent.OnQueryChanged -> handleQueryChanged(intent.query)
+            is CategorySearchIntent.OnCategorySelected -> {
+                sendEffect(CategorySearchEffect.NavigateBackWithResult(intent.categoryName))
+            }
+        }
     }
 
     private fun loadCategories() {
         viewModelScope.launch {
+            updateState { copy(isLoading = true) }
             allCategories = getCategoriesUseCase()
-            updateSearchResults("")
+            updateSearchResults(currentState.searchQuery)
+            updateState { copy(isLoading = false) }
         }
     }
 
-    fun onSearchQueryChanged(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
+    private fun handleQueryChanged(query: String) {
+        updateState { copy(searchQuery = query) }
         updateSearchResults(query)
     }
 
@@ -46,35 +53,30 @@ class CategorySearchViewModel @Inject constructor(
         val filteredItems = if (trimmedQuery.isEmpty()) {
             allCategories.map { mapToUiModel(it, isTop = false) }
         } else {
-            // 1. Фильтруем по вхождению
             val matches = allCategories.filter {
                 it.name.contains(trimmedQuery, ignoreCase = true)
             }
 
-            // 2. Ищем идеальное совпадение для "Top Result" (начало строки)
             val topResultMatch = matches.firstOrNull {
                 it.name.startsWith(trimmedQuery, ignoreCase = true)
             }
 
-            // 3. Формируем список
             matches.map { category ->
-                // Категория является TopResult, если она совпала с topResultMatch
                 val isTop = category == topResultMatch
                 mapToUiModel(category, isTop)
-            }.sortedByDescending { it.isTopResult } // Поднимаем TopResult наверх списка
+            }.sortedByDescending { it.isTopResult }
         }
 
-        _uiState.update { it.copy(searchResults = filteredItems) }
+        updateState { copy(searchResults = filteredItems) }
     }
 
     private fun mapToUiModel(domainCategory: BudgetCategory, isTop: Boolean): SearchCategoryItem {
-
         return SearchCategoryItem(
             id = domainCategory.id,
             name = domainCategory.name,
             iconRes = domainCategory.iconRes,
-            color = Color(domainCategory.color), // Конвертируем Long -> Color
-            limit = "Лимит: ...", // TODO: Добавить получение текущего лимита, если нужно
+            color = Color(CategoryColorMapper.getColorForId(domainCategory.id.value)),
+            limit = "Лимит: ...",
             isTopResult = isTop
         )
     }
