@@ -11,32 +11,27 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 
 import com.example.smartbudget.feature.category_search.CategorySearchScreen
+import com.example.smartbudget.feature.category_search.CategorySearchViewModel
 import com.example.smartbudget.feature.operations.AllOperationsScreen
-import com.example.smartbudget.feature.dashboard.BudgetDashboardScreen
-import com.example.smartbudget.feature.dashboard.categories.CategoriesDashboardScreen
-import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactScreen
-import com.tbank.smartbudget.core.navigation.AllOperationsRoute
-import com.tbank.smartbudget.core.navigation.BudgetDashboardRoute
-import com.tbank.smartbudget.core.navigation.BudgetDetailsRoute
-import com.tbank.smartbudget.core.navigation.BudgetEditRoute
-import com.tbank.smartbudget.core.navigation.BudgetTabRoute
-import com.tbank.smartbudget.core.navigation.CategoriesDashboardRoute
-import com.tbank.smartbudget.core.navigation.CategorySearchRoute
-import com.tbank.smartbudget.core.navigation.EnterPinRoute
-import com.tbank.smartbudget.core.navigation.LoginEmailRoute
-import com.tbank.smartbudget.core.navigation.LoginPasswordRoute
-import com.tbank.smartbudget.core.navigation.PlanVsFactRoute
-import com.tbank.smartbudget.core.navigation.ProfileRoute
-import com.tbank.smartbudget.core.navigation.SelectedCategoriesRoute
-import com.tbank.smartbudget.feature.auth.AuthViewModel
-import com.tbank.smartbudget.feature.auth.EnterPinScreen
-import com.tbank.smartbudget.feature.auth.LoginEmailScreen
-import com.tbank.smartbudget.feature.auth.LoginPasswordScreen
-import com.tbank.smartbudget.feature.selected_categories.SelectedCategoriesScreen
 import com.example.smartbudget.feature.operations.AllOperationsViewModel
+import com.example.smartbudget.feature.dashboard.BudgetDashboardScreen
+import com.example.smartbudget.feature.dashboard.BudgetDashboardViewModel
+import com.example.smartbudget.feature.dashboard.categories.CategoriesDashboardScreen
+import com.example.smartbudget.feature.dashboard.categories.CategoriesDashboardViewModel
+import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactScreen
+import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactViewModel
+import com.example.smartbudget.feature.operations.AllOperationsIntent
+import com.tbank.smartbudget.core.navigation.*
+import com.tbank.smartbudget.feature.auth.*
 import com.tbank.smartbudget.feature.budget_details.BudgetDetailsScreen
+import com.tbank.smartbudget.feature.budget_edit.BudgetEditScreen
+import com.tbank.smartbudget.feature.budget_edit.BudgetEditViewModel
 import com.tbank.smartbudget.feature.budget_tab.BudgetTabScreen
+import com.tbank.smartbudget.feature.budget_tab.BudgetViewModel
 import com.tbank.smartbudget.feature.profile.ProfileScreen
+import com.tbank.smartbudget.feature.profile.ProfileViewModel
+import com.tbank.smartbudget.feature.selected_categories.SelectedCategoriesScreen
+import com.tbank.smartbudget.feature.selected_categories.SelectedCategoriesViewModel
 
 @Composable
 fun SmartBudgetNavHost() {
@@ -88,18 +83,22 @@ fun SmartBudgetNavHost() {
 
         // --- HOME / TABS FEATURE ---
         composable<BudgetTabRoute> {
+            val viewModel = hiltViewModel<BudgetViewModel>()
             BudgetTabScreen(
-                onSearchClick = { navController.navigate(CategorySearchRoute) },
-                onProfileClick = { navController.navigate(ProfileRoute) },
-                onBudgetClick = { navController.navigate(BudgetDetailsRoute) },
-                onAllOperationsClick = { navController.navigate(AllOperationsRoute) },
-                onSelectedCategoriesClick = { navController.navigate(SelectedCategoriesRoute) }
+                viewModel = viewModel,
+                onNavigateToBudgetEdit = { navController.navigate(BudgetDetailsRoute) }, // Переход к деталям
+                onNavigateToSearch = { navController.navigate(CategorySearchRoute) },
+                onNavigateToProfile = { navController.navigate(ProfileRoute) },
+                onNavigateToAllOperations = { navController.navigate(AllOperationsRoute) },
+                onNavigateToSelectedCategories = { navController.navigate(SelectedCategoriesRoute) }
             )
         }
 
         // --- CATEGORY SEARCH FEATURE ---
         composable<CategorySearchRoute> {
+            val viewModel = hiltViewModel<CategorySearchViewModel>()
             CategorySearchScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onCategoryClick = { categoryName ->
                     navController.previousBackStackEntry
@@ -120,21 +119,30 @@ fun SmartBudgetNavHost() {
         }
 
         composable<BudgetEditRoute> {
+            val viewModel = hiltViewModel<BudgetEditViewModel>()
             BudgetEditScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onAddCategoryClick = { navController.navigate(SelectedCategoriesRoute) }
             )
         }
 
         composable<SelectedCategoriesRoute> {
-            SelectedCategoriesScreen(onNavigateBack = { navController.popBackStack() })
+            val viewModel = hiltViewModel<SelectedCategoriesViewModel>()
+            SelectedCategoriesScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCreate = { /* Реализовать переход на создание */ }
+            )
         }
 
         // --- DASHBOARD FEATURE ---
         composable<BudgetDashboardRoute>(
             enterTransition = { slideInHorizontally { it } }
         ) {
+            val viewModel = hiltViewModel<BudgetDashboardViewModel>()
             BudgetDashboardScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPlanVsFact = { navController.navigate(PlanVsFactRoute) },
                 onNavigateToCategoriesDashboard = { navController.navigate(CategoriesDashboardRoute) }
@@ -142,11 +150,19 @@ fun SmartBudgetNavHost() {
         }
 
         composable<PlanVsFactRoute> {
-            PlanVsFactScreen(onNavigateBack = { navController.popBackStack() })
+            val viewModel = hiltViewModel<PlanVsFactViewModel>()
+            PlanVsFactScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable<CategoriesDashboardRoute> {
-            CategoriesDashboardScreen(onNavigateBack = { navController.popBackStack() })
+            val viewModel = hiltViewModel<CategoriesDashboardViewModel>()
+            CategoriesDashboardScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         // --- OPERATIONS FEATURE ---
@@ -156,25 +172,27 @@ fun SmartBudgetNavHost() {
 
             LaunchedEffect(selectedCategoryName) {
                 selectedCategoryName?.let {
-                    viewModel.onCategorySearchResult(it)
+                    viewModel.onIntent(AllOperationsIntent.OnCategorySearchResult(it))
                     backStackEntry.savedStateHandle.remove<String>("selected_category_name")
                 }
             }
             AllOperationsScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onSearchClick = { navController.navigate(CategorySearchRoute) },
-                viewModel = viewModel
+                onSearchClick = { navController.navigate(CategorySearchRoute) }
             )
         }
 
         // --- PROFILE FEATURE ---
         composable<ProfileRoute> {
-            ProfileScreen(onNavigateBack = { navController.popBackStack() })
+            val viewModel = hiltViewModel<ProfileViewModel>()
+            ProfileScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToBudget = { budgetId ->
+                    navController.navigate(BudgetDetailsRoute)
+                }
+            )
         }
     }
-}
-
-@Composable
-fun BudgetEditScreen(onNavigateBack: () -> Boolean, onAddCategoryClick: () -> Unit) {
-    TODO("Not yet implemented")
 }
