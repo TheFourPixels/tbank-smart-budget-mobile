@@ -36,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,13 +53,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.smartbudget.feature.dashboard.components.CategoriesDonutChart
 import com.example.smartbudget.feature.dashboard.components.CategoriesHorizontalBarChartPercent
 import com.example.smartbudget.feature.dashboard.components.CategoriesHorizontalBarChartRubles
 import com.tbank.smartbudget.core.ui.common.DetailsCard
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
-// Цвета
 private val LabelYellow = Color(0xFFFFD600)
 
 @Composable
@@ -68,7 +67,7 @@ fun CategoriesDashboardScreen(
     onNavigateBack: () -> Unit,
     viewModel: CategoriesDashboardViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     CategoriesDashboardContent(
         state = state,
@@ -86,7 +85,6 @@ fun CategoriesDashboardContent(
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
 
-    // Состояние видимости графиков во второй карточке
     var isExpensesChartVisible by remember { mutableStateOf(false) }
 
     Scaffold(

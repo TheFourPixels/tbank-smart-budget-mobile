@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.smartbudget.feature.dashboard.components.BudgetLineChart
 import com.example.smartbudget.feature.dashboard.components.ChartsBottomSheet
 import com.tbank.smartbudget.core.ui.common.DetailsCard
@@ -34,7 +35,7 @@ fun BudgetDashboardScreen(
     onNavigateToCategoriesDashboard: () -> Unit,
     viewModel: BudgetDashboardViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     BudgetDashboardContent(
         state = state,
@@ -52,21 +53,17 @@ fun BudgetDashboardContent(
     onNavigateToPlanVsFact: () -> Unit,
     onNavigateToCategoriesDashboard: () -> Unit,
 ) {
-    // Состояние видимости нижнего экрана (Bottom Sheet)
     var showChartsSheet by remember { mutableStateOf(false) }
     val density = LocalDensity.current
 
-    // Если переменная true, показываем BottomSheet
     if (showChartsSheet) {
         ChartsBottomSheet(
             onDismiss = { showChartsSheet = false },
             onChartSelected = { chartType ->
                 showChartsSheet = false
-                // Обработка выбора
                 if (chartType == "plan_vs_fact") {
                     onNavigateToPlanVsFact()
                 }
-                // Для других типов пока заглушки
                 if (chartType == "categories_dashboard") {
                     onNavigateToCategoriesDashboard()
                 }
@@ -74,7 +71,6 @@ fun BudgetDashboardContent(
         )
     }
 
-    // Параметры для градиентного фона
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
 
