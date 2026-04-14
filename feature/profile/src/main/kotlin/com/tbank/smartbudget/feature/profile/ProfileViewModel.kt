@@ -1,72 +1,69 @@
 package com.tbank.smartbudget.feature.profile
 
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tbank.smartbudget.core.network.remote.AppResult
+import com.tbank.smartbudget.core.ui.common.BaseViewModel
+import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val authRepository: AuthRepository
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(ProfileUiState(isLoading = true))
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+) : BaseViewModel<ProfileUiState, ProfileIntent, ProfileEffect>(
+    ProfileUiState(isLoading = true)
+) {
 
     init {
-        loadProfileData()
+        onIntent(ProfileIntent.LoadProfile)
+    }
+
+    override fun onIntent(intent: ProfileIntent) {
+        when (intent) {
+            ProfileIntent.LoadProfile -> loadProfileData()
+            is ProfileIntent.OnBudgetSelected -> {
+                sendEffect(ProfileEffect.NavigateToBudgetDetails(intent.budgetId))
+            }
+        }
     }
 
     private fun loadProfileData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            updateState { copy(isLoading = true) }
 
-            // 1. Делаем запрос к API через репозиторий
             val result = authRepository.getProfile()
 
-            // 2. Извлекаем имя. Если ошибка или null - ставим дефолтное
-            val loadedUserName = result.getOrNull()?.name ?: "Пользователь"
+            val loadedUserName = when (result) {
+                is AppResult.Success -> result.data.name
+                is AppResult.Error -> "Пользователь"
+            }
 
-            // 3. Моковые бюджеты оставляем для UI (пока нет реального API для них)
             val mockBudgets = listOf(
-                BudgetProfileItem(
-                    id = 1,
-                    name = "Кубышка",
-                    dateDescription = "Январь 2026",
-                    color = Color(0xFFAD1457), // Малиновый
-                    initial = "Я"
-                ),
-                BudgetProfileItem(
-                    id = 2,
-                    name = "Копилка",
-                    dateDescription = "Февраль 2026",
-                    color = Color(0xFFF9A825), // Оранжевый
-                    initial = "Ф"
-                ),
-                BudgetProfileItem(
-                    id = 3,
-                    name = "Отпуск",
-                    dateDescription = "Июль 2026",
-                    color = Color(0xFF2E7D32), // Зеленый
-                    initial = "О"
-                )
+                createMockBudget(1, "Кубышка", "Январь 2026", "Я"),
+                createMockBudget(2, "Копилка", "Февраль 2026", "Ф"),
+                createMockBudget(3, "Отпуск", "Июль 2026", "О")
             )
 
-            // 4. Обновляем UI
-            _uiState.update {
-                it.copy(
+            updateState {
+                copy(
                     isLoading = false,
                     userName = loadedUserName,
                     budgets = mockBudgets
                 )
             }
         }
+    }
+
+    private fun createMockBudget(id: Long, name: String, date: String, initial: String): BudgetProfileItem {
+        return BudgetProfileItem(
+            id = id,
+            name = name,
+            dateDescription = date,
+            initial = initial,
+            color = Color(CategoryColorMapper.getColorForId(id))
+        )
     }
 }
