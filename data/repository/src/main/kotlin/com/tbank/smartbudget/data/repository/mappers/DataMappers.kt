@@ -24,7 +24,7 @@ fun TransactionDto.toDomain(): Transaction {
         description = description,
         merchantName = merchant,
         categoryName = categoryName ?: "Без категории",
-        categoryColor = categoryColor ?: 0xFF808080,
+        categoryColor = categoryColor ?: 0L,
         categoryId = CategoryId(categoryId ?: 0L)
     )
 }
@@ -41,7 +41,7 @@ fun BudgetLimitDto.toDomain(): BudgetLimitModel {
         limitValue = limitValue,
         limitType = if (limitType == "PERCENT") BudgetLimitType.PERCENT else BudgetLimitType.AMOUNT,
         iconRes = 0,
-        color = 0xFF42A5F5
+        color = 0L
     )
 }
 
@@ -78,14 +78,13 @@ fun UserDto.toDomain(): User {
  * Преобразование статистики категорий из DTO в доменную модель.
  */
 fun DashboardCategoryStat.toDomain(): CategoryLimit {
-    val catID = CategoryId(categoryId)
     return CategoryLimit(
-        id = catID,
+        id = CategoryId(categoryId),
         name = categoryName ?: "Категория",
         limitAmount = budgetLimit,
         spentAmount = spentAmount,
-        iconRes = 0, // Можно расширить логику выбора иконок
-        color = generateColorForId(categoryId)
+        iconRes = 0,
+        color = 0L
     )
 }
 
@@ -105,17 +104,6 @@ fun BudgetDashboardDto.toSummary(): BudgetSummary {
     )
 }
 
-
-/**
- * Генерация стабильного цвета для категории на основе её ID.
- */
-private fun generateColorForId(id: Long): Long {
-    val colors = listOf(
-        0xFF43A047, 0xFF1E88E5, 0xFFE53935, 0xFFFB8C00,
-        0xFF8E24AA, 0xFF00ACC1, 0xFFD81B60, 0xFF546E7A
-    )
-    return colors[(id % colors.size).toInt()]
-}
 
 /**
  * Маппинг основного DTO бюджета.

@@ -2,8 +2,8 @@ package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.core.datastore.SessionManager
 import com.tbank.smartbudget.core.network.remote.AppResult
-import com.tbank.smartbudget.core.network.remote.api.AuthApi
-import com.tbank.smartbudget.core.network.remote.api.UserApi
+import com.tbank.smartbudget.core.network.remote.api.UnauthorizedApi
+import com.tbank.smartbudget.core.network.remote.api.AuthorizedUserApi
 import com.tbank.smartbudget.core.network.remote.dto.CheckEmailRequest
 import com.tbank.smartbudget.core.network.remote.dto.LoginRequest
 import com.tbank.smartbudget.core.network.remote.dto.RegisterRequest
@@ -20,8 +20,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val authApi: AuthApi,
-    private val userApi: UserApi,
+    private val authApi: UnauthorizedApi,
+    private val userApi: AuthorizedUserApi,
     private val sessionManager: SessionManager
 ) : AuthRepository {
 

@@ -1,5 +1,8 @@
 package com.tbank.smartbudget.data.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class DashboardData(
     val month: Int,
     val totalIncome: Double,

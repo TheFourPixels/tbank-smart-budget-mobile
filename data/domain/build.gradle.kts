@@ -11,4 +11,7 @@ dependencies {
 
 
     implementation("javax.inject:javax.inject:1")
+    implementation(projects.core.network)
+    implementation(libs.androidx.compose.runtime.annotation)
+
 }
