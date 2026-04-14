@@ -1,12 +1,9 @@
 package com.tbank.smartbudget.feature.budget_edit
 
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,54 +17,84 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.tbank.smartbudget.core.ui.common.DetailsCard
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
-import com.tbank.smartbudget.presentation.ui.budget_edit.components.DarkSourceCard
-import com.tbank.smartbudget.presentation.ui.budget_edit.components.EditCategoryRow
-import com.tbank.smartbudget.presentation.ui.budget_edit.components.InputBox
-import com.tbank.smartbudget.presentation.ui.budget_edit.components.PeriodChip
-import com.tbank.smartbudget.presentation.ui.budget_edit.components.UnitSwitchBox
+import com.tbank.smartbudget.feature.budget_edit.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetEditScreen(
     onNavigateBack: () -> Unit,
-    onAddCategoryClick: () -> Unit = {},
-    viewModel: BudgetEditViewModel = hiltViewModel()
+    onAddCategoryClick: () -> Unit,
+    viewModel: BudgetEditViewModel
 ) {
-    val state by viewModel.uiState.collectAsState()
-    val density = LocalDensity.current
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refreshCategories()
+                viewModel.onIntent(BudgetEditIntent.RefreshCategories)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                BudgetEditEffect.NavigateBack -> onNavigateBack()
+                is BudgetEditEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
+    BudgetEditContent(
+        state = state,
+        onNavigateBack = onNavigateBack,
+        onDeleteClick = { viewModel.onIntent(BudgetEditIntent.OnDeleteClicked) },
+        onSaveClick = { viewModel.onIntent(BudgetEditIntent.OnSaveClicked) },
+        onClearError = { viewModel.onIntent(BudgetEditIntent.ClearError) },
+        onPeriodSelected = { viewModel.onIntent(BudgetEditIntent.OnPeriodSelected(it)) },
+        onAmountChanged = { viewModel.onIntent(BudgetEditIntent.OnAmountChanged(it)) },
+        onToggleLimitType = { viewModel.onIntent(BudgetEditIntent.ToggleGlobalLimitType) },
+        onCategoryLimitChanged = { id, value -> viewModel.onIntent(BudgetEditIntent.OnCategoryLimitChanged(id, value)) },
+        onCategoryTypeToggle = { id -> viewModel.onIntent(BudgetEditIntent.OnCategoryTypeToggle(id)) },
+        onAddCategoryClick = onAddCategoryClick,
+        onChangeSourceClick = { /* TODO */ }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BudgetEditContent(
+    state: BudgetEditUiState,
+    onNavigateBack: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onSaveClick: () -> Unit,
+    onClearError: () -> Unit,
+    onPeriodSelected: (Int) -> Unit,
+    onAmountChanged: (String) -> Unit,
+    onToggleLimitType: () -> Unit,
+    onCategoryLimitChanged: (Long, String) -> Unit,
+    onCategoryTypeToggle: (Long) -> Unit,
+    onAddCategoryClick: () -> Unit,
+    onChangeSourceClick: () -> Unit
+) {
+    val density = LocalDensity.current
     val gradientHeight = 406.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
-
-    LaunchedEffect(state.isSavedSuccess) {
-        if (state.isSavedSuccess) {
-            viewModel.onSuccessShown()
-            onNavigateBack()
-        }
-    }
 
     Scaffold(
         containerColor = Color.White,
@@ -76,21 +103,15 @@ fun BudgetEditScreen(
                 title = {},
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Назад", tint = Color.White)
                     }
                 },
                 actions = {
-                    // Кнопка удаления (иконка корзины)
-                    IconButton(onClick = { viewModel.onDeleteClicked() }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.White)
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(Icons.Default.Delete, "Удалить", tint = Color.White)
                     }
-                    // Кнопка сохранения
-                    IconButton(onClick = { viewModel.onSaveClicked() }) {
-                        Icon(Icons.Default.Check, contentDescription = "Сохранить", tint = Color.White)
+                    IconButton(onClick = onSaveClick) {
+                        Icon(Icons.Default.Check, "Сохранить", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -100,16 +121,20 @@ fun BudgetEditScreen(
 
         if (state.error != null) {
             AlertDialog(
-                onDismissRequest = { viewModel.onErrorShown() },
+                onDismissRequest = onClearError,
                 title = { Text("Ошибка") },
-                text = { Text(state.error ?: "Неизвестная ошибка") },
-                confirmButton = { TextButton(onClick = { viewModel.onErrorShown() }) { Text("OK") } }
+                text = { Text(state.error) },
+                confirmButton = {
+                    TextButton(onClick = onClearError) {
+                        Text("OK")
+                    }
+                }
             )
         }
 
         if (state.isLoading || state.isSaving) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = SmartBudgetTheme.colors.blue)
             }
         } else {
             Column(
@@ -118,7 +143,7 @@ fun BudgetEditScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    // --- ФОН ---
+                    // Background Gradient
                     Box(modifier = Modifier.fillMaxWidth().height(gradientHeight)) {
                         Box(modifier = Modifier.fillMaxSize().background(
                             brush = Brush.radialGradient(
@@ -136,17 +161,12 @@ fun BudgetEditScreen(
                         ))
                     }
 
-                    // --- КОНТЕНТ ---
+                    // Content
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(
-                            modifier = Modifier.padding(horizontal = 24.dp),
-                            text = "Бюджет “${state.budgetName}”",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 28.sp),
-                            color = Color.White
-                        )
+                        BudgetEditHeader(budgetName = state.budgetName)
 
                         Spacer(modifier = Modifier.height(24.dp))
 
@@ -154,80 +174,53 @@ fun BudgetEditScreen(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // --- КАРТОЧКА 1: Настройки ---
-                            DetailsCard {
-                                Text("Настройки бюджета", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), fontSize = 20.sp)
-                                Spacer(Modifier.height(16.dp))
-                                LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    itemsIndexed(state.periods) { index, text ->
-                                        PeriodChip(text = text, isSelected = index == state.selectedPeriodIndex, onClick = { viewModel.onPeriodSelected(index) })
-                                    }
-                                }
-                                Spacer(Modifier.height(16.dp))
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    InputBox(
-                                        label = "Сумма вклада",
-                                        value = state.amount,
-                                        onValueChange = { viewModel.onAmountChanged(it) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    UnitSwitchBox(
-                                        isPercentMode = state.isPercentMode,
-                                        onToggle = { viewModel.onGlobalLimitTypeToggle() },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                Spacer(Modifier.height(16.dp))
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Мы берем ${state.amount} отсюда", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-                                    Text("Изменить", style = MaterialTheme.typography.bodySmall, color = SmartBudgetTheme.colors.blue, modifier = Modifier.clickable { })
-                                }
-                                Spacer(Modifier.height(12.dp))
-                                DarkSourceCard(state.sourceCardBalance, state.sourceCardPan, state.sourceCardName)
-                            }
+                            BudgetSettingsCard(
+                                periods = state.periods,
+                                selectedPeriodIndex = state.selectedPeriodIndex,
+                                onPeriodSelected = onPeriodSelected,
+                                amount = state.amount,
+                                onAmountChanged = onAmountChanged,
+                                isPercentMode = state.isPercentMode,
+                                onToggleLimitType = onToggleLimitType,
+                                sourceCardName = state.sourceCardName,
+                                sourceCardPan = state.sourceCardPan,
+                                sourceCardBalance = state.sourceCardBalance,
+                                onChangeSourceClick = onChangeSourceClick
+                            )
 
-                            // --- КАРТОЧКА 2: Категории ---
-                            DetailsCard {
-                                Text(
-                                    "Категории",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    fontSize = 20.sp
-                                )
+                            BudgetCategoriesCard(
+                                categories = state.categories,
+                                onAddCategoryClick = onAddCategoryClick,
+                                onCategoryLimitChanged = onCategoryLimitChanged,
+                                onCategoryTypeToggle = onCategoryTypeToggle
+                            )
 
-                                Spacer(Modifier.height(16.dp))
-
-                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    state.categories.forEach { category ->
-                                        EditCategoryRow(
-                                            category = category,
-                                            onLimitChange = { viewModel.onCategoryLimitChanged(category.id, it) },
-                                            onTypeToggle = { viewModel.onCategoryTypeToggle(category.id) }
-                                        )
-                                    }
-                                }
-
-                                Spacer(Modifier.height(24.dp))
-
-                                Button(
-                                    onClick = onAddCategoryClick,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(50.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFF5F5F5),
-                                        contentColor = SmartBudgetTheme.colors.blue
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = ButtonDefaults.buttonElevation(0.dp)
-                                ) {
-                                    Text("Добавить категорию", fontSize = 16.sp)
-                                }
-                            }
-                            Spacer(Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(32.dp))
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BudgetEditScreenPreview() {
+    SmartBudgetTheme {
+        BudgetEditContent(
+            state = BudgetEditUiState(),
+            onNavigateBack = {},
+            onDeleteClick = {},
+            onSaveClick = {},
+            onClearError = {},
+            onPeriodSelected = {},
+            onAmountChanged = {},
+            onToggleLimitType = {},
+            onCategoryLimitChanged = { _, _ -> },
+            onCategoryTypeToggle = {},
+            onAddCategoryClick = {},
+            onChangeSourceClick = {}
+        )
     }
 }

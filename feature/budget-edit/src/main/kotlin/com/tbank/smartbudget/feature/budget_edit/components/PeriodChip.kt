@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_edit.components
+package com.tbank.smartbudget.feature.budget_edit.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,19 +18,19 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PeriodChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) Color(0xFFC6FF00) /* Lime Green */ else Color(0xFFF9F9F9)
-    val textColor = Color.Companion.Black
+    val textColor = Color.Black
 
     Box(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Companion.Center
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Companion.Medium),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
             color = textColor
         )
     }
