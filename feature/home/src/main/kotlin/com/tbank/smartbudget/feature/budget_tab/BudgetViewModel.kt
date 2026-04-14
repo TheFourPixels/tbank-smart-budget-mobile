@@ -1,105 +1,88 @@
 package com.tbank.smartbudget.feature.budget_tab
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import com.tbank.smartbudget.core.datastore.SessionManager
-import com.tbank.smartbudget.data.domain.model.BudgetPeriod
+import com.tbank.smartbudget.core.network.di.IoDispatcher
+import com.tbank.smartbudget.core.ui.common.BaseViewModel
+import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.usecase.GetBudgetSummaryUseCase
 import com.tbank.smartbudget.data.domain.usecase.GetCategoryDetailsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
-
-data class BudgetSummaryUi(
-    val totalIncome: String,
-    val totalLimit: String,
-    val totalSpent: String,
-    val freeFunds: String
-)
-
-data class CategoryUi(
-    val id: Long,
-    val name: String,
-    val iconRes: Int,
-    val color: Long,
-    val spentValue: String,
-    val limitValue: String,
-    val progress: Float
-)
-
-data class BudgetUiState(
-    val period: BudgetPeriod = BudgetPeriod.MONTH,
-    val userName: String = "",
-    val budgetName: String = "Кубышка",
-    val budgetTerm: String = "",
-    val summary: BudgetSummaryUi? = null,
-    val categories: List<CategoryUi> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
 
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
     private val getBudgetSummaryUseCase: GetBudgetSummaryUseCase,
     private val getCategoryDetailsUseCase: GetCategoryDetailsUseCase,
-    private val sessionManager: SessionManager
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(BudgetUiState(isLoading = true))
-    val uiState: StateFlow<BudgetUiState> = _uiState.asStateFlow()
+    private val sessionManager: SessionManager,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : BaseViewModel<BudgetUiState, BudgetIntent, BudgetEffect>(
+    BudgetUiState(isLoading = true)
+) {
 
     init {
-        loadData()
+        onIntent(BudgetIntent.LoadData)
     }
 
-    fun loadData() {
-        viewModelScope.launch {
+    override fun onIntent(intent: BudgetIntent) {
+        when (intent) {
+            BudgetIntent.LoadData, BudgetIntent.OnRefresh -> loadData()
+            BudgetIntent.OnBudgetClick -> sendEffect(BudgetEffect.NavigateToBudgetEdit)
+            BudgetIntent.OnSearchClick -> sendEffect(BudgetEffect.NavigateToSearch)
+            BudgetIntent.OnProfileClick -> sendEffect(BudgetEffect.NavigateToProfile)
+            BudgetIntent.OnAllOperationsClick -> sendEffect(BudgetEffect.NavigateToAllOperations)
+            BudgetIntent.OnSelectedCategoriesClick -> sendEffect(BudgetEffect.NavigateToSelectedCategories)
+        }
+    }
+
+    private fun loadData() {
+        viewModelScope.launch(ioDispatcher) {
             val savedName = sessionManager.getUserName() ?: "Пользователь"
+            val now = LocalDate.now()
 
-            _uiState.update { it.copy(isLoading = true, error = null, userName = savedName) }
+            updateState { copy(isLoading = true, error = null, userName = savedName) }
 
-            val summaryResult = getBudgetSummaryUseCase.execute()
-            val categoriesResult = getCategoryDetailsUseCase.execute(budgetId = 1L)
+            val summaryDeferred = async { getBudgetSummaryUseCase.execute(year = now.year, month = now.monthValue) }
+            val categoriesDeferred = async { getCategoryDetailsUseCase.execute(budgetId = 0L) }
+
+            val summaryResult = summaryDeferred.await()
+            val categoriesResult = categoriesDeferred.await()
 
             if (summaryResult.isSuccess && categoriesResult.isSuccess) {
-                val summary = summaryResult.getOrNull()!!
-                val domainCategories = categoriesResult.getOrNull()!!
+                val summary = summaryResult.getOrThrow()
+                val domainCategories = categoriesResult.getOrThrow()
 
-                val summaryUi = BudgetSummaryUi(
-                    totalIncome = formatMoney(summary.totalIncome),
-                    totalLimit = formatMoney(summary.totalLimit),
-                    totalSpent = formatMoney(summary.totalSpent),
-                    freeFunds = formatMoney(summary.freeFunds)
-                )
-
-                val uiCategories = domainCategories.map { domainCategory ->
-                    CategoryUi(
-                        id = domainCategory.id,
-                        name = domainCategory.name,
-                        iconRes = domainCategory.iconRes,
-                        color = domainCategory.color,
-                        spentValue = formatMoney(domainCategory.spentAmount),
-                        limitValue = formatMoney(domainCategory.limitAmount),
-                        progress = if (domainCategory.limitAmount > 0)
-                            (domainCategory.spentAmount / domainCategory.limitAmount).toFloat().coerceIn(0f, 1f)
-                        else 0f
-                    )
-                }
-
-                _uiState.update {
-                    it.copy(
+                updateState {
+                    copy(
                         budgetTerm = summary.period,
-                        summary = summaryUi,
-                        categories = uiCategories,
+                        summary = BudgetSummaryUi(
+                            totalIncome = formatMoney(summary.totalIncome),
+                            totalLimit = formatMoney(summary.totalLimit),
+                            totalSpent = formatMoney(summary.totalSpent),
+                            freeFunds = formatMoney(summary.freeFunds)
+                        ),
+                        categories = domainCategories.map { dc ->
+                            CategoryUi(
+                                id = dc.id,
+                                name = dc.name,
+                                iconRes = dc.iconRes,
+                                color = CategoryColorMapper.getColorForId(dc.id.value),
+                                spentValue = formatMoney(dc.spentAmount),
+                                limitValue = formatMoney(dc.limitAmount),
+                                progress = if (dc.limitAmount > 0)
+                                    (dc.spentAmount / dc.limitAmount).toFloat().coerceIn(0f, 1f)
+                                else 0f
+                            )
+                        },
                         isLoading = false
                     )
                 }
             } else {
-                _uiState.update { it.copy(error = "Ошибка загрузки", isLoading = false) }
+                updateState { copy(isLoading = false, error = "Ошибка обновления данных") }
             }
         }
     }

@@ -21,11 +21,17 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
-fun BudgetSummaryCard(budgetName: String, balance: String, term: String, onClick: () -> Unit) {
+fun BudgetSummaryCard(
+    budgetName: String,
+    balance: String,
+    term: String,
+    onClick: () -> Unit
+) {
     val shape = RoundedCornerShape(16.dp)
 
     Box(
@@ -63,12 +69,12 @@ fun BudgetSummaryCard(budgetName: String, balance: String, term: String, onClick
             ) {
                 Column {
                     Text(
-                        "Баланс",
+                        text = "Баланс",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.7f)
                     )
                     Text(
-                        balance,
+                        text = balance,
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
                         color = Color.White
                     )
@@ -88,6 +94,21 @@ fun BudgetSummaryCard(budgetName: String, balance: String, term: String, onClick
                     )
                 }
             }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5F5F5)
+@Composable
+private fun BudgetSummaryCardPreview() {
+    SmartBudgetTheme {
+        Box(modifier = Modifier.padding(vertical = 20.dp)) {
+            BudgetSummaryCard(
+                budgetName = "Кубышка",
+                balance = "120 500 ₽",
+                term = "Март 2024",
+                onClick = {}
+            )
         }
     }
 }

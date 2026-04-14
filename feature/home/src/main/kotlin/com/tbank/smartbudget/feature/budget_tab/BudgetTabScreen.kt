@@ -1,58 +1,101 @@
 package com.tbank.smartbudget.feature.budget_tab
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
+import com.tbank.smartbudget.data.domain.model.CategoryId
 import com.tbank.smartbudget.feature.budget_tab.components.BudgetSummaryCard
+import com.tbank.smartbudget.feature.budget_tab.components.CategoryProgressItem
 import com.tbank.smartbudget.feature.budget_tab.components.SummaryCategoryUi
 import com.tbank.smartbudget.feature.budget_tab.components.SummaryRow
 import com.tbank.smartbudget.feature.budget_tab.components.UserInfoAndSearch
 import com.tbank.smartbudget.feature.budget_tab.components.WhiteBackgroundContainer
-import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
 fun BudgetTabScreen(
     viewModel: BudgetViewModel = hiltViewModel(),
-    onBudgetClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
-    onAllOperationsClick: () -> Unit = {},
-    onSelectedCategoriesClick: () -> Unit = {}
+    onNavigateToBudgetEdit: () -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToAllOperations: () -> Unit,
+    onNavigateToSelectedCategories: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                BudgetEffect.NavigateToBudgetEdit -> onNavigateToBudgetEdit()
+                BudgetEffect.NavigateToSearch -> onNavigateToSearch()
+                BudgetEffect.NavigateToProfile -> onNavigateToProfile()
+                BudgetEffect.NavigateToAllOperations -> onNavigateToAllOperations()
+                BudgetEffect.NavigateToSelectedCategories -> onNavigateToSelectedCategories()
+            }
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadData()
+                viewModel.onIntent(BudgetIntent.OnRefresh)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    BudgetTabContent(
+        state = state,
+        onSearchClick = { viewModel.onIntent(BudgetIntent.OnSearchClick) },
+        onProfileClick = { viewModel.onIntent(BudgetIntent.OnProfileClick) },
+        onBudgetClick = { viewModel.onIntent(BudgetIntent.OnBudgetClick) },
+        onAllOperationsClick = { viewModel.onIntent(BudgetIntent.OnAllOperationsClick) },
+        onSelectedCategoriesClick = { viewModel.onIntent(BudgetIntent.OnSelectedCategoriesClick) }
+    )
+}
+
+@Composable
+private fun BudgetTabContent(
+    state: BudgetUiState,
+    onSearchClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onBudgetClick: () -> Unit,
+    onAllOperationsClick: () -> Unit,
+    onSelectedCategoriesClick: () -> Unit
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (state.isLoading) {
+        if (state.isLoading && state.summary == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = SmartBudgetTheme.colors.blue)
             }
         } else {
             LazyColumn(
@@ -62,24 +105,17 @@ fun BudgetTabScreen(
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 item {
-                    // --- ДИЗАЙН: Белый контейнер сверху ---
                     WhiteBackgroundContainer {
                         Column {
-                            // 1. Профиль и Поиск
                             UserInfoAndSearch(
                                 userName = state.userName,
                                 onSearchClick = onSearchClick,
                                 onProfileClick = onProfileClick
                             )
-
                             Spacer(Modifier.height(16.dp))
-
-                            // 2. Карточка "Кубышка"
-                            val balance = state.summary?.totalIncome ?: "0 ₽"
-
                             BudgetSummaryCard(
                                 budgetName = state.budgetName,
-                                balance = balance,
+                                balance = state.summary?.freeFunds ?: "0 ₽",
                                 term = state.budgetTerm,
                                 onClick = onBudgetClick
                             )
@@ -90,26 +126,31 @@ fun BudgetTabScreen(
 
                 item {
                     Spacer(Modifier.height(24.dp))
-
-                    // Маппинг данных для функционала иконок
-                    val summaryCategories = state.categories.map {
-                        SummaryCategoryUi(
-                            id = it.id,
-                            name = it.name,
-                            iconRes = it.iconRes,
-                            color = it.color
-                        )
-                    }
-
-                    val totalSpent = state.summary?.totalSpent ?: "0 ₽"
-
-                    // --- 3. Сводные карточки (Функционал с иконками) ---
                     SummaryRow(
-                        totalSpent = totalSpent,
-                        totalSpentDescription = "Трат в декабре",
-                        categories = summaryCategories,
+                        totalSpent = state.summary?.totalSpent ?: "0 ₽",
+                        totalSpentDescription = "Трат в этом месяце",
+                        categories = state.categories.map {
+                            SummaryCategoryUi(it.id.value, it.name, it.iconRes, it.color)
+                        },
                         onAllOperationsClick = onAllOperationsClick,
                         onSelectedCategoriesClick = onSelectedCategoriesClick
+                    )
+                    Spacer(Modifier.height(24.dp))
+                }
+
+                item {
+                    Text(
+                        text = "Лимиты по категориям",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                items(state.categories, key = { it.id.value }) { category ->
+                    CategoryProgressItem(
+                        category = category,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                     )
                 }
             }
@@ -119,8 +160,30 @@ fun BudgetTabScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun BudgetTabScreenLightPreview() {
-    SmartBudgetTheme(darkTheme = false) {
-        // В превью hiltViewModel работать не будет без мока
+private fun BudgetTabScreenPreview() {
+    SmartBudgetTheme {
+        BudgetTabContent(
+            state = BudgetUiState(
+                userName = "Иван",
+                budgetName = "Мой бюджет",
+                budgetTerm = "на 1 месяц",
+                categories = listOf(
+                    CategoryUi(
+                        id = CategoryId(1),
+                        name = "Продукты",
+                        iconRes = 0,
+                        color = 0xFF43A047,
+                        spentValue = "5 000 ₽",
+                        limitValue = "10 000 ₽",
+                        progress = 0.5f
+                    )
+                )
+            ),
+            onSearchClick = {},
+            onProfileClick = {},
+            onBudgetClick = {},
+            onAllOperationsClick = {},
+            onSelectedCategoriesClick = {}
+        )
     }
 }
