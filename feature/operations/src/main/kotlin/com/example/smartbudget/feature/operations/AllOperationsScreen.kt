@@ -1,43 +1,39 @@
 package com.example.smartbudget.feature.operations
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.smartbudget.feature.operations.components.CategoryTag
-import com.example.smartbudget.feature.operations.components.DonutChart
-import com.example.smartbudget.feature.operations.components.PeriodToggle
-import com.example.smartbudget.feature.operations.components.TransactionGroup
-import com.tbank.smartbudget.core.ui.common.BasicSearchBar
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.smartbudget.feature.operations.components.*
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
+import com.tbank.smartbudget.data.domain.model.TransactionId
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllOperationsScreen(
     onNavigateBack: () -> Unit,
     onSearchClick: () -> Unit,
-    viewModel: AllOperationsViewModel = hiltViewModel()
+    viewModel: AllOperationsViewModel
 ) {
-    val state by viewModel.uiState.collectAsState()
-
-    // Поисковый текст здесь может быть именем выбранной категории, если мы ищем по категории
-    // Или пустым, если мы используем экран поиска только для выбора фильтра
-    val searchText by remember { mutableStateOf("") }
-
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDateRangePickerState()
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                AllOperationsEffect.NavigateBack -> onNavigateBack()
+                AllOperationsEffect.NavigateToSearch -> onSearchClick()
+            }
+        }
+    }
 
     if (showDatePicker) {
         DatePickerDialog(
@@ -45,99 +41,182 @@ fun AllOperationsScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showDatePicker = false
-                    viewModel.onCustomDateRangeSelected(datePickerState.selectedStartDateMillis, datePickerState.selectedEndDateMillis)
+                    viewModel.onIntent(AllOperationsIntent.OnCustomDateRangeSelected(
+                        datePickerState.selectedStartDateMillis,
+                        datePickerState.selectedEndDateMillis
+                    ))
                 }) { Text("Выбрать") }
             },
             dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Отмена") } }
         ) {
-            DateRangePicker(state = datePickerState, modifier = Modifier.height(500.dp), title = { Text("Выберите период", modifier = Modifier.padding(16.dp)) }, headline = {})
+            DateRangePicker(
+                state = datePickerState,
+                modifier = Modifier.height(500.dp),
+                title = { Text("Выберите период", modifier = Modifier.padding(16.dp)) },
+                headline = {}
+            )
         }
     }
 
+    AllOperationsContent(
+        state = state,
+        onBackClick = { viewModel.onIntent(AllOperationsIntent.OnBackClick) },
+        onCalendarClick = { showDatePicker = true },
+        onSearchClick = { viewModel.onIntent(AllOperationsIntent.OnSearchClick) },
+        onPeriodChanged = { viewModel.onIntent(AllOperationsIntent.OnPeriodChanged(it)) },
+        onCategorySelected = { viewModel.onIntent(AllOperationsIntent.OnCategorySelected(it)) }
+    )
+}
+
+@Composable
+private fun AllOperationsContent(
+    state: AllOperationsUiState,
+    onBackClick: () -> Unit,
+    onCalendarClick: () -> Unit,
+    onSearchClick: () -> Unit,
+    onPeriodChanged: (PeriodType) -> Unit,
+    onCategorySelected: (String) -> Unit
+) {
     Scaffold(containerColor = Color.White) { paddingValues ->
         if (state.isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = SmartBudgetTheme.colors.blue)
+            }
         } else {
             LazyColumn(
-                modifier = Modifier.padding(paddingValues).fillMaxSize().padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
                     Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад", tint = Color.Black)
-                        }
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "Календарь", tint = SmartBudgetTheme.colors.blue)
-                        }
-                        Spacer(Modifier.width(4.dp))
-
-                        // Поле поиска, работающее как кнопка перехода
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { onSearchClick() }
-                        ) {
-
-                            BasicSearchBar(
-                                searchText = searchText,
-                                onSearchTextChange = { },
-                                modifier = Modifier.fillMaxWidth(),
-                                backgroundColor = Color(0xFFF5F5F5)
-                            )
-                            // Прозрачная "шторка" для перехвата клика
-                            Box(modifier = Modifier.matchParentSize().clickable { onSearchClick() })
-                        }
-                    }
-                }
-
-                item {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = state.dateRangeLabel, style = MaterialTheme.typography.labelLarge.copy(color = Color.Gray), modifier = Modifier.padding(start = 4.dp))
-                    }
-                }
-
-                item {
-                    Text(text = state.totalExpense, style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, fontSize = 32.sp))
-                    Text(text = "Траты за период", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                }
-
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().height(250.dp), contentAlignment = Alignment.Center) {
-                        if (state.chartData.isNotEmpty()) {
-                            DonutChart(modifier = Modifier.size(200.dp), chartData = state.chartData, selectedCategoryNames = state.selectedCategoryNames)
-                        } else {
-                            Text("Нет данных за этот период", color = Color.Gray)
-                        }
-                    }
-                }
-
-                item {
-                    PeriodToggle(
-                        selectedType = state.periodType,
-                        onTypeSelected = viewModel::onPeriodChanged
+                    OperationsHeader(
+                        onBackClick = onBackClick,
+                        onCalendarClick = onCalendarClick,
+                        onSearchClick = onSearchClick
                     )
                 }
 
                 item {
-                    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.chartData.forEach { chartItem ->
-                            val isSelected = state.selectedCategoryNames.contains(chartItem.categoryName)
-                            val isAnySelected = state.selectedCategoryNames.isNotEmpty()
-                            val isDimmed = isAnySelected && !isSelected
-                            CategoryTag(chartItem = chartItem, isSelected = isSelected, isDimmed = isDimmed, onClick = { viewModel.onCategorySelected(chartItem.categoryName) })
-                        }
-                    }
+                    PeriodSummary(
+                        dateRangeLabel = state.dateRangeLabel,
+                        totalExpense = state.totalExpense
+                    )
+                }
+
+                item {
+                    OperationsChartSection(
+                        chartData = state.chartData,
+                        selectedCategoryNames = state.selectedCategoryNames,
+                        periodType = state.periodType,
+                        onPeriodChanged = onPeriodChanged,
+                        onCategorySelected = onCategorySelected
+                    )
                 }
 
                 if (state.transactionGroups.isEmpty()) {
-                    item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text("Нет операций", color = Color.Gray) } }
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("Нет операций", color = Color.Gray)
+                        }
+                    }
                 } else {
-                    items(state.transactionGroups) { group -> TransactionGroup(group) }
+                    items(state.transactionGroups) { group ->
+                        TransactionGroup(group)
+                    }
                 }
                 item { Spacer(Modifier.height(32.dp)) }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Default State")
+@Composable
+private fun AllOperationsScreenPreview() {
+    SmartBudgetTheme {
+        AllOperationsContent(
+            state = AllOperationsUiState(
+                dateRangeLabel = "1 дек — 31 дек",
+                totalExpense = "45 000 ₽",
+                chartData = listOf(
+                    ChartDataUi("Еда", "15 000 ₽", Color.Red, 0.4f),
+                    ChartDataUi("Транспорт", "5 000 ₽", Color.Blue, 0.15f),
+                    ChartDataUi("Развлечения", "8 000 ₽", Color.Magenta, 0.2f)
+                ),
+                transactionGroups = listOf(
+                    TransactionGroupUi(
+                        dateHeader = "Сегодня",
+                        dayTotal = "1 200 ₽",
+                        items = listOf(
+                            TransactionUi(
+                                id = TransactionId(1),
+                                title = "Пятерочка",
+                                subtitle = "Еда",
+                                amount = "1 200 ₽",
+                                amountColor = Color.Black,
+                                iconColor = Color.Red
+                            )
+                        )
+                    ),
+                    TransactionGroupUi(
+                        dateHeader = "Вчера",
+                        dayTotal = "3 500 ₽",
+                        items = listOf(
+                            TransactionUi(
+                                id = TransactionId(2),
+                                title = "Лукойл",
+                                subtitle = "Транспорт",
+                                amount = "3 500 ₽",
+                                amountColor = Color.Black,
+                                iconColor = Color.Blue
+                            )
+                        )
+                    )
+                )
+            ),
+            onBackClick = {},
+            onCalendarClick = {},
+            onSearchClick = {},
+            onPeriodChanged = {},
+            onCategorySelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Empty State")
+@Composable
+private fun AllOperationsScreenEmptyPreview() {
+    SmartBudgetTheme {
+        AllOperationsContent(
+            state = AllOperationsUiState(
+                dateRangeLabel = "1 янв — 7 янв",
+                totalExpense = "0 ₽",
+                isLoading = false,
+                transactionGroups = emptyList()
+            ),
+            onBackClick = {},
+            onCalendarClick = {},
+            onSearchClick = {},
+            onPeriodChanged = {},
+            onCategorySelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Loading State")
+@Composable
+private fun AllOperationsScreenLoadingPreview() {
+    SmartBudgetTheme {
+        AllOperationsContent(
+            state = AllOperationsUiState(isLoading = true),
+            onBackClick = {},
+            onCalendarClick = {},
+            onSearchClick = {},
+            onPeriodChanged = {},
+            onCategorySelected = {}
+        )
     }
 }

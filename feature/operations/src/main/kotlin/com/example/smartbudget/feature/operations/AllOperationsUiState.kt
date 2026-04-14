@@ -1,26 +1,19 @@
 package com.example.smartbudget.feature.operations
 
 import androidx.compose.ui.graphics.Color
+import com.tbank.smartbudget.core.ui.common.UiState
+import com.tbank.smartbudget.data.domain.model.TransactionId
+
 data class AllOperationsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-
-    // Строка для отображения диапазона (например "16 окт - 22 окт")
     val dateRangeLabel: String = "",
-
-    // Выбранный месяц (для заголовка, если нужно, или убираем если заменяем календарем)
-    val selectedMonth: String = "",
-
-
-
     val totalExpense: String = "0 ₽",
     val periodType: PeriodType = PeriodType.MONTH,
-
     val selectedCategoryNames: Set<String> = emptySet(),
-
     val chartData: List<ChartDataUi> = emptyList(),
     val transactionGroups: List<TransactionGroupUi> = emptyList()
-)
+) : UiState
 
 data class ChartDataUi(
     val categoryName: String,
@@ -30,7 +23,7 @@ data class ChartDataUi(
 )
 
 enum class PeriodType {
-    WEEK, MONTH, CUSTOM // Добавили CUSTOM для выбора через календарь
+    WEEK, MONTH, CUSTOM
 }
 
 data class TransactionGroupUi(
@@ -40,7 +33,7 @@ data class TransactionGroupUi(
 )
 
 data class TransactionUi(
-    val id: Long,
+    val id: TransactionId,
     val title: String,
     val subtitle: String,
     val amount: String,

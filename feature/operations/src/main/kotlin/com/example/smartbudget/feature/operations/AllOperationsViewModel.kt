@@ -1,23 +1,16 @@
 package com.example.smartbudget.feature.operations
 
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tbank.smartbudget.core.ui.common.BaseViewModel
+import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.Transaction
 import com.tbank.smartbudget.data.domain.model.TransactionType
 import com.tbank.smartbudget.data.domain.usecase.GetTransactionsUseCase
 import com.tbank.smartbudget.data.domain.usecase.TransactionsResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
@@ -26,10 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AllOperationsViewModel @Inject constructor(
     private val getTransactionsUseCase: GetTransactionsUseCase
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(AllOperationsUiState(isLoading = true))
-    val uiState: StateFlow<AllOperationsUiState> = _uiState.asStateFlow()
+) : BaseViewModel<AllOperationsUiState, AllOperationsIntent, AllOperationsEffect>(
+    AllOperationsUiState(isLoading = true)
+) {
 
     private var cachedResult: TransactionsResult? = null
     private var currentQuery = ""
@@ -37,87 +29,28 @@ class AllOperationsViewModel @Inject constructor(
     private var currentDateEnd: LocalDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth())
 
     init {
-        setMonthPeriod()
+        onIntent(AllOperationsIntent.OnPeriodChanged(PeriodType.MONTH))
     }
 
-    fun onSearchQueryChanged(query: String) {
-        currentQuery = query
-        loadData()
-    }
-
-    // Метод, вызываемый при возврате с экрана поиска с результатом
-    fun onCategorySearchResult(categoryName: String) {
-        val currentSelection = _uiState.value.selectedCategoryNames
-        if (!currentSelection.contains(categoryName)) {
-            val newSelection = currentSelection + categoryName
-            _uiState.update { it.copy(selectedCategoryNames = newSelection) }
-            applyLocalFilters()
-        }
-    }
-
-    fun onPeriodChanged(periodType: PeriodType) {
-        when (periodType) {
-            PeriodType.WEEK -> setWeekPeriod()
-            PeriodType.MONTH -> setMonthPeriod()
-            else -> { }
-        }
-    }
-
-    // ... (onCustomDateRangeSelected, setWeekPeriod, setMonthPeriod - без изменений)
-
-    fun onCustomDateRangeSelected(startDateMillis: Long?, endDateMillis: Long?) {
-        if (startDateMillis != null) {
-            val start = Instant.ofEpochMilli(startDateMillis)
-                .atZone(ZoneId.systemDefault()).toLocalDate()
-            val end = if (endDateMillis != null) {
-                Instant.ofEpochMilli(endDateMillis)
-                    .atZone(ZoneId.systemDefault()).toLocalDate()
-            } else start
-            currentDateStart = start
-            currentDateEnd = end
-            _uiState.update {
-                it.copy(periodType = PeriodType.CUSTOM, dateRangeLabel = formatDateRange(start, end))
+    override fun onIntent(intent: AllOperationsIntent) {
+        when (intent) {
+            AllOperationsIntent.LoadData -> loadData()
+            is AllOperationsIntent.OnSearchQueryChanged -> {
+                currentQuery = intent.query
+                loadData()
             }
-            loadData()
+            is AllOperationsIntent.OnCategorySearchResult -> handleCategorySearchResult(intent.categoryName)
+            is AllOperationsIntent.OnPeriodChanged -> handlePeriodChange(intent.periodType)
+            is AllOperationsIntent.OnCustomDateRangeSelected -> handleCustomDateRange(intent.startMillis, intent.endMillis)
+            is AllOperationsIntent.OnCategorySelected -> handleCategorySelection(intent.categoryName)
+            AllOperationsIntent.OnBackClick -> sendEffect(AllOperationsEffect.NavigateBack)
+            AllOperationsIntent.OnSearchClick -> sendEffect(AllOperationsEffect.NavigateToSearch)
         }
-    }
-
-    private fun setWeekPeriod() {
-        val now = LocalDate.now()
-        currentDateStart = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        currentDateEnd = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
-        _uiState.update {
-            it.copy(periodType = PeriodType.WEEK, dateRangeLabel = formatDateRange(currentDateStart, currentDateEnd))
-        }
-        loadData()
-    }
-
-    private fun setMonthPeriod() {
-        val now = LocalDate.now()
-        currentDateStart = now.with(TemporalAdjusters.firstDayOfMonth())
-        currentDateEnd = now.with(TemporalAdjusters.lastDayOfMonth())
-        val monthName = now.format(DateTimeFormatter.ofPattern("LLLL", Locale("ru")))
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-        _uiState.update {
-            it.copy(periodType = PeriodType.MONTH, selectedMonth = monthName, dateRangeLabel = formatDateRange(currentDateStart, currentDateEnd))
-        }
-        loadData()
-    }
-
-    fun onCategorySelected(categoryName: String) {
-        val currentSelection = _uiState.value.selectedCategoryNames
-        val newSelection = if (currentSelection.contains(categoryName)) {
-            currentSelection - categoryName
-        } else {
-            currentSelection + categoryName
-        }
-        _uiState.update { it.copy(selectedCategoryNames = newSelection) }
-        applyLocalFilters()
     }
 
     private fun loadData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            updateState { copy(isLoading = true) }
             val startDateTime = currentDateStart.atStartOfDay()
             val endDateTime = currentDateEnd.atTime(LocalTime.MAX)
 
@@ -132,24 +65,26 @@ class AllOperationsViewModel @Inject constructor(
                             percentage = stat.percentage
                         )
                     }
-                    _uiState.update {
-                        it.copy(
+                    updateState {
+                        copy(
                             isLoading = false,
                             totalExpense = formatMoney(result.totalExpense),
                             chartData = chartData,
+                            dateRangeLabel = formatDateRange(currentDateStart, currentDateEnd)
                         )
                     }
                     applyLocalFilters()
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.message) }
                 }
         }
     }
 
     private fun applyLocalFilters() {
         val result = cachedResult ?: return
-        val selectedCategories = _uiState.value.selectedCategoryNames
+        val selectedCategories = currentState.selectedCategoryNames
+
         val filteredGroups = result.groupedTransactions.mapNotNull { (date, transactions) ->
             val filteredTransactions = if (selectedCategories.isNotEmpty()) {
                 transactions.filter { it.categoryName in selectedCategories }
@@ -163,23 +98,64 @@ class AllOperationsViewModel @Inject constructor(
                 )
             } else null
         }
-        _uiState.update { it.copy(transactionGroups = filteredGroups) }
+        updateState { copy(transactionGroups = filteredGroups) }
     }
 
     private fun mapTransactionToUi(tx: Transaction): TransactionUi {
         val isExpense = tx.type == TransactionType.EXPENSE
-        val prefix = if (isExpense) "-" else "+"
-        val color = if (isExpense) Color.Black else Color(0xFF43A047)
         return TransactionUi(
-            tx.id,
-            tx.merchantName ?: tx.description ?: "Операция",
-            tx.categoryName,
-            "$prefix${formatMoney(tx.amount)}",
-            color,
-            Color(tx.categoryColor)
+            id = tx.id,
+            title = tx.merchantName ?: tx.description ?: "Операция",
+            subtitle = tx.categoryName,
+            amount = "${if (isExpense) "-" else "+"}${formatMoney(tx.amount)}",
+            amountColor = if (isExpense) Color.Black else Color(0xFF43A047),
+            iconColor = Color(CategoryColorMapper.getColorForId(tx.categoryId.value))
         )
     }
 
+    private fun handlePeriodChange(type: PeriodType) {
+        val now = LocalDate.now()
+        when (type) {
+            PeriodType.WEEK -> {
+                currentDateStart = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                currentDateEnd = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+            }
+            PeriodType.MONTH -> {
+                currentDateStart = now.with(TemporalAdjusters.firstDayOfMonth())
+                currentDateEnd = now.with(TemporalAdjusters.lastDayOfMonth())
+            }
+            else -> return
+        }
+        updateState { copy(periodType = type) }
+        loadData()
+    }
+
+    private fun handleCustomDateRange(startMillis: Long?, endMillis: Long?) {
+        startMillis?.let {
+            val start = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+            val end = endMillis?.let { e -> Instant.ofEpochMilli(e).atZone(ZoneId.systemDefault()).toLocalDate() } ?: start
+            currentDateStart = start
+            currentDateEnd = end
+            updateState { copy(periodType = PeriodType.CUSTOM) }
+            loadData()
+        }
+    }
+
+    private fun handleCategorySelection(name: String) {
+        val current = currentState.selectedCategoryNames
+        val next = if (current.contains(name)) current - name else current + name
+        updateState { copy(selectedCategoryNames = next) }
+        applyLocalFilters()
+    }
+
+    private fun handleCategorySearchResult(name: String) {
+        if (!currentState.selectedCategoryNames.contains(name)) {
+            updateState { copy(selectedCategoryNames = selectedCategoryNames + name) }
+            applyLocalFilters()
+        }
+    }
+
     private fun formatMoney(amount: Double) = "%,.0f ₽".format(amount).replace(',', ' ')
-    private fun formatDateRange(start: LocalDate, end: LocalDate) = "${start.format(DateTimeFormatter.ofPattern("d MMM", Locale("ru")))} - ${end.format(DateTimeFormatter.ofPattern("d MMM", Locale("ru")))}"
+    private fun formatDateRange(start: LocalDate, end: LocalDate) =
+        "${start.format(DateTimeFormatter.ofPattern("d MMM", Locale("ru")))} - ${end.format(DateTimeFormatter.ofPattern("d MMM", Locale("ru")))}"
 }
