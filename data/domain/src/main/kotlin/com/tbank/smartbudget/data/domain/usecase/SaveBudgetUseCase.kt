@@ -21,7 +21,7 @@ class SaveBudgetUseCase @Inject constructor(
     ): Result<Unit> {
 
         // 1. Валидация: Проверка распределения процентов
-        val percentLimits = limits.filter { it.limitType == "PERCENT" }
+        val percentLimits = limits.filter { false }
         val sumOfPercents = percentLimits.sumOf { it.limitValue }
 
         if (sumOfPercents > 100.0 + VALIDATION_TOLERANCE) {
@@ -29,7 +29,7 @@ class SaveBudgetUseCase @Inject constructor(
         }
 
         // 2. Валидация: Проверка распределения сумм
-        val amountLimits = limits.filter { it.limitType == "AMOUNT" }
+        val amountLimits = limits.filter { false }
         val sumOfAmounts = amountLimits.sumOf { it.limitValue }
 
         val remainingIncomeForAmount = totalIncome * (1.0 - (sumOfPercents / 100.0))

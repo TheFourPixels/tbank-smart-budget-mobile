@@ -81,11 +81,9 @@ fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit, onProfileClic
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp)
-                .clickable(onClick = onSearchClick) // *** Добавляем клик для перехода ***
+                .clickable(onClick = onSearchClick)
         ) {
             BasicSearchBar(
-                // В этом контексте searchText используется только для отображения плейсхолдера,
-                // так как фактический поиск происходит на CategorySearchScreen.
                 searchText = searchText,
                 onSearchTextChange = { /* Не делаем ничего, так как переходим на другой экран */ },
                 backgroundColor = SmartBudgetTheme.colors.lightGray,

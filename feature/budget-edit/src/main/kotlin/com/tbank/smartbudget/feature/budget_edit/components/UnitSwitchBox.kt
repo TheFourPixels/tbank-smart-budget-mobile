@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_edit.components
+package com.tbank.smartbudget.feature.budget_edit.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 fun UnitSwitchBox(
     isPercentMode: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -31,23 +31,23 @@ fun UnitSwitchBox(
             .background(Color(0xFFF9F9F9))
             .clickable(onClick = onToggle)
             .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.Companion.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Единицы",
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Companion.SemiBold),
-            color = Color.Companion.Black
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+            color = Color.Black
         )
-        Spacer(Modifier.Companion.height(4.dp))
+        Spacer(Modifier.height(4.dp))
 
         // Ряд с переключателем
-        Row(verticalAlignment = Alignment.Companion.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             // Рубли
             Text(
                 text = "₽",
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = if (!isPercentMode) FontWeight.Companion.Bold else FontWeight.Companion.Normal,
-                    color = if (!isPercentMode) Color.Companion.Black else Color.Companion.Gray,
+                    fontWeight = if (!isPercentMode) FontWeight.Bold else FontWeight.Normal,
+                    color = if (!isPercentMode) Color.Black else Color.Gray,
                     fontSize = 16.sp
                 )
             )
@@ -55,7 +55,7 @@ fun UnitSwitchBox(
             Text(
                 text = " / ",
                 style = MaterialTheme.typography.titleMedium.copy(
-                    color = Color.Companion.Gray,
+                    color = Color.Gray,
                     fontSize = 16.sp
                 )
             )
@@ -64,8 +64,8 @@ fun UnitSwitchBox(
             Text(
                 text = "%",
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = if (isPercentMode) FontWeight.Companion.Bold else FontWeight.Companion.Normal,
-                    color = if (isPercentMode) Color.Companion.Black else Color.Companion.Gray,
+                    fontWeight = if (isPercentMode) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isPercentMode) Color.Black else Color.Gray,
                     fontSize = 16.sp
                 )
             )

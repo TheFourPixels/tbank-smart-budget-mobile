@@ -1,25 +1,27 @@
 package com.tbank.smartbudget.core.network.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class TransactionDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("amount") val amount: Double,
-    @SerializedName("income") val isIncome: Boolean,
-    @SerializedName("date") val date: String,
-    @SerializedName("description") val description: String?,
-    @SerializedName("categoryName") val categoryName: String?,
-    @SerializedName("categoryColor") val categoryColor: Long?,
-    @SerializedName("categoryId") val categoryId: Long?,
-    @SerializedName("merchant") val merchant: String?
+    @SerialName("id") val id: Long,
+    @SerialName("amount") val amount: Double,
+    @SerialName("income") val isIncome: Boolean,
+    @SerialName("date") val date: String,
+    @SerialName("description") val description: String?,
+    @SerialName("categoryName") val categoryName: String?,
+    @SerialName("categoryColor") val categoryColor: Long?,
+    @SerialName("categoryId") val categoryId: Long?,
+    @SerialName("merchant") val merchant: String?
 )
-
+@Serializable
 data class CreateTransactionRequest(
-    @SerializedName("amount") val amount: Double,
-    @SerializedName("income") val isIncome: Boolean,
-    @SerializedName("date") val date: String,
-    @SerializedName("description") val description: String?,
-    @SerializedName("categoryId") val categoryId: Long,
-    @SerializedName("budgetId") val budgetId: Long,
-    @SerializedName("merchant") val merchant: String?
+    @SerialName("amount") val amount: Double,
+    @SerialName("income") val isIncome: Boolean,
+    @SerialName("date") val date: String,
+    @SerialName("description") val description: String?,
+    @SerialName("categoryId") val categoryId: Long,
+    @SerialName("budgetId") val budgetId: Long,
+    @SerialName("merchant") val merchant: String?
 )

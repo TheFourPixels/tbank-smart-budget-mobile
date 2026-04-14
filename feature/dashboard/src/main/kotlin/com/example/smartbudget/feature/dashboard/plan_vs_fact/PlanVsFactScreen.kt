@@ -39,9 +39,10 @@ import com.tbank.smartbudget.core.ui.common.DetailsCard
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme.colors
 import androidx.compose.ui.text.style.TextAlign.Companion.Center
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tbank.smartbudget.data.domain.model.CategoryId
 
 
-// Цвета из макета
 val PlanColorCategory = Color(0xFF528ECE)
 val FactColorCategory = Color(0xFF295C9E)
 private val LabelYellow = Color(0xFFFFD600)
@@ -51,7 +52,7 @@ fun PlanVsFactScreen(
     onNavigateBack: () -> Unit,
     viewModel: PlanVsFactViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     PlanVsFactContent(
         state = state,
@@ -69,7 +70,6 @@ fun PlanVsFactContent(
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
 
-    // Локальное состояние для выбранной категории во второй карточке
     var selectedCategoryIndex by remember(state.categories) { mutableIntStateOf(0) }
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
 
@@ -811,7 +811,7 @@ fun PlanVsFactPreview() {
                 isLoading = false,
                 categories = listOf(
                     PlanVsFactCategoryUi(
-                        1,
+                        CategoryId(1),
                         "Продукты",
                         0,
                         Color(0xFF43A047),
@@ -821,7 +821,7 @@ fun PlanVsFactPreview() {
                         Color(0xFF43A047)
                     ),
                     PlanVsFactCategoryUi(
-                        2,
+                        CategoryId(2),
                         "Транспорт",
                         0,
                         Color(0xFF1E88E5),

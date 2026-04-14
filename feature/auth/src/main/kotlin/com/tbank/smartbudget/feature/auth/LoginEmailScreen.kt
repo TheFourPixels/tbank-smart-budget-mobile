@@ -1,31 +1,72 @@
 package com.tbank.smartbudget.feature.auth
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.feature.auth.components.AuthSubtitle
 import com.tbank.smartbudget.feature.auth.components.AuthTextField
 import com.tbank.smartbudget.feature.auth.components.AuthTitle
-import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
 fun LoginEmailScreen(
     onNavigateNext: (email: String, isExisting: Boolean, userName: String?) -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is AuthEffect.NavigateNext -> {
+                    onNavigateNext(
+                        state.email,
+                        state.isUserExisting,
+                        state.userName
+                    )
+                }
+
+                is AuthEffect.ShowError -> {
+
+                }
+            }
+        }
+    }
+
+    LoginEmailContent(
+        state = state,
+        onIntent = viewModel::onIntent
+    )
+}
+
+@Composable
+fun LoginEmailContent(
+    state: AuthUiState,
+    onIntent: (AuthIntent) -> Unit
+) {
     Scaffold(
         containerColor = Color.White
     ) { padding ->
@@ -41,24 +82,26 @@ fun LoginEmailScreen(
 
             AuthTextField(
                 value = state.email,
-                onValueChange = viewModel::onEmailChanged,
+                onValueChange = {
+                    onIntent(AuthIntent.OnEmailChanged(it))
+                },
                 placeholder = "Email",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
+            if (state.error != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = state.error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = {
-                    viewModel.onEmailSubmit {
-                        val currentState = viewModel.uiState.value
-                        onNavigateNext(
-                            currentState.email,
-                            currentState.isUserExisting,
-                            currentState.userName
-                        )
-                    }
-                },
+                onClick = { onIntent(AuthIntent.OnEmailSubmit) },
                 enabled = state.isEmailValid && !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -80,5 +123,42 @@ fun LoginEmailScreen(
                 }
             }
         }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun LoginEmailPreview() {
+    SmartBudgetTheme {
+        LoginEmailContent(
+            state = AuthUiState(email = "test@example.com", isEmailValid = true),
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Loading")
+@Composable
+private fun LoginEmailLoadingPreview() {
+    SmartBudgetTheme {
+        LoginEmailContent(
+            state = AuthUiState(email = "test@example.com", isLoading = true),
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Error")
+@Composable
+private fun LoginEmailErrorPreview() {
+    SmartBudgetTheme {
+        LoginEmailContent(
+            state = AuthUiState(
+                email = "wrong-email",
+                error = "Некорректный формат почты"
+            ),
+            onIntent = {}
+        )
     }
 }

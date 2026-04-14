@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 /**
  * Класс для управления сессией пользователя (сохранение токена и ID).
@@ -26,11 +27,11 @@ class SessionManager @Inject constructor(
      * Сохраняет данные сессии после успешного входа/регистрации.
      */
     fun saveAuthData(token: String, userId: Long, name: String) {
-        prefs.edit()
-            .putString(KEY_AUTH_TOKEN, token)
-            .putLong(KEY_USER_ID, userId)
-            .putString(KEY_USER_NAME, name)
-            .apply()
+        prefs.edit {
+            putString(KEY_AUTH_TOKEN, token)
+                .putLong(KEY_USER_ID, userId)
+                .putString(KEY_USER_NAME, name)
+        }
     }
 
     /**

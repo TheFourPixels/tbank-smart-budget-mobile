@@ -2,6 +2,7 @@ package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.core.network.remote.api.CategoryApi
 import com.tbank.smartbudget.data.domain.model.BudgetCategory
+import com.tbank.smartbudget.data.domain.model.CategoryId
 import com.tbank.smartbudget.data.domain.repository.CategorySearchRepository
 import javax.inject.Inject
 
@@ -17,7 +18,7 @@ class CategorySearchRepositoryImpl @Inject constructor(
                 val dtos = response.body()!!.content
                 dtos.map { dto ->
                     BudgetCategory(
-                        id = dto.id,
+                        id = CategoryId(dto.id),
                         name = dto.name,
                         iconRes = 0,
                         color = generateColor(dto.id)

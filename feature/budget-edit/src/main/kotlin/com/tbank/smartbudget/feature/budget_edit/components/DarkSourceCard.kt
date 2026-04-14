@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_edit.components
+package com.tbank.smartbudget.feature.budget_edit.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,34 +18,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DarkSourceCard(amount: String, cardNumber: String, cardName: String) {
+fun DarkSourceCard(amount: Double, cardNumber: String, cardName: String) {
     Card(
-        modifier = Modifier.Companion.fillMaxWidth().height(140.dp),
+        modifier = Modifier.fillMaxWidth().height(140.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C))
     ) {
         Column(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = amount,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Companion.Medium),
-                color = Color.Companion.White
+                text = amount.toString(),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
+                color = Color.White
             )
 
             Column {
                 Text(
                     text = cardNumber,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Companion.White
+                    color = Color.White
                 )
                 Text(
                     text = cardName,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Companion.White.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
         }

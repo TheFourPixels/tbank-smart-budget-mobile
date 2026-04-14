@@ -1,5 +1,9 @@
 package com.tbank.smartbudget.feature.auth
 
+import androidx.compose.runtime.Immutable
+import com.tbank.smartbudget.core.ui.common.UiState
+
+@Immutable
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
@@ -9,9 +13,9 @@ data class AuthUiState(
     val error: String? = null,
 
     val userName: String? = null,
-    val isUserExisting: Boolean = false, // true = вход, false = регистрация
+    val isUserExisting: Boolean = true, // true = вход, false = регистрация
 
     val isEmailValid: Boolean = false,
     val isPasswordValid: Boolean = false,
     val isPinComplete: Boolean = false
-)
+) : UiState

@@ -1,25 +1,21 @@
 package com.tbank.smartbudget.feature.selected_categories
 
 import androidx.compose.ui.graphics.Color
+import com.tbank.smartbudget.core.ui.common.UiState
+import com.tbank.smartbudget.data.domain.model.CategoryId
 
-/**
- * UI-модель категории.
- */
 data class SelectedCategoryUi(
-    val id: Long,
+    val id: CategoryId,
     val name: String,
-    val limitDescription: String, // Например, "Лимит: 2 300 ₽" или "15 операций"
+    val limitDescription: String,
     val color: Color,
     val iconRes: Int = 0
 )
 
-/**
- * Состояние экрана "Выбранные категории".
- */
 data class SelectedCategoriesUiState(
     val searchQuery: String = "",
-    // Категории, которые находятся в верхнем блоке "Выбранные"
     val selectedCategories: List<SelectedCategoryUi> = emptyList(),
-    // Категории, которые отображаются ниже (результаты поиска или остальные)
-    val availableCategories: List<SelectedCategoryUi> = emptyList()
-)
+    val availableCategories: List<SelectedCategoryUi> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+) : UiState

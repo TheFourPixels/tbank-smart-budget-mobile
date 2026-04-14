@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_edit.components
+package com.tbank.smartbudget.feature.budget_edit.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

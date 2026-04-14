@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -30,17 +31,20 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        target {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+                freeCompilerArgs.add("-Xexplicit-backing-fields")
+
+            }
+        }
     }
     buildFeatures {
         compose = true
-    }
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
     }
 }
 
@@ -69,12 +73,13 @@ dependencies {
     // --- Hilt (Dependency Injection) ---
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
-    ksp(libs.hilt.compiler)
+    ksp (libs.hilt.compiler)
 
     // --- Networking (Retrofit) ---
     implementation(libs.retrofit.core)
-    implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.retrofit.converter.kotlinx.serialization)
+    implementation(libs.kotlinx.serialization.json)
 
     // --- Тестирование ---
     testImplementation(libs.junit)

@@ -1,23 +1,27 @@
 package com.tbank.smartbudget.core.network.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class GoalDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("name") val name: String,
-    @SerializedName("targetAmount") val targetAmount: Double,
-    @SerializedName("currentAmount") val currentAmount: Double,
-    @SerializedName("deadline") val deadline: String?, // YYYY-MM-DD
-    @SerializedName("icon") val icon: String?,
-    @SerializedName("currency") val currency: String? = "RUB"
+    @SerialName("id") val id: Long,
+    @SerialName("name") val name: String,
+    @SerialName("targetAmount") val targetAmount: Double,
+    @SerialName("currentAmount") val currentAmount: Double,
+    @SerialName("deadline") val deadline: String?, // YYYY-MM-DD
+    @SerialName("icon") val icon: String?,
+    @SerialName("currency") val currency: String? = "RUB"
 )
 
+@Serializable
 data class CreateGoalRequest(
-    @SerializedName("name") val name: String,
-    @SerializedName("targetAmount") val targetAmount: Double,
-    @SerializedName("deadline") val deadline: String?
+    @SerialName("name") val name: String,
+    @SerialName("targetAmount") val targetAmount: Double,
+    @SerialName("deadline") val deadline: String?
 )
 
+@Serializable
 data class UpdateGoalAmountRequest(
-    @SerializedName("amount") val amount: Double // Сумма пополнения (+ или -)
+    @SerialName("amount") val amount: Double // Сумма пополнения (+ или -)
 )

@@ -5,26 +5,18 @@ import com.tbank.smartbudget.core.network.remote.dto.CheckEmailRequest
 import com.tbank.smartbudget.core.network.remote.dto.CheckEmailResponse
 import com.tbank.smartbudget.core.network.remote.dto.LoginRequest
 import com.tbank.smartbudget.core.network.remote.dto.RegisterRequest
-import com.tbank.smartbudget.core.network.remote.dto.UpdateProfileRequest
-import com.tbank.smartbudget.core.network.remote.dto.UserDto
 import retrofit2.http.Body
-import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.PUT
 
-interface AuthApi {
-
+/**
+ * Публичные эндпоинты (без токена).
+ */
+interface UnauthorizedApi {
     @POST("api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequest): AuthResponse
 
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
-
-    @GET("api/v1/profile")
-    suspend fun getProfile(): UserDto
-
-    @PUT("api/v1/profile")
-    suspend fun updateProfile(@Body request: UpdateProfileRequest): UserDto
 
     @POST("api/v1/auth/check-email")
     suspend fun checkEmail(@Body request: CheckEmailRequest): CheckEmailResponse

@@ -1,4 +1,4 @@
-package com.tbank.smartbudget.presentation.ui.budget_edit.components
+package com.tbank.smartbudget.feature.budget_edit.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -46,7 +46,6 @@ fun InputBox(
         )
         Spacer(Modifier.height(4.dp))
 
-        // Поле ввода значения
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -57,7 +56,7 @@ fun InputBox(
                 fontSize = if (isValueSecondary) 14.sp else 18.sp,
                 textAlign = TextAlign.Center
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), // Цифровая клавиатура
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->

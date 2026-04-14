@@ -7,5 +7,5 @@ package com.tbank.smartbudget.data.domain.model
 data class BudgetLimitData(
     val categoryId: Long,
     val limitValue: Double,
-    val limitType: String // "PERCENT" или "AMOUNT"
+    val limitType: BudgetLimitType // "PERCENT" или "AMOUNT"
 )

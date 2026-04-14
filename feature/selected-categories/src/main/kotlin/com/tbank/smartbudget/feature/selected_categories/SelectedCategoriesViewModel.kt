@@ -1,27 +1,23 @@
 package com.tbank.smartbudget.feature.selected_categories
 
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tbank.smartbudget.core.ui.common.BaseViewModel
+import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.BudgetCategory
 import com.tbank.smartbudget.data.domain.model.BudgetLimitModel
 import com.tbank.smartbudget.data.domain.model.BudgetLimitType
 import com.tbank.smartbudget.data.domain.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SelectedCategoriesViewModel @Inject constructor(
     private val repository: BudgetRepository
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(SelectedCategoriesUiState())
-    val uiState: StateFlow<SelectedCategoriesUiState> = _uiState.asStateFlow()
+) : BaseViewModel<SelectedCategoriesUiState, SelectedCategoriesIntent, SelectedCategoriesEffect>(
+    SelectedCategoriesUiState()
+) {
 
     private var allSelected: List<SelectedCategoryUi> = emptyList()
     private var allAvailable: List<SelectedCategoryUi> = emptyList()
@@ -30,12 +26,23 @@ class SelectedCategoriesViewModel @Inject constructor(
     private val currentMonth = 12
 
     init {
-        loadData()
+        onIntent(SelectedCategoriesIntent.LoadData)
+    }
+
+    override fun onIntent(intent: SelectedCategoriesIntent) {
+        when (intent) {
+            SelectedCategoriesIntent.LoadData -> loadData()
+            is SelectedCategoriesIntent.OnSearchQueryChanged -> handleSearch(intent.query)
+            is SelectedCategoriesIntent.OnCategorySelected -> selectCategory(intent.category)
+            is SelectedCategoriesIntent.OnCategoryRemoved -> removeCategory(intent.category)
+            SelectedCategoriesIntent.OnCreateCategoryClick -> sendEffect(SelectedCategoriesEffect.NavigateToCreateCategory)
+        }
     }
 
     private fun loadData() {
         viewModelScope.launch {
-            // Загружаем данные из репозитория
+            updateState { copy(isLoading = true) }
+
             val budgetResult = repository.getBudgetDetails(currentYear, currentMonth)
             val categoriesResult = repository.getAllAvailableCategories()
 
@@ -43,85 +50,85 @@ class SelectedCategoriesViewModel @Inject constructor(
                 val limits = budgetResult.getOrNull()?.limits ?: emptyList()
                 val allCats = categoriesResult.getOrNull() ?: emptyList()
 
-                // 1. Формируем список "Выбранные"
                 allSelected = limits.map { it.toUi() }
-
-                // 2. Формируем список "Доступные" (все минус выбранные)
                 val selectedIds = limits.map { it.categoryId }.toSet()
+
                 allAvailable = allCats
                     .filter { it.id !in selectedIds }
                     .map { it.toUi() }
 
-                updateUiState()
+                syncAndFilteredState()
+            } else {
+                updateState { copy(isLoading = false, error = "Ошибка загрузки данных") }
             }
         }
     }
 
-    fun onSearchQueryChanged(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-        updateUiState()
+    private fun handleSearch(query: String) {
+        updateState { copy(searchQuery = query) }
+        syncAndFilteredState()
     }
 
-    /**
-     * Выбор категории: Добавляем в репозиторий и обновляем UI
-     */
-    fun onCategorySelected(category: SelectedCategoryUi) {
+    private fun selectCategory(category: SelectedCategoryUi) {
         viewModelScope.launch {
-            // Оптимистичное обновление UI
             val newSelected = category.copy(limitDescription = "Лимит не установлен")
             allAvailable = allAvailable.filter { it.id != category.id }
             allSelected = allSelected + newSelected
-            updateUiState()
+            syncAndFilteredState()
 
-            // Сохранение в БД
-            repository.addCategoryToBudget(currentYear, currentMonth, category.id)
+            repository.addCategoryToBudget(currentYear, currentMonth, category.id.value)
         }
     }
 
-    /**
-     * Удаление категории: Удаляем из репозитория и обновляем UI
-     */
-    fun onCategoryRemoved(category: SelectedCategoryUi) {
+    private fun removeCategory(category: SelectedCategoryUi) {
         viewModelScope.launch {
-            // Оптимистичное обновление UI
             val newAvailable = category.copy(limitDescription = "")
             allSelected = allSelected.filter { it.id != category.id }
-            allAvailable = (allAvailable + newAvailable).sortedBy { it.id }
-            updateUiState()
+            allAvailable = (allAvailable + newAvailable).sortedBy { it.id.value }
+            syncAndFilteredState()
 
-            // Удаление из БД
-            repository.removeCategoryFromBudget(currentYear, currentMonth, category.id)
+            repository.removeCategoryFromBudget(currentYear, currentMonth, category.id.value)
         }
     }
 
-    fun onAddCategoryClick() {
-        // Навигация на создание новой категории (пока не реализовано)
-    }
-
-    private fun updateUiState() {
-        val query = _uiState.value.searchQuery.trim()
+    private fun syncAndFilteredState() {
+        val query = currentState.searchQuery.trim()
         val filteredAvailable = if (query.isEmpty()) {
             allAvailable
         } else {
             allAvailable.filter { it.name.contains(query, ignoreCase = true) }
         }
 
-        _uiState.update {
-            it.copy(
+        updateState {
+            copy(
+                isLoading = false,
                 selectedCategories = allSelected,
                 availableCategories = filteredAvailable
             )
         }
     }
 
-    // --- Mappers ---
+    // --- Mappers с использованием CategoryColorMapper ---
+
     private fun BudgetLimitModel.toUi(): SelectedCategoryUi {
         val limitDesc = if (limitType == BudgetLimitType.PERCENT)
             "Лимит: ${limitValue.toInt()}%"
         else "Лимит: ${limitValue.toInt()} ₽"
 
-        return SelectedCategoryUi(categoryId, categoryName, limitDesc, Color(color), iconRes)
+        return SelectedCategoryUi(
+            id = categoryId,
+            name = categoryName,
+            limitDescription = limitDesc,
+            color = Color(CategoryColorMapper.getColorForId(categoryId.value)),
+            iconRes = iconRes
+        )
     }
 
-    private fun BudgetCategory.toUi() = SelectedCategoryUi(id, name, "", Color(color), iconRes)
+    private fun BudgetCategory.toUi() = SelectedCategoryUi(
+        id = id,
+        name = name,
+        limitDescription = "",
+        color = Color(CategoryColorMapper.getColorForId(id.value)),
+        iconRes = iconRes
+    )
 }
