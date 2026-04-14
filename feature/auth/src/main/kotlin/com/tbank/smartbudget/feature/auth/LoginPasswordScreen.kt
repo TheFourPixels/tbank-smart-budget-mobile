@@ -1,13 +1,23 @@
 package com.tbank.smartbudget.feature.auth
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,12 +26,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.feature.auth.components.AuthSubtitle
 import com.tbank.smartbudget.feature.auth.components.AuthTextField
 import com.tbank.smartbudget.feature.auth.components.AuthTitle
-import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
 fun LoginPasswordScreen(
@@ -33,7 +42,7 @@ fun LoginPasswordScreen(
     viewModel: AuthViewModel
 ) {
 
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.onIntent(AuthIntent.InitAuthData(email, isUserExisting, userName))
@@ -150,9 +159,7 @@ private fun LoginPasswordPreview() {
     }
 }
 
-/**
- * Превью для режима регистрации нового пользователя
- */
+
 @Preview(showBackground = true, name = "Register Mode")
 @Composable
 private fun RegisterPasswordPreview() {
@@ -168,9 +175,7 @@ private fun RegisterPasswordPreview() {
     }
 }
 
-/**
- * Превью состояния загрузки
- */
+
 @Preview(showBackground = true, name = "Loading State")
 @Composable
 private fun LoadingPasswordPreview() {

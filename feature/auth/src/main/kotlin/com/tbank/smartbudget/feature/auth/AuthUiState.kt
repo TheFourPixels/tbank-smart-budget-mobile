@@ -1,6 +1,7 @@
 package com.tbank.smartbudget.feature.auth
 
 import androidx.compose.runtime.Immutable
+import com.tbank.smartbudget.core.ui.common.UiState
 
 @Immutable
 data class AuthUiState(
@@ -17,4 +18,4 @@ data class AuthUiState(
     val isEmailValid: Boolean = false,
     val isPasswordValid: Boolean = false,
     val isPinComplete: Boolean = false
-)
+) : UiState

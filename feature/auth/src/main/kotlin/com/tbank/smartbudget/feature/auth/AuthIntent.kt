@@ -1,6 +1,8 @@
 package com.tbank.smartbudget.feature.auth
 
-sealed interface AuthIntent {
+import com.tbank.smartbudget.core.ui.common.UiIntent
+
+sealed interface AuthIntent : UiIntent {
     data class OnEmailChanged(val email: String) : AuthIntent
     data object OnEmailSubmit : AuthIntent
     data class OnPasswordChanged(val password: String) : AuthIntent

@@ -23,7 +23,7 @@ fun EnterPinScreen(
     onLoginSuccess: () -> Unit,
     viewModel: AuthViewModel
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->

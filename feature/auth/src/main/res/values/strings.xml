@@ -1,0 +1,19 @@
+<resources>
+    <string name="auth_login_title">Вход</string>
+    <string name="auth_login_subtitle">Введите вашу почту для входа или регистрации</string>
+    <string name="auth_email_placeholder">Email</string>
+    <string name="auth_next_button">Далее</string>
+    <string name="auth_password_welcome">Здравствуйте, %1$s!</string>
+    <string name="auth_password_default_user">пользователь</string>
+    <string name="auth_register_title">Регистрация</string>
+    <string name="auth_login_password_subtitle">Введите пароль для входа</string>
+    <string name="auth_register_password_subtitle">Придумайте пароль для нового аккаунта</string>
+    <string name="auth_login_button">Войти</string>
+    <string name="auth_register_button">Зарегистрироваться</string>
+    <string name="auth_password_placeholder">Пароль</string>
+    <string name="auth_pin_title">Код доступа</string>
+    <string name="auth_pin_subtitle">Придумайте код для быстрого входа</string>
+    <string name="auth_error_email_check">Ошибка при проверке почты</string>
+    <string name="auth_error_auth_failed">Ошибка авторизации</string>
+    <string name="auth_error_invalid_email">Некорректный формат почты</string>
+</resources>

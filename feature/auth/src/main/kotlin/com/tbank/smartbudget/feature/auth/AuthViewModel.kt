@@ -2,20 +2,14 @@ package com.tbank.smartbudget.feature.auth
 
 import android.util.Patterns
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.network.di.IoDispatcher
 import com.tbank.smartbudget.core.network.remote.AppResult
+import com.tbank.smartbudget.core.ui.common.BaseViewModel
 import com.tbank.smartbudget.data.domain.repository.AuthRepository
 import com.tbank.smartbudget.feature.auth.AuthEffect.NavigateNext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,23 +18,13 @@ class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val savedStateHandle: SavedStateHandle,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : ViewModel() {
-
-    val uiState: StateFlow<AuthUiState>
-        field = MutableStateFlow(AuthUiState())
-
-    private val _effect = Channel<AuthEffect>(
-        capacity = Channel.BUFFERED,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    val effect = _effect.receiveAsFlow()
-
+) : BaseViewModel<AuthUiState, AuthIntent, AuthEffect>(AuthUiState()) {
 
     init {
         restoreFromSavedState()
     }
 
-    fun onIntent(intent: AuthIntent) {
+    override fun onIntent(intent: AuthIntent) {
         when (intent) {
             is AuthIntent.OnEmailChanged -> handleEmailChanged(intent.email)
             is AuthIntent.OnEmailSubmit -> handleEmailSubmit()
@@ -48,7 +32,7 @@ class AuthViewModel @Inject constructor(
             is AuthIntent.OnPasswordSubmit -> handlePasswordSubmit()
             is AuthIntent.OnPinDigitEntered -> handlePinDigit(intent.digit)
             AuthIntent.OnPinBackspace -> handlePinBackspace()
-            AuthIntent.ClearError -> uiState.update { it.copy(error = null) }
+            AuthIntent.ClearError -> updateState { copy(error = null) }
             is AuthIntent.InitAuthData -> handleInit(intent)
         }
     }
@@ -58,13 +42,13 @@ class AuthViewModel @Inject constructor(
         val isExisting = savedStateHandle.get<Boolean>("isExisting")
         val name = savedStateHandle.get<String>("userName")
         if (email != null && isExisting != null) {
-            uiState.update { it.copy(email = email, isUserExisting = isExisting, userName = name) }
+            updateState { copy(email = email, isUserExisting = isExisting, userName = name) }
         }
     }
 
     private fun handleInit(intent: AuthIntent.InitAuthData) {
-        uiState.update {
-            it.copy(
+        updateState {
+            copy(
                 email = intent.email,
                 isUserExisting = intent.isUserExisting,
                 userName = intent.userName
@@ -73,8 +57,8 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun handleEmailChanged(email: String) {
-        uiState.update {
-            it.copy(
+        updateState {
+            copy(
                 email = email,
                 error = null,
                 isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -83,17 +67,17 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun handleEmailSubmit() {
-        if (!uiState.value.isEmailValid) return
+        if (!state.value.isEmailValid) return
         viewModelScope.launch(ioDispatcher) {
-            uiState.update { it.copy(isLoading = true) }
-            when (val result = authRepository.checkUserExistence(uiState.value.email)) {
+            updateState { copy(isLoading = true) }
+            when (val result = authRepository.checkUserExistence(state.value.email)) {
                 is AppResult.Success -> {
-                    uiState.update { it.copy(isLoading = false, isUserExisting = result.data) }
-                    _effect.send(NavigateNext)
+                    updateState { copy(isLoading = false, isUserExisting = result.data) }
+                    sendEffect(NavigateNext)
                 }
 
-                is AppResult.Error -> uiState.update {
-                    it.copy(
+                is AppResult.Error -> updateState {
+                    copy(
                         isLoading = false,
                         error = "Ошибка при проверке почты"
                     )
@@ -104,26 +88,26 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun handlePinBackspace() {
-        uiState.update { it.copy(pinCode = it.pinCode.dropLast(1), isPinComplete = false) }
+        updateState { copy(pinCode = pinCode.dropLast(1), isPinComplete = false) }
     }
 
     private fun handlePinDigit(digit: Char) {
-        val currentPin = uiState.value.pinCode
+        val currentPin = state.value.pinCode
         if (currentPin.length < 4) {
             val newPin = currentPin + digit
-            uiState.update { it.copy(pinCode = newPin, isPinComplete = newPin.length == 4) }
+            updateState { copy(pinCode = newPin, isPinComplete = newPin.length == 4) }
             if (newPin.length == 4) {
-                viewModelScope.launch { _effect.send(NavigateNext) }
+                viewModelScope.launch { sendEffect(NavigateNext) }
             }
         }
 
     }
 
     private fun handlePasswordSubmit() {
-        if (!uiState.value.isPasswordValid) return
+        if (!state.value.isPasswordValid) return
         viewModelScope.launch(ioDispatcher) {
-            uiState.update { it.copy(isLoading = true, error = null) }
-            val state = uiState.value
+            updateState { copy(isLoading = true, error = null) }
+            val state = state.value
             val result = if (state.isUserExisting) {
                 authRepository.login(state.email, state.password)
             } else {
@@ -135,21 +119,21 @@ class AuthViewModel @Inject constructor(
             }
             when (result) {
                 is AppResult.Success<*> -> {
-                    uiState.update { it.copy(isLoading = false) }
-                    _effect.send(NavigateNext)
+                    updateState { copy(isLoading = false) }
+                    sendEffect(NavigateNext)
 
                 }
 
                 is AppResult.Error -> {
-                    uiState.update { it.copy(isLoading = false, error = "Ошибка авторизации") }
+                    updateState { copy(isLoading = false, error = "Ошибка авторизации") }
                 }
             }
         }
     }
 
     private fun handlePasswordChanged(password: String) {
-        uiState.update {
-            it.copy(
+        updateState {
+            copy(
                 password = password,
                 error = null,
                 isPasswordValid = password.length >= 6
