@@ -1,31 +1,33 @@
 package com.tbank.smartbudget.core.network.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class BudgetDashboardDto(
-    @SerializedName("month") val month: Int,
-    @SerializedName("totalIncome") val totalIncome: Double,
-    @SerializedName("totalSpent") val totalSpent: Double,
-    @SerializedName("remainingBudget") val remainingBudget: Double,
-    @SerializedName("categoryStats") val categoryStats: List<DashboardCategoryStat>,
-    @SerializedName("recentTransactions") val recentTransactions: List<TransactionDto>,
-    @SerializedName("activeGoals") val activeGoals: List<DashboardGoalStat>
+    @SerialName("month") val month: Int,
+    @SerialName("totalIncome") val totalIncome: Double,
+    @SerialName("totalSpent") val totalSpent: Double,
+    @SerialName("remainingBudget") val remainingBudget: Double,
+    @SerialName("categoryStats") val categoryStats: List<DashboardCategoryStat>,
+    @SerialName("recentTransactions") val recentTransactions: List<TransactionDto>,
+    @SerialName("activeGoals") val activeGoals: List<DashboardGoalStat>
 )
-
+@Serializable
 data class DashboardCategoryStat(
-    @SerializedName("categoryId") val categoryId: Long,
-    @SerializedName("categoryName") val categoryName: String?,
-    @SerializedName("spentAmount") val spentAmount: Double,
-    @SerializedName("budgetLimit") val budgetLimit: Double,
-    @SerializedName("isOverLimit") val isOverLimit: Boolean
+    @SerialName("categoryId") val categoryId: Long,
+    @SerialName("categoryName") val categoryName: String?,
+    @SerialName("spentAmount") val spentAmount: Double,
+    @SerialName("budgetLimit") val budgetLimit: Double,
+    @SerialName("isOverLimit") val isOverLimit: Boolean
 )
-
+@Serializable
 data class DashboardGoalStat(
-    @SerializedName("id") val id: Long,
-    @SerializedName("name") val name: String,
-    @SerializedName("saved") val saved: Double,
-    @SerializedName("target") val target: Double,
-    @SerializedName("progressPercent") val progressPercent: Int,
-    @SerializedName("daysLeft") val daysLeft: Int,
-    @SerializedName("recommendedMonthly") val recommendedMonthly: Double
+    @SerialName("id") val id: Long,
+    @SerialName("name") val name: String,
+    @SerialName("saved") val saved: Double,
+    @SerialName("target") val target: Double,
+    @SerialName("progressPercent") val progressPercent: Int,
+    @SerialName("daysLeft") val daysLeft: Int,
+    @SerialName("recommendedMonthly") val recommendedMonthly: Double
 )

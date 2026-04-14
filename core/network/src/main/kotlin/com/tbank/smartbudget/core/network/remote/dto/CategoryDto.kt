@@ -1,29 +1,32 @@
 package com.tbank.smartbudget.core.network.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Ответ с пагинацией: GET /categories
  */
 data class CategoryPagedResponse(
-    @SerializedName("content") val content: List<CategoryDto>,
-    @SerializedName("totalPages") val totalPages: Int,
-    @SerializedName("totalElements") val totalElements: Int,
-    @SerializedName("last") val last: Boolean
+    @SerialName("content") val content: List<CategoryDto>,
+    @SerialName("totalPages") val totalPages: Int,
+    @SerialName("totalElements") val totalElements: Int,
+    @SerialName("last") val last: Boolean
 )
 
 /**
  * Модель категории с сервера
  */
+@Serializable
 data class CategoryDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("name") val name: String,
-    @SerializedName("isSystem") val isSystem: Boolean
+    @SerialName("id") val id: Long,
+    @SerialName("name") val name: String,
+    @SerialName("isSystem") val isSystem: Boolean
 )
 
 /**
  * Тело запроса для создания/обновления: POST/PUT /categories
  */
+@Serializable
 data class CreateCategoryRequest(
-    @SerializedName("name") val name: String
+    @SerialName("name") val name: String
 )

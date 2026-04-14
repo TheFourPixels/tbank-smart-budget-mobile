@@ -1,20 +1,22 @@
 package com.tbank.smartbudget.core.network.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * DTO для ответа /budgets/{year}/{month}
  */
+@Serializable
 data class BudgetDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("year") val year: Int,
-    @SerializedName("month") val month: Int,
-    @SerializedName("totalIncome") val totalIncome: Double,
-    @SerializedName("limits") val limits: List<BudgetLimitDto>
+    @SerialName("id") val id: Long,
+    @SerialName("year") val year: Int,
+    @SerialName("month") val month: Int,
+    @SerialName("totalIncome") val totalIncome: Double,
+    @SerialName("limits") val limits: List<BudgetLimitDto>
 )
-
+@Serializable
 data class BudgetLimitDto(
-    @SerializedName("categoryId") val categoryId: Long,
-    @SerializedName("limitValue") val limitValue: Double,
-    @SerializedName("limitType") val limitType: String
+    @SerialName("categoryId") val categoryId: Long,
+    @SerialName("limitValue") val limitValue: Double,
+    @SerialName("limitType") val limitType: String
 )
