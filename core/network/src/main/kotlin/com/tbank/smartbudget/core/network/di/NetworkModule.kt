@@ -1,6 +1,5 @@
 package com.tbank.smartbudget.core.network.di
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.tbank.smartbudget.core.network.remote.api.UnauthorizedApi
 import com.tbank.smartbudget.core.network.remote.api.BudgetApi
 import com.tbank.smartbudget.core.network.remote.api.CategoryApi
@@ -19,18 +18,21 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import javax.inject.Singleton
 import kotlin.jvm.java
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-    private const val BASE_URL = "192.168.0.188"
-    private const val AUTH_URL = "http://$BASE_URL:8089/"
-    private const val BUDGET_URL = "http://$BASE_URL:8081/"
-    private const val TRANSACTION_URL = "http://$BASE_URL:8083/"
-    private const val GOAL_URL = "http://$BASE_URL:8087/"
-    private const val DASHBOARD_URL = "http://$BASE_URL:8088/"
+    private const val API_HOST = "192.168.0.188:8080"
+
+    private const val BASE_URL = "http://$API_HOST/api/v1/"
+    private const val AUTH_URL = "$BASE_URL/auth/"
+    private const val BUDGET_URL = "$BASE_URL/budgets/"
+    private const val TRANSACTION_URL = "$BASE_URL/transactions/"
+    private const val GOAL_URL = "$BASE_URL/goals/"
+    private const val DASHBOARD_URL = "$BASE_URL/dashboard/"
 
     @Provides
     @Singleton

@@ -1,7 +1,7 @@
 package com.tbank.smartbudget.data.domain.repository
 
-import com.tbank.smartbudget.data.domain.model.User
 import com.tbank.smartbudget.core.network.remote.AppResult
+import com.tbank.smartbudget.data.domain.model.User
 
 interface AuthRepository {
     suspend fun login(email: String, password: String): AppResult<User>

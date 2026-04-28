@@ -12,12 +12,12 @@ import retrofit2.http.POST
  * Публичные эндпоинты (без токена).
  */
 interface UnauthorizedApi {
-    @POST("api/v1/auth/register")
+    @POST("register")
     suspend fun register(@Body request: RegisterRequest): AuthResponse
 
-    @POST("api/v1/auth/login")
+    @POST("login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
 
-    @POST("api/v1/auth/check-email")
+    @POST("check-email")
     suspend fun checkEmail(@Body request: CheckEmailRequest): CheckEmailResponse
 }
