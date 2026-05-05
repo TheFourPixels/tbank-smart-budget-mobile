@@ -4,8 +4,8 @@ import com.tbank.smartbudget.core.datastore.SessionManager
 import com.tbank.smartbudget.core.network.remote.AppResult
 import com.tbank.smartbudget.core.network.remote.api.UnauthorizedApi
 import com.tbank.smartbudget.core.network.remote.api.AuthorizedUserApi
+import com.tbank.smartbudget.core.network.remote.dto.AuthRequest
 import com.tbank.smartbudget.core.network.remote.dto.CheckEmailRequest
-import com.tbank.smartbudget.core.network.remote.dto.LoginRequest
 import com.tbank.smartbudget.core.network.remote.dto.RegisterRequest
 import com.tbank.smartbudget.core.network.remote.safeApiCall
 import com.tbank.smartbudget.data.domain.model.User
@@ -26,7 +26,7 @@ class AuthRepositoryImpl @Inject constructor(
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): AppResult<User> = safeApiCall {
-        val response = authApi.login(LoginRequest(email, password))
+        val response = authApi.login(AuthRequest(email, password))
 
         sessionManager.saveAuthData(
             token = response.token,

@@ -1,7 +1,7 @@
 package com.tbank.smartbudget.core.network.remote.api
 
 import com.tbank.smartbudget.core.network.remote.dto.UpdateProfileRequest
-import com.tbank.smartbudget.core.network.remote.dto.UserDto
+import com.tbank.smartbudget.core.network.remote.dto.UserProfileDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PUT
@@ -11,8 +11,8 @@ import retrofit2.http.PUT
  */
 interface AuthorizedUserApi {
     @GET("api/v1/profile")
-    suspend fun getProfile(): UserDto
+    suspend fun getProfile(): UserProfileDto
 
     @PUT("api/v1/profile")
-    suspend fun updateProfile(@Body request: UpdateProfileRequest): UserDto
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): UserProfileDto
 }

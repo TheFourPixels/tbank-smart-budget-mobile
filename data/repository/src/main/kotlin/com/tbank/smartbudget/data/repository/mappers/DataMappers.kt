@@ -65,7 +65,7 @@ fun GoalDto.toDomain(): Goal {
 /**
  * Маппинг DTO пользователя в доменную модель.
  */
-fun UserDto.toDomain(): User {
+fun UserProfileDto.toDomain(): User {
     return User(
         id = UserId(id),
         name = name,

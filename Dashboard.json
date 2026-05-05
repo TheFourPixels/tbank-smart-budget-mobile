@@ -1,0 +1,210 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Dashboard Service API",
+    "description": "Агрегатор статистики (Дашборд)",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://dashboard-service:8088",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/dashboard/{year}/{month}": {
+      "get": {
+        "tags": [
+          "dashboard-controller"
+        ],
+        "operationId": "get",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CategoryStatDto": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "categoryName": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "spent": {
+            "type": "number"
+          },
+          "progressPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "color": {
+            "type": "string"
+          },
+          "overLimit": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DashboardResponse": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalIncome": {
+            "type": "number"
+          },
+          "totalSpent": {
+            "type": "number"
+          },
+          "remainingBudget": {
+            "type": "number"
+          },
+          "categoryStats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryStatDto"
+            }
+          },
+          "recentTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentTransactionDto"
+            }
+          },
+          "activeGoals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoalSummaryDto"
+            }
+          }
+        }
+      },
+      "GoalSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "saved": {
+            "type": "number"
+          },
+          "target": {
+            "type": "number"
+          },
+          "progressPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "recommendedMonthly": {
+            "type": "number"
+          }
+        }
+      },
+      "RecentTransactionDto": {
+        "type": "object",
+        "properties": {
+          "merchant": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "categoryName": {
+            "type": "string"
+          },
+          "income": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
