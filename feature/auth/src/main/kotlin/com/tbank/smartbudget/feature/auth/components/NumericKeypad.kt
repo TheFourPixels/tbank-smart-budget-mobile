@@ -9,10 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 @Composable
 fun NumericKeypad(
     onDigitClick: (Char) -> Unit,
@@ -52,13 +52,13 @@ fun NumericKeypad(
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 28.sp
                                 ),
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         } else if (char == '<') {
                             Text(
                                 text = "⌫", // Backspace symbol
                                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 24.sp),
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }

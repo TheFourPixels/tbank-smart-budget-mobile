@@ -21,4 +21,6 @@ dependencies {
     implementation(projects.core.navigation)
     implementation(projects.data.domain)
     implementation(projects.core.network)
+    
+    implementation(libs.androidx.compose.material.icons.extended)
 }
