@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,8 +21,8 @@ class BudgetDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(BudgetDetailsUiState())
     val uiState: StateFlow<BudgetDetailsUiState> = _uiState.asStateFlow()
 
-    private val currentYear = 2025
-    private val currentMonth = 12
+    private val currentYear get() = LocalDate.now().year
+    private val currentMonth get() = LocalDate.now().monthValue
 
     init {
         loadBudgetDetails()
@@ -43,9 +44,9 @@ class BudgetDetailsViewModel @Inject constructor(
 
                     _uiState.update { currentState ->
                         currentState.copy(
-                            budgetName = "Кубышка",
+                            budgetName = "Основной",
                             currentBalance = formatMoney(totalIncome),
-                            periodDescription = "На ${budget.period}", // Используем сохраненный период
+                            periodDescription = "На ${budget.period}",
                             income = formatMoney(totalIncome),
                             expenseLimit = formatMoney(totalLimitAmount),
                             freeFunds = formatMoney(freeFunds)
