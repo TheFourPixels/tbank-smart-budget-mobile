@@ -1,7 +1,7 @@
 package com.tbank.smartbudget.core.network.remote.api
 
-import com.tbank.smartbudget.core.network.remote.dto.BudgetDashboardDto
 import com.tbank.smartbudget.core.network.remote.dto.BudgetDto
+import com.tbank.smartbudget.core.network.remote.dto.DashboardResponse
 import com.tbank.smartbudget.core.network.remote.dto.SaveBudgetRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -30,7 +30,7 @@ interface BudgetApi {
     suspend fun getBudgetDashboard(
         @Path("year") year: Int,
         @Path("month") month: Int
-    ): BudgetDashboardDto
+    ): DashboardResponse
 
     // POST /budgets
     @POST("api/v1/budgets")

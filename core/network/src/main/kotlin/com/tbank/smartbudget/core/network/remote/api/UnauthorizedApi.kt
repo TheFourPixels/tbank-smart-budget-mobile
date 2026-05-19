@@ -13,13 +13,13 @@ import retrofit2.http.Query
  * Публичные эндпоинты (без токена).
  */
 interface UnauthorizedApi {
-    @POST("register")
+    @POST("api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequest): AuthResponse
 
-    @POST("login")
+    @POST("api/v1/auth/login")
     suspend fun login(@Body request: AuthRequest): AuthResponse
 
-    @POST("check-email")
+    @POST("api/v1/auth/check-email")
     suspend fun checkEmail(@Body request: CheckEmailRequest): CheckEmailResponse
 
     @POST("api/v1/profile/forgot-password")

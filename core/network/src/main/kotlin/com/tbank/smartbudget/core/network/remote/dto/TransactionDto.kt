@@ -7,21 +7,57 @@ import kotlinx.serialization.Serializable
 data class TransactionDto(
     @SerialName("id") val id: Long,
     @SerialName("amount") val amount: Double,
-    @SerialName("income") val isIncome: Boolean,
-    @SerialName("date") val date: String,
+    @SerialName("type") val type: String, // INCOME/EXPENSE
+    @SerialName("externalId") val externalId: String? = null,
+    @SerialName("transactionDate") val transactionDate: String, // date-time
     @SerialName("description") val description: String?,
-    @SerialName("categoryName") val categoryName: String?,
-    @SerialName("categoryColor") val categoryColor: Long?,
-    @SerialName("categoryId") val categoryId: Long?,
-    @SerialName("merchant") val merchant: String?
+    @SerialName("merchantName") val merchantName: String?,
+    @SerialName("mcc") val mcc: String? = null,
+    @SerialName("category") val category: CategoryDto?,
+    @SerialName("isIncome") val isIncome: Boolean,
+    @SerialName("splits") val splits: List<SplitPartDto>? = null
 )
+
+@Serializable
+data class SplitPartDto(
+    @SerialName("categoryId") val categoryId: Long,
+    @SerialName("amount") val amount: Double,
+    @SerialName("description") val description: String?
+)
+
 @Serializable
 data class CreateTransactionRequest(
+    @SerialName("transactionTime") val transactionTime: String,
     @SerialName("amount") val amount: Double,
-    @SerialName("income") val isIncome: Boolean,
-    @SerialName("date") val date: String,
-    @SerialName("description") val description: String?,
+    @SerialName("type") val type: String,
+    @SerialName("merchant") val merchant: String?,
     @SerialName("categoryId") val categoryId: Long,
-    @SerialName("budgetId") val budgetId: Long,
-    @SerialName("merchant") val merchant: String?
+    @SerialName("description") val description: String?
+)
+
+@Serializable
+data class CategorizationRule(
+    @SerialName("id") val id: Long? = null,
+    @SerialName("userId") val userId: Long? = null,
+    @SerialName("keyword") val keyword: String,
+    @SerialName("categoryId") val categoryId: Long
+)
+
+@Serializable
+data class CategoryTotalSpentDto(
+    @SerialName("categoryId") val categoryId: Long,
+    @SerialName("totalSpent") val totalSpent: Double
+)
+
+@Serializable
+data class PageTransactionDto(
+    @SerialName("totalPages") val totalPages: Int,
+    @SerialName("totalElements") val totalElements: Long,
+    @SerialName("size") val size: Int,
+    @SerialName("content") val content: List<TransactionDto>,
+    @SerialName("number") val number: Int,
+    @SerialName("numberOfElements") val numberOfElements: Int,
+    @SerialName("first") val first: Boolean,
+    @SerialName("last") val last: Boolean,
+    @SerialName("empty") val empty: Boolean
 )

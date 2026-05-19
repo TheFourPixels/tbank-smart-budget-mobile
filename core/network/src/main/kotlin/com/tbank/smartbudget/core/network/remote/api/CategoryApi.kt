@@ -1,7 +1,7 @@
 package com.tbank.smartbudget.core.network.remote.api
 
 import com.tbank.smartbudget.core.network.remote.dto.CategoryDto
-import com.tbank.smartbudget.core.network.remote.dto.CategoryPagedResponse
+import com.tbank.smartbudget.core.network.remote.dto.PageCategoryDto
 import com.tbank.smartbudget.core.network.remote.dto.CreateCategoryRequest
 import retrofit2.Response
 import retrofit2.http.Body
@@ -17,8 +17,8 @@ interface CategoryApi {
     @GET("api/v1/categories")
     suspend fun getCategories(
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 100
-    ): Response<CategoryPagedResponse>
+        @Query("size") size: Int = 10
+    ): Response<PageCategoryDto>
 
     @POST("api/v1/categories")
     suspend fun createCategory(
