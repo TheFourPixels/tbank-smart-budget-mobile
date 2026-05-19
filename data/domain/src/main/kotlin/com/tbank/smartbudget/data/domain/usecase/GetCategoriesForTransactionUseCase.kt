@@ -1,5 +1,6 @@
 package com.tbank.smartbudget.data.domain.usecase
 
+import android.util.Log
 import com.tbank.smartbudget.data.domain.model.BudgetLimitModel
 import com.tbank.smartbudget.data.domain.model.BudgetLimitType
 import com.tbank.smartbudget.data.domain.repository.BudgetRepository
@@ -22,21 +23,43 @@ class GetCategoriesForTransactionUseCase @Inject constructor(
             // 2. Получаем статистику по категориям (с текущими тратами)
             val statsResult = budgetRepository.getCategoryStats(year, month)
             val categoryStats = statsResult.getOrNull() ?: emptyList()
+            
+            // 3. Получаем детали бюджета для подстраховки (если в статистике нет категории)
+            val budgetDetails = budgetRepository.getBudgetDetails(year, month).getOrNull()
 
-            // 3. Мержим: для каждой категории из справочника смотрим, есть ли по ней статистика
+            Log.d("GetCategoriesUseCase", "Total categories: ${allCategories.size}, Stats items: ${categoryStats.size}")
+
+            // 4. Мержим: для каждой категории из справочника смотрим, есть ли по ней статистика или лимит
             val uiCategories = allCategories.map { category ->
+                // Сначала ищем в статистике (там есть потраченная сумма)
                 val stat = categoryStats.find { it.id == category.id }
+                
+                // Если в статистике нет, ищем в деталях бюджета (там есть установленный лимит)
+                val budgetLimit = budgetDetails?.limits?.find { it.categoryId == category.id }
+                
+                val remainingAmount = when {
+                    stat != null -> stat.remainingAmount
+                    budgetLimit != null -> budgetLimit.limitValue // Если трат еще нет, остаток = лимиту
+                    else -> 0.0
+                }
+
+                if (budgetLimit != null || stat != null) {
+                    Log.d("GetCategoriesUseCase", "Category ${category.name}: Found limit ${budgetLimit?.limitValue}, Stat remaining: ${stat?.remainingAmount}")
+                }
+
                 BudgetLimitModel(
                     categoryId = category.id,
                     categoryName = category.name,
-                    limitValue = stat?.remainingAmount ?: 0.0,
-                    limitType = BudgetLimitType.SUM,
+                    limitValue = remainingAmount,
+                    limitType = budgetLimit?.limitType ?: BudgetLimitType.SUM,
                     iconRes = category.iconRes,
                     color = category.color
                 )
             }
-            Result.success(uiCategories)
+            // Сортируем: сначала те, по которым есть лимиты
+            Result.success(uiCategories.sortedByDescending { it.limitValue })
         } catch (e: Exception) {
+            Log.e("GetCategoriesUseCase", "Error merging categories", e)
             Result.failure(e)
         }
     }

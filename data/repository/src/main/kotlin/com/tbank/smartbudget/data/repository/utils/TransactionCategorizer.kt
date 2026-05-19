@@ -13,7 +13,7 @@ import javax.inject.Singleton
 @Singleton
 class TransactionCategorizer @Inject constructor(
     private val transactionApi: TransactionApi,
-    private val categoryRepository: CategorySearchRepository
+    private val categoryRepository: CategorySearchRepository,
 ) {
 
     private suspend fun getRules(): List<CategorizationRule> {
@@ -37,20 +37,18 @@ class TransactionCategorizer @Inject constructor(
         val categories = getCategories()
 
         return transactions.map { transaction ->
-            // Если категория уже назначена (ID > 0), просто обогащаем метаданными
+            // 1. Если категория уже назначена (ID > 0), просто обогащаем метаданными
             if (transaction.categoryId.value > 0) {
                 val category = categories.find { it.id.value == transaction.categoryId.value }
-                return@map if (category != null) {
-                    transaction.copy(
-                        categoryName = category.name,
-                        categoryColor = CategoryColorMapper.getColorForId(category.id.value)
+                category?.let {
+                    return@map transaction.copy(
+                        categoryName = it.name,
+                        categoryColor = CategoryColorMapper.getColorForId(it.id.value)
                     )
-                } else {
-                    transaction
                 }
             }
 
-            // Применяем правила ТОЛЬКО для не категоризированных транзакций
+            // 2. Применяем правила категоризации
             val rule = rules.find {
                 (transaction.merchantName?.contains(it.keyword, ignoreCase = true) == true) ||
                 (transaction.description?.contains(it.keyword, ignoreCase = true) == true)
@@ -65,7 +63,23 @@ class TransactionCategorizer @Inject constructor(
                 )
             }
 
-            // Оставляем без изменений, если правило не найдено
+            // 3. Запасной вариант: Поиск по точному совпадению имени категории в описании или мерчанте
+            // Это поможет, если категория была передана строкой или выбрана вручную, но ID потерялся
+            val matchedCategory = categories.find { 
+                (it.name.equals(transaction.merchantName, ignoreCase = true)) ||
+                (it.name.equals(transaction.description, ignoreCase = true)) ||
+                ((transaction.description?.contains(it.name, ignoreCase = true) == true) && (it.name.length > 3))
+            }
+
+            if (matchedCategory != null) {
+                return@map transaction.copy(
+                    categoryId = matchedCategory.id,
+                    categoryName = matchedCategory.name,
+                    categoryColor = matchedCategory.color
+                )
+            }
+
+            // Оставляем без изменений, если ничего не найдено
             transaction
         }
     }
