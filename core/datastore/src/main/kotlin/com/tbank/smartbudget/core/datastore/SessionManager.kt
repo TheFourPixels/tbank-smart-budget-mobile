@@ -35,6 +35,15 @@ class SessionManager @Inject constructor(
     }
 
     /**
+     * Обновляет имя пользователя.
+     */
+    fun updateUserName(name: String) {
+        prefs.edit {
+            putString(KEY_USER_NAME, name)
+        }
+    }
+
+    /**
      * Получает сохраненный токен.
      */
     fun getAuthToken(): String? {

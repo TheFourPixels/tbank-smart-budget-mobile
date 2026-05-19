@@ -10,4 +10,5 @@ android {
 dependencies {
     implementation(projects.core.network)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }

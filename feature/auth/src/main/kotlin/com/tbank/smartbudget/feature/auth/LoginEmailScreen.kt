@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,6 +38,7 @@ import com.tbank.smartbudget.feature.auth.components.AuthTitle
 @Composable
 fun LoginEmailScreen(
     onNavigateNext: (email: String, isExisting: Boolean, userName: String?) -> Unit,
+    onBack: () -> Unit,
     viewModel: AuthViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -58,25 +63,39 @@ fun LoginEmailScreen(
 
     LoginEmailContent(
         state = state,
-        onIntent = viewModel::onIntent
+        onIntent = viewModel::onIntent,
+        onBack = onBack
     )
 }
 
 @Composable
 fun LoginEmailContent(
     state: AuthUiState,
-    onIntent: (AuthIntent) -> Unit
+    onIntent: (AuthIntent) -> Unit,
+    onBack: () -> Unit
 ) {
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(24.dp, vertical = 100.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            IconButton(onClick = onBack, modifier = Modifier.padding(start = 0.dp)) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(40.dp))
+
             AuthTitle("Вход")
             AuthSubtitle("Введите вашу почту для входа или регистрации")
 
@@ -108,7 +127,7 @@ fun LoginEmailContent(
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = SmartBudgetTheme.colors.yellow,
-                    disabledContainerColor = Color(0xFFE0E0E0)
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -133,32 +152,8 @@ private fun LoginEmailPreview() {
     SmartBudgetTheme {
         LoginEmailContent(
             state = AuthUiState(email = "test@example.com", isEmailValid = true),
-            onIntent = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Loading")
-@Composable
-private fun LoginEmailLoadingPreview() {
-    SmartBudgetTheme {
-        LoginEmailContent(
-            state = AuthUiState(email = "test@example.com", isLoading = true),
-            onIntent = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Error")
-@Composable
-private fun LoginEmailErrorPreview() {
-    SmartBudgetTheme {
-        LoginEmailContent(
-            state = AuthUiState(
-                email = "wrong-email",
-                error = "Некорректный формат почты"
-            ),
-            onIntent = {}
+            onIntent = {},
+            onBack = {}
         )
     }
 }

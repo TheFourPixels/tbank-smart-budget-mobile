@@ -7,27 +7,31 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
-fun DetailsCard(content: @Composable ColumnScope.() -> Unit) {
+fun DetailsCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
     val shape = RoundedCornerShape(16.dp)
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .shadow(
                 elevation = 10.dp,
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.4f),
-                spotColor = Color.Black.copy(alpha = 0.5f)
+                ambientColor = SmartBudgetTheme.colors.shadowColor,
+                spotColor = SmartBudgetTheme.colors.shadowColor
             )
             .background(
-                color = Color.White,
+                color = SmartBudgetTheme.colors.cardBackground,
                 shape = shape
             )
     ) {

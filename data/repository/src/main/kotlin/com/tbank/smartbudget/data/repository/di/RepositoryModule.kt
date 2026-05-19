@@ -12,6 +12,7 @@ import com.tbank.smartbudget.data.domain.repository.CategorySearchRepository
 import com.tbank.smartbudget.data.domain.repository.DashboardRepository
 import com.tbank.smartbudget.data.domain.repository.GoalRepository
 import com.tbank.smartbudget.data.domain.repository.TransactionRepository
+import com.tbank.smartbudget.data.repository.MockCategorySearchRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

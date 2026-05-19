@@ -27,6 +27,7 @@ import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
 fun BudgetSummaryCard(
+    hasBudget: Boolean,
     budgetName: String,
     balance: String,
     term: String,
@@ -41,15 +42,22 @@ fun BudgetSummaryCard(
             .shadow(
                 elevation = 10.dp,
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.4f),
-                spotColor = Color.Black.copy(alpha = 0.5f)
+                ambientColor = SmartBudgetTheme.colors.shadowColor,
+                spotColor = SmartBudgetTheme.colors.shadowColor
             )
             .background(
                 brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        SmartBudgetTheme.colors.gradientDarkBlue,
-                        SmartBudgetTheme.colors.gradientGreen
-                    )
+                    colors = if (hasBudget) {
+                        listOf(
+                            SmartBudgetTheme.colors.gradientDarkBlue,
+                            SmartBudgetTheme.colors.gradientGreen
+                        )
+                    } else {
+                        listOf(
+                            SmartBudgetTheme.colors.gradientViolet,
+                            SmartBudgetTheme.colors.gradientBlue
+                        )
+                    }
                 ),
                 shape = shape
             )
@@ -58,39 +66,66 @@ fun BudgetSummaryCard(
             .padding(20.dp)
     ) {
         Column {
-            Text(
-                text = "Бюджет “$budgetName”",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = Color.White
-            )
-            Spacer(Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column {
-                    Text(
-                        text = "Баланс",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = balance,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                        color = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(18.dp))
+            if (hasBudget) {
+                Text(
+                    text = "Бюджет “$budgetName”",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color.White
+                )
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        Text(
+                            text = "Баланс",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = balance,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(18.dp))
 
-                Column(horizontalAlignment = Alignment.Start) {
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Text(
+                            "Срок",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            term,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                            color = Color.White
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = "Создать бюджет",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color.White
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Нажмите, чтобы начать планирование своих финансов",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+                Spacer(Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
                     Text(
-                        "Срок",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        term,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                        color = Color.White
+                        text = "Начать",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -98,15 +133,32 @@ fun BudgetSummaryCard(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFF5F5F5)
+@Preview(showBackground = true)
 @Composable
-private fun BudgetSummaryCardPreview() {
+private fun BudgetSummaryCardExistingPreview() {
     SmartBudgetTheme {
         Box(modifier = Modifier.padding(vertical = 20.dp)) {
             BudgetSummaryCard(
+                hasBudget = true,
                 budgetName = "Кубышка",
                 balance = "120 500 ₽",
                 term = "Март 2024",
+                onClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BudgetSummaryCardEmptyPreview() {
+    SmartBudgetTheme {
+        Box(modifier = Modifier.padding(vertical = 20.dp)) {
+            BudgetSummaryCard(
+                hasBudget = false,
+                budgetName = "",
+                balance = "",
+                term = "",
                 onClick = {}
             )
         }

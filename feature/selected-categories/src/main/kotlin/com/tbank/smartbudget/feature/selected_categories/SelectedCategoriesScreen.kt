@@ -27,7 +27,9 @@ fun SelectedCategoriesScreen(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                SelectedCategoriesEffect.NavigateToCreateCategory -> onNavigateToCreate()
+                SelectedCategoriesEffect.NavigateToCreateCategory -> {
+                    // Теперь используем диалог, эффект можно не использовать или заменить
+                }
                 is SelectedCategoriesEffect.ShowError -> { /* Показать Snackbar или Toast */ }
             }
         }
@@ -39,7 +41,12 @@ fun SelectedCategoriesScreen(
         onSearchQueryChanged = { viewModel.onIntent(SelectedCategoriesIntent.OnSearchQueryChanged(it)) },
         onCategoryRemoved = { viewModel.onIntent(SelectedCategoriesIntent.OnCategoryRemoved(it)) },
         onCategorySelected = { viewModel.onIntent(SelectedCategoriesIntent.OnCategorySelected(it)) },
-        onCreateCategoryClick = { viewModel.onIntent(SelectedCategoriesIntent.OnCreateCategoryClick) }
+        onCreateCategoryClick = { viewModel.onIntent(SelectedCategoriesIntent.OnCreateCategoryClick) },
+        onNewCategoryNameChanged = { viewModel.onIntent(SelectedCategoriesIntent.OnNewCategoryNameChanged(it)) },
+        onNewCategoryLimitChanged = { viewModel.onIntent(SelectedCategoriesIntent.OnNewCategoryLimitChanged(it)) },
+        onNameStepSubmit = { viewModel.onIntent(SelectedCategoriesIntent.OnNameStepSubmit) },
+        onLimitStepSubmit = { viewModel.onIntent(SelectedCategoriesIntent.OnLimitStepSubmit) },
+        onDismissDialog = { viewModel.onIntent(SelectedCategoriesIntent.OnDismissDialog) }
     )
 }
 
@@ -50,11 +57,28 @@ private fun SelectedCategoriesContent(
     onSearchQueryChanged: (String) -> Unit,
     onCategoryRemoved: (SelectedCategoryUi) -> Unit,
     onCategorySelected: (SelectedCategoryUi) -> Unit,
-    onCreateCategoryClick: () -> Unit
+    onCreateCategoryClick: () -> Unit,
+    onNewCategoryNameChanged: (String) -> Unit,
+    onNewCategoryLimitChanged: (String) -> Unit,
+    onNameStepSubmit: () -> Unit,
+    onLimitStepSubmit: () -> Unit,
+    onDismissDialog: () -> Unit
 ) {
     Scaffold(
-        containerColor = Color(0xFFF8F8F8)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
+        
+        CategoryCreationDialog(
+            step = state.creationStep,
+            name = state.newCategoryName,
+            limit = state.newCategoryLimit,
+            onNameChanged = onNewCategoryNameChanged,
+            onLimitChanged = onNewCategoryLimitChanged,
+            onNext = onNameStepSubmit,
+            onSubmit = onLimitStepSubmit,
+            onDismiss = onDismissDialog
+        )
+
         if (state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                 CircularProgressIndicator(color = SmartBudgetTheme.colors.blue)
@@ -89,7 +113,8 @@ private fun SelectedCategoriesContent(
                         Text(
                             text = "Доступные категории",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                            modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -125,7 +150,12 @@ private fun SelectedCategoriesScreenPreview() {
             onSearchQueryChanged = {},
             onCategoryRemoved = {},
             onCategorySelected = {},
-            onCreateCategoryClick = {}
+            onCreateCategoryClick = {},
+            onNewCategoryNameChanged = {},
+            onNewCategoryLimitChanged = {},
+            onNameStepSubmit = {},
+            onLimitStepSubmit = {},
+            onDismissDialog = {}
         )
     }
 }

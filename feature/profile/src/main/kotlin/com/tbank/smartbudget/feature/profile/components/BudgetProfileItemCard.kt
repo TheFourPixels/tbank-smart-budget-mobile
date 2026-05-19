@@ -30,7 +30,7 @@ fun BudgetProfileItemCard(item: BudgetProfileItem) {
             .width(140.dp)
             .height(120.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFF5F5F5))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(16.dp)
     ) {
         Column(
@@ -56,13 +56,13 @@ fun BudgetProfileItemCard(item: BudgetProfileItem) {
                 Text(
                     text = item.name,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
                 Text(
                     text = item.dateDescription,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 12.sp
                 )
             }

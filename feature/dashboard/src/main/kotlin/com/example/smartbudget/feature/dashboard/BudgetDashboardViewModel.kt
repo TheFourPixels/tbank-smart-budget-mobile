@@ -2,20 +2,24 @@ package com.example.smartbudget.feature.dashboard
 
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.data.domain.usecase.GetBudgetDashboardUseCase
+import com.tbank.smartbudget.data.domain.repository.DashboardRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class BudgetDashboardViewModel @Inject constructor(
-    private val getDashboardUseCase: GetBudgetDashboardUseCase
+    private val dashboardRepository: DashboardRepository
 ) : BaseViewModel<BudgetDashboardUiState, BudgetDashboardIntent, BudgetDashboardEffect>(
     BudgetDashboardUiState(isLoading = true)
 ) {
 
-    private val currentYear = 2025
-    private val currentMonth = 12
+    private val now = LocalDate.now()
+    private val currentYear = now.year
+    private val currentMonth = now.monthValue
 
     init {
         onIntent(BudgetDashboardIntent.LoadDashboard)
@@ -32,9 +36,10 @@ class BudgetDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             updateState { copy(isLoading = true) }
 
-            getDashboardUseCase.execute(currentYear, currentMonth)
-                .onSuccess { summary ->
-                    val progress = if (summary.totalLimit > 0) (summary.totalSpent / summary.totalLimit).toFloat() else 0f
+            dashboardRepository.getDashboardSummary(currentMonth, currentYear)
+                .onSuccess { data ->
+                    val totalLimit = data.totalSpent + data.remainingBudget
+                    val progress = if (totalLimit > 0) (data.totalSpent / totalLimit).toFloat() else 0f
 
                     val color = when {
                         progress > 1.0f -> 0xFFE53935
@@ -43,17 +48,27 @@ class BudgetDashboardViewModel @Inject constructor(
                         else -> 0xFF43A047
                     }
 
+                    val monthName = now.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
+                        .replaceFirstChar { it.uppercase() }
+
+                    val daysInMonth = now.month.length(now.isLeapYear)
+                    val daysLeft = (daysInMonth - now.dayOfMonth).coerceAtLeast(1)
+
                     updateState {
                         copy(
                             isLoading = false,
-                            totalLimit = formatMoney(summary.totalLimit),
-                            totalSpent = formatMoney(summary.totalSpent),
-                            remainingAmount = formatMoney(summary.freeFunds),
+                            totalLimit = formatMoney(totalLimit),
+                            totalSpent = formatMoney(data.totalSpent),
+                            totalIncome = formatMoney(data.totalIncome),
+                            remainingAmount = formatMoney(data.remainingBudget),
                             progress = progress.coerceIn(0f, 1f),
                             progressColor = color,
-                            daysLeft = 30,
-                            dailyBudget = formatMoney(if (30 > 0) summary.freeFunds / 30 else 0.0),
-                            periodDescription = summary.period
+                            daysLeft = daysLeft,
+                            dailyBudget = formatMoney(data.remainingBudget / daysLeft),
+                            periodDescription = monthName,
+                            recentTransactions = data.recentTransactions,
+                            activeGoals = data.activeGoals,
+                            categoryStats = data.categoryStats
                         )
                     }
                 }

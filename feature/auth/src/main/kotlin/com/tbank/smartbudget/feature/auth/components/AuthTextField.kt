@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
 fun AuthTextField(
@@ -32,7 +34,7 @@ fun AuthTextField(
         keyboardOptions = keyboardOptions,
         textStyle = TextStyle(
             fontSize = 18.sp,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Medium
         ),
         singleLine = true,
@@ -40,7 +42,7 @@ fun AuthTextField(
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF5F5F5))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 16.dp),
         decorationBox = { innerTextField ->
             Box(contentAlignment = Alignment.CenterStart) {
@@ -49,7 +51,7 @@ fun AuthTextField(
                         text = placeholder,
                         style = TextStyle(
                             fontSize = 18.sp,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.outline
                         )
                     )
                 }

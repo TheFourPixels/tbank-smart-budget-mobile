@@ -12,34 +12,72 @@ import java.util.Locale
  * Маппинг DTO транзакции в доменную модель.
  */
 fun TransactionDto.toDomain(): Transaction {
+    val ldt = try {
+        ZonedDateTime.parse(transactionDate).toLocalDateTime()
+    } catch (e: Exception) {
+        try {
+            LocalDateTime.parse(transactionDate)
+        } catch (e2: Exception) {
+            LocalDateTime.now()
+        }
+    }
+    val finalCategoryName = category?.name ?: "Без категории"
+    val finalCategoryId = category?.id ?: 0L
+    val color = if (finalCategoryId > 0) {
+        CategoryColorMapper.getColorForId(finalCategoryId)
+    } else {
+        CategoryColorMapper.getColorForName(finalCategoryName)
+    }
+
     return Transaction(
         id = TransactionId(id),
         amount = amount,
         type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-        date = try {
-            ZonedDateTime.parse(date).toLocalDateTime()
-        } catch (e: Exception) {
+        date = ldt,
+        description = description,
+        merchantName = merchantName,
+        categoryName = finalCategoryName,
+        categoryColor = color,
+        categoryId = CategoryId(finalCategoryId)
+    )
+}
+
+/**
+ * Маппинг RecentTransactionDto в доменную модель Transaction.
+ */
+fun RecentTransactionDto.toDomain(): Transaction {
+    val ldt = try {
+        ZonedDateTime.parse(date).toLocalDateTime()
+    } catch (e: Exception) {
+        try {
             LocalDateTime.parse(date)
-        },
+        } catch (e2: Exception) {
+            LocalDateTime.now()
+        }
+    }
+    val finalCategoryName = categoryName ?: "Без категории"
+    return Transaction(
+        id = TransactionId(0L), // Dashboard не возвращает ID
+        amount = amount,
+        type = if (income) TransactionType.INCOME else TransactionType.EXPENSE,
+        date = ldt,
         description = description,
         merchantName = merchant,
-        categoryName = categoryName ?: "Без категории",
-        categoryColor = categoryColor ?: 0L,
-        categoryId = CategoryId(categoryId ?: 0L)
+        categoryName = finalCategoryName,
+        categoryColor = CategoryColorMapper.getColorForName(finalCategoryName),
+        categoryId = CategoryId(0L)
     )
 }
 
 /**
  * Маппинг DTO лимита в доменную модель.
- * Поля name, iconRes и color остаются дефолтными, так как они
- * обогащаются в GetBudgetDetailsUseCase из CategorySearchRepository.
  */
 fun BudgetLimitDto.toDomain(): BudgetLimitModel {
     return BudgetLimitModel(
         categoryId = CategoryId(categoryId),
         categoryName = "", // Будет заполнено в UseCase
         limitValue = limitValue,
-        limitType = if (limitType == "PERCENT") BudgetLimitType.PERCENT else BudgetLimitType.AMOUNT,
+        limitType = if (limitType == "PERCENT") BudgetLimitType.PERCENT else BudgetLimitType.SUM,
         iconRes = 0,
         color = 0L
     )
@@ -49,23 +87,34 @@ fun BudgetLimitDto.toDomain(): BudgetLimitModel {
  * Маппинг DTO цели в доменную модель.
  */
 fun GoalDto.toDomain(): Goal {
-    val progress = if (targetAmount > 0) {
-        ((currentAmount / targetAmount) * 100).toInt().coerceIn(0, 100)
-    } else 0
     return Goal(
         id = GoalId(id),
         name = name,
         targetAmount = targetAmount,
-        savedAmount = currentAmount,
+        savedAmount = savedAmount,
         deadline = deadline,
-        progressPercent = progress
+        progressPercent = progressPercent
+    )
+}
+
+/**
+ * Маппинг GoalSummaryDto в доменную модель Goal.
+ */
+fun GoalSummaryDto.toDomain(): Goal {
+    return Goal(
+        id = GoalId(id),
+        name = name,
+        targetAmount = target,
+        savedAmount = saved,
+        deadline = null,
+        progressPercent = progressPercent
     )
 }
 
 /**
  * Маппинг DTO пользователя в доменную модель.
  */
-fun UserDto.toDomain(): User {
+fun UserProfileDto.toDomain(): User {
     return User(
         id = UserId(id),
         name = name,
@@ -77,22 +126,38 @@ fun UserDto.toDomain(): User {
 /**
  * Преобразование статистики категорий из DTO в доменную модель.
  */
-fun DashboardCategoryStat.toDomain(): CategoryLimit {
+fun CategoryStatDto.toDomain(): CategoryLimit {
     return CategoryLimit(
         id = CategoryId(categoryId),
-        name = categoryName ?: "Категория",
-        limitAmount = budgetLimit,
-        spentAmount = spentAmount,
+        name = categoryName,
+        limitAmount = limit,
+        spentAmount = spent,
         iconRes = 0,
-        color = 0L
+        color = color?.removePrefix("#")?.toLong(16) ?: 0L
     )
 }
 
 /**
- * Преобразование сводки из DTO в доменную модель.
+ * Преобразование DashboardResponse в DashboardData.
  */
-fun BudgetDashboardDto.toSummary(): BudgetSummary {
-    val monthName = LocalDate.now().month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
+fun DashboardResponse.toDomain(): DashboardData {
+    return DashboardData(
+        month = month,
+        totalIncome = totalIncome,
+        totalSpent = totalSpent,
+        remainingBudget = remainingBudget,
+        categoryStats = categoryStats.map { it.toDomain() },
+        activeGoals = activeGoals.map { it.toDomain() },
+        recentTransactions = recentTransactions.map { it.toDomain() }
+    )
+}
+
+/**
+ * Преобразование DashboardResponse в BudgetSummary.
+ */
+fun DashboardResponse.toSummary(): BudgetSummary {
+    val monthName = LocalDate.of(year, month, 1)
+        .month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
         .replaceFirstChar { it.uppercase() }
 
     return BudgetSummary(
@@ -103,7 +168,6 @@ fun BudgetDashboardDto.toSummary(): BudgetSummary {
         period = monthName
     )
 }
-
 
 /**
  * Маппинг основного DTO бюджета.

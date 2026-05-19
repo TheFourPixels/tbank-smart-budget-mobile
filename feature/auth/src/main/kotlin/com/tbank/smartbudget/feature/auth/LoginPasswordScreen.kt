@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -57,14 +61,16 @@ fun LoginPasswordScreen(
 
     LoginPasswordContent(
         state = state,
-        onIntent = viewModel::onIntent
+        onIntent = viewModel::onIntent,
+        onBack = onBack
     )
 }
 
 @Composable
 fun LoginPasswordContent(
     state: AuthUiState,
-    onIntent: (AuthIntent) -> Unit
+    onIntent: (AuthIntent) -> Unit,
+    onBack: () -> Unit
 ) {
 
 
@@ -84,15 +90,27 @@ fun LoginPasswordContent(
     val buttonText = if (state.isUserExisting) "Войти" else "Зарегистрироваться"
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(24.dp, vertical = 100.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
             AuthTitle(title)
             AuthSubtitle(subtitle)
 
@@ -125,7 +143,7 @@ fun LoginPasswordContent(
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = SmartBudgetTheme.colors.yellow,
-                    disabledContainerColor = Color(0xFFE0E0E0)
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -154,38 +172,8 @@ private fun LoginPasswordPreview() {
                 password = "password123",
                 isPasswordValid = true
             ),
-            onIntent = {}
-        )
-    }
-}
-
-
-@Preview(showBackground = true, name = "Register Mode")
-@Composable
-private fun RegisterPasswordPreview() {
-    SmartBudgetTheme {
-        LoginPasswordContent(
-            state = AuthUiState(
-                isUserExisting = false,
-                password = "new_password",
-                isPasswordValid = true
-            ),
-            onIntent = {}
-        )
-    }
-}
-
-
-@Preview(showBackground = true, name = "Loading State")
-@Composable
-private fun LoadingPasswordPreview() {
-    SmartBudgetTheme {
-        LoginPasswordContent(
-            state = AuthUiState(
-                isUserExisting = true,
-                isLoading = true
-            ),
-            onIntent = {}
+            onIntent = {},
+            onBack = {}
         )
     }
 }

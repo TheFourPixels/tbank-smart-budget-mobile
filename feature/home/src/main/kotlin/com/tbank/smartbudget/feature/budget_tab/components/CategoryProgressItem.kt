@@ -32,7 +32,7 @@ fun CategoryProgressItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(16.dp))
+            .background(SmartBudgetTheme.colors.cardBackground, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         Row(
@@ -43,7 +43,8 @@ fun CategoryProgressItem(
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "${category.spentValue} / ${category.limitValue}",

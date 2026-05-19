@@ -21,4 +21,6 @@ interface TransactionRepository {
         description: String?,
         merchantName: String?
     ): Result<Transaction>
+
+    suspend fun syncTransactions(year: Int, month: Int): Result<Unit>
 }

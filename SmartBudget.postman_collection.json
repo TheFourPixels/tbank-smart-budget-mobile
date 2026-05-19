@@ -1,0 +1,602 @@
+{
+	"info": {
+		"_postman_id": "smart-budget-api-coll",
+		"name": "SmartBudget API",
+		"description": "Коллекция запросов для всех микросервисов SmartBudget (Auth, Budget, Transaction, Goal, Dashboard)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth Service",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/auth/login",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Иван Иванов\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/auth/register",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check Email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/auth/check-email",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"check-email"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/v1/profile",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Новое Имя\",\n  \"avatarUrl\": \"http://example.com/avatar.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/profile",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile"
+							]
+						}
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{auth_url}}/api/v1/profile/forgot-password?email=user@example.com",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"forgot-password"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "user@example.com"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\"newPassword123\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{auth_url}}/api/v1/profile/reset-password?token=some_token_here",
+							"host": [
+								"{{auth_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"profile",
+								"reset-password"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "some_token_here"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Budget Service",
+			"item": [
+				{
+					"name": "Create or Update Budget",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"year\": 2025,\n  \"month\": 12,\n  \"totalIncome\": 150000,\n  \"limits\": [\n    {\n      \"categoryId\": 1,\n      \"limitValue\": 50000,\n      \"limitType\": \"SUM\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{budget_url}}/api/v1/budgets",
+							"host": [
+								"{{budget_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Budget",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{budget_url}}/api/v1/budgets/2025/12",
+							"host": [
+								"{{budget_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"2025",
+								"12"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Dashboard Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{budget_url}}/api/v1/budgets/2025/12/dashboard",
+							"host": [
+								"{{budget_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"2025",
+								"12",
+								"dashboard"
+							]
+						}
+					}
+				},
+				{
+					"name": "Categories",
+					"item": [
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{budget_url}}/api/v1/categories?page=0&size=10",
+									"host": [
+										"{{budget_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"categories"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Хобби\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{budget_url}}/api/v1/categories",
+									"host": [
+										"{{budget_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"categories"
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Transaction Service",
+			"item": [
+				{
+					"name": "Get Transactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{transaction_url}}/api/v1/transactions?page=0&size=20",
+							"host": [
+								"{{transaction_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Transaction",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionTime\": \"2025-12-05T10:00:00Z\",\n  \"amount\": 2500.5,\n  \"type\": \"EXPENSE\",\n  \"merchant\": \"Кафе 'Уют'\",\n  \"categoryId\": 3,\n  \"description\": \"Ланч с коллегами\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{transaction_url}}/api/v1/transactions",
+							"host": [
+								"{{transaction_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Sync Transactions",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{transaction_url}}/api/v1/transactions/sync?year=2025&month=12",
+							"host": [
+								"{{transaction_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions",
+								"sync"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025"
+								},
+								{
+									"key": "month",
+									"value": "12"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Goal Service",
+			"item": [
+				{
+					"name": "Create Goal",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Новый ноутбук\",\n  \"targetAmount\": 150000,\n  \"deadline\": \"2026-06-01\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{goal_url}}/api/v1/goals",
+							"host": [
+								"{{goal_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"goals"
+							]
+						}
+					}
+				},
+				{
+					"name": "List Active Goals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{goal_url}}/api/v1/goals/active?year=2025&month=12",
+							"host": [
+								"{{goal_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"goals",
+								"active"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025"
+								},
+								{
+									"key": "month",
+									"value": "12"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Contribute to Goal",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 5000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{goal_url}}/api/v1/goals/1/contribute",
+							"host": [
+								"{{goal_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"goals",
+								"1",
+								"contribute"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard Service",
+			"item": [
+				{
+					"name": "Get Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{dashboard_url}}/api/v1/dashboard/2025/12",
+							"host": [
+								"{{dashboard_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"dashboard",
+								"2025",
+								"12"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "auth_url",
+			"value": "http://192.168.0.188:8089",
+			"type": "string"
+		},
+		{
+			"key": "budget_url",
+			"value": "http://192.168.0.188:8081",
+			"type": "string"
+		},
+		{
+			"key": "transaction_url",
+			"value": "http://192.168.0.188:8083",
+			"type": "string"
+		},
+		{
+			"key": "goal_url",
+			"value": "http://192.168.0.188:8087",
+			"type": "string"
+		},
+		{
+			"key": "dashboard_url",
+			"value": "http://192.168.0.188:8088",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "your_jwt_token_here",
+			"type": "string"
+		}
+	]
+}

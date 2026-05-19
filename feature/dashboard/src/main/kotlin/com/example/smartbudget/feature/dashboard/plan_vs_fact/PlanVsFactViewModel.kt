@@ -3,7 +3,7 @@ package com.example.smartbudget.feature.dashboard.plan_vs_fact
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
+import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.usecase.GetCategoryDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -19,8 +19,9 @@ class PlanVsFactViewModel @Inject constructor(
     PlanVsFactUiState(isLoading = true)
 ) {
 
-    private val currentYear = 2026
-    private val currentMonth = 1
+    private val now = LocalDate.now()
+    private val currentYear = now.year
+    private val currentMonth = now.monthValue
 
     init {
         onIntent(PlanVsFactIntent.LoadData)

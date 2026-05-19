@@ -16,7 +16,7 @@ retrofit = "3.0.0"
 okhttpLogging = "4.12.0"
 ksp = "2.3.6"
 kotlinxSerialization = "1.10.0"
-retrofitConverterSerialization = "1.0.0"
+retrofitConverterSerialization = "3.0.0"
 runtimeAnnotation = "1.10.6"
 
 [libraries]
@@ -51,7 +51,7 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 
 # --- Networking (Новые) ---
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-converter-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitConverterSerialization" }
+retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofitConverterSerialization" }
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttpLogging" }
 
 # --- Тестирование (Существующие) ---

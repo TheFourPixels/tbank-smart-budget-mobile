@@ -3,9 +3,10 @@ package com.example.smartbudget.feature.operations
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.Transaction
 import com.tbank.smartbudget.data.domain.model.TransactionType
+import com.tbank.smartbudget.data.domain.usecase.GenerateCategoriesUseCase
+import com.tbank.smartbudget.data.domain.usecase.GenerateTransactionsUseCase
 import com.tbank.smartbudget.data.domain.usecase.GetTransactionsUseCase
 import com.tbank.smartbudget.data.domain.usecase.TransactionsResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AllOperationsViewModel @Inject constructor(
-    private val getTransactionsUseCase: GetTransactionsUseCase
+    private val getTransactionsUseCase: GetTransactionsUseCase,
+    private val generateTransactionsUseCase: GenerateTransactionsUseCase,
+    private val generateCategoriesUseCase: GenerateCategoriesUseCase
 ) : BaseViewModel<AllOperationsUiState, AllOperationsIntent, AllOperationsEffect>(
     AllOperationsUiState(isLoading = true)
 ) {
@@ -45,6 +48,34 @@ class AllOperationsViewModel @Inject constructor(
             is AllOperationsIntent.OnCategorySelected -> handleCategorySelection(intent.categoryName)
             AllOperationsIntent.OnBackClick -> sendEffect(AllOperationsEffect.NavigateBack)
             AllOperationsIntent.OnSearchClick -> sendEffect(AllOperationsEffect.NavigateToSearch)
+            AllOperationsIntent.OnGenerateTransactionsClick -> handleGenerateTransactions()
+            AllOperationsIntent.OnGenerateCategoriesClick -> handleGenerateCategories()
+        }
+    }
+
+    private fun handleGenerateTransactions() {
+        viewModelScope.launch {
+            updateState { copy(isLoading = true) }
+            generateTransactionsUseCase.execute(count = 5)
+                .onSuccess {
+                    loadData()
+                }
+                .onFailure { error ->
+                    updateState { copy(isLoading = false, error = error.message) }
+                }
+        }
+    }
+
+    private fun handleGenerateCategories() {
+        viewModelScope.launch {
+            updateState { copy(isLoading = true) }
+            generateCategoriesUseCase.execute()
+                .onSuccess {
+                    loadData()
+                }
+                .onFailure { error ->
+                    updateState { copy(isLoading = false, error = error.message) }
+                }
         }
     }
 
@@ -91,9 +122,13 @@ class AllOperationsViewModel @Inject constructor(
             } else transactions
 
             if (filteredTransactions.isNotEmpty()) {
+                val dayTotalValue = filteredTransactions
+                    .filter { it.type == TransactionType.EXPENSE }
+                    .sumOf { it.amount }
+                
                 TransactionGroupUi(
                     dateHeader = date,
-                    dayTotal = "",
+                    dayTotal = if (dayTotalValue > 0) formatMoney(dayTotalValue) else "",
                     items = filteredTransactions.map { mapTransactionToUi(it) }
                 )
             } else null
@@ -103,13 +138,15 @@ class AllOperationsViewModel @Inject constructor(
 
     private fun mapTransactionToUi(tx: Transaction): TransactionUi {
         val isExpense = tx.type == TransactionType.EXPENSE
+        val title = tx.merchantName?.takeIf { it.isNotBlank() } ?: tx.description?.takeIf { it.isNotBlank() } ?: tx.categoryName
+
         return TransactionUi(
             id = tx.id,
-            title = tx.merchantName ?: tx.description ?: "Операция",
+            title = title,
             subtitle = tx.categoryName,
             amount = "${if (isExpense) "-" else "+"}${formatMoney(tx.amount)}",
             amountColor = if (isExpense) Color.Black else Color(0xFF43A047),
-            iconColor = Color(CategoryColorMapper.getColorForId(tx.categoryId.value))
+            iconColor = Color(tx.categoryColor) // Используем цвет из объекта транзакции
         )
     }
 

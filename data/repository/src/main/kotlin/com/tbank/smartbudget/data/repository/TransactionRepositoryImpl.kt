@@ -2,16 +2,18 @@ package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.core.network.remote.api.TransactionApi
 import com.tbank.smartbudget.core.network.remote.dto.CreateTransactionRequest
-import com.tbank.smartbudget.data.domain.model.CategoryId
 import com.tbank.smartbudget.data.domain.model.Transaction
-import com.tbank.smartbudget.data.domain.model.TransactionId
-import com.tbank.smartbudget.data.domain.model.TransactionType
 import com.tbank.smartbudget.data.domain.repository.TransactionRepository
+import com.tbank.smartbudget.data.repository.mappers.toDomain
+import com.tbank.smartbudget.data.repository.utils.TransactionCategorizer
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class TransactionRepositoryImpl @Inject constructor(
-    private val api: TransactionApi
+    private val api: TransactionApi,
+    private val categorizer: TransactionCategorizer
 ) : TransactionRepository {
 
     override suspend fun getTransactions(
@@ -28,24 +30,14 @@ class TransactionRepositoryImpl @Inject constructor(
                 size = size,
                 categoryId = categoryId,
                 query = query,
-                startDate = startDate?.toString(),
-                endDate = endDate?.toString()
+                startDateMillis = startDate?.toInstant(ZoneOffset.UTC)?.toEpochMilli(),
+                endDateMillis = endDate?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
             )
 
-            val transactions = pageResponse.content.map { dto ->
-                Transaction(
-                    id = TransactionId(dto.id),
-                    amount = dto.amount,
-                    type = if (dto.isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                    date = LocalDateTime.parse(dto.date),
-                    description = dto.description,
-                    merchantName = dto.merchant,
-                    categoryName = dto.categoryName ?: "Без категории",
-                    categoryColor = dto.categoryColor ?: 0xFF808080,
-                    categoryId = CategoryId(dto.categoryId ?: 0L)
-                )
-            }
-            Result.success(transactions)
+            val rawTransactions = pageResponse.content.map { it.toDomain() }
+            val categorized = categorizer.categorize(rawTransactions)
+
+            Result.success(categorized)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -60,32 +52,26 @@ class TransactionRepositoryImpl @Inject constructor(
         merchantName: String?
     ): Result<Transaction> {
         return try {
-            val isIncome = type == "INCOME"
-
             val request = CreateTransactionRequest(
+                transactionTime = date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "Z",
                 amount = amount,
-                isIncome = isIncome,
-                date = date.toString(),
-                description = description,
+                type = type,
+                merchant = merchantName?.takeIf { it.isNotBlank() },
                 categoryId = categoryId,
-                budgetId = 0,
-                merchant = merchantName
+                description = description?.takeIf { it.isNotBlank() }
             )
 
             val dto = api.createTransaction(request)
+            Result.success(dto.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
-            val transaction = Transaction(
-                id = TransactionId(dto.id),
-                amount = dto.amount,
-                type = if (dto.isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                date = LocalDateTime.parse(dto.date),
-                description = dto.description,
-                merchantName = dto.merchant,
-                categoryName = dto.categoryName ?: "Без категории",
-                categoryColor = dto.categoryColor ?: 0xFF808080,
-                categoryId = CategoryId(dto.categoryId ?: 0L)
-            )
-            Result.success(transaction)
+    override suspend fun syncTransactions(year: Int, month: Int): Result<Unit> {
+        return try {
+            api.syncTransactions(year, month)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

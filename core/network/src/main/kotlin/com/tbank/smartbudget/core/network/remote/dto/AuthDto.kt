@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 // --- Requests ---
 @Serializable
-data class LoginRequest(
+data class AuthRequest(
     @SerialName("email") val email: String,
     @SerialName("password") val password: String
 )
@@ -34,7 +34,7 @@ data class AuthResponse(
     @SerialName("name") val name: String
 )
 @Serializable
-data class UserDto(
+data class UserProfileDto(
     @SerialName("id") val id: Long,
     @SerialName("email") val email: String,
     @SerialName("name") val name: String,

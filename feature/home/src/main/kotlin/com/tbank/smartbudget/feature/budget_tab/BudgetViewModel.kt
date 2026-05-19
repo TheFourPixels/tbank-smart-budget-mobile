@@ -3,8 +3,11 @@ package com.tbank.smartbudget.feature.budget_tab
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.datastore.SessionManager
 import com.tbank.smartbudget.core.network.di.IoDispatcher
+import com.tbank.smartbudget.core.network.remote.interceptor.ApiException
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
+import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
+import com.tbank.smartbudget.data.domain.model.BudgetLimitType
+import com.tbank.smartbudget.data.domain.usecase.GetBudgetDetailsUseCase
 import com.tbank.smartbudget.data.domain.usecase.GetBudgetSummaryUseCase
 import com.tbank.smartbudget.data.domain.usecase.GetCategoryDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
     private val getBudgetSummaryUseCase: GetBudgetSummaryUseCase,
+    private val getBudgetDetailsUseCase: GetBudgetDetailsUseCase,
     private val getCategoryDetailsUseCase: GetCategoryDetailsUseCase,
     private val sessionManager: SessionManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
@@ -47,42 +51,69 @@ class BudgetViewModel @Inject constructor(
             updateState { copy(isLoading = true, error = null, userName = savedName) }
 
             val summaryDeferred = async { getBudgetSummaryUseCase.execute(year = now.year, month = now.monthValue) }
-            val categoriesDeferred = async { getCategoryDetailsUseCase.execute(budgetId = 0L) }
+            val budgetDetailsDeferred = async { getBudgetDetailsUseCase.invoke(year = now.year, month = now.monthValue) }
+            val statsDeferred = async { getCategoryDetailsUseCase.execute(budgetId = 0L) }
 
             val summaryResult = summaryDeferred.await()
-            val categoriesResult = categoriesDeferred.await()
+            val budgetDetailsResult = budgetDetailsDeferred.await()
+            val statsResult = statsDeferred.await()
 
-            if (summaryResult.isSuccess && categoriesResult.isSuccess) {
-                val summary = summaryResult.getOrThrow()
-                val domainCategories = categoriesResult.getOrThrow()
+            if (summaryResult.isSuccess || budgetDetailsResult.isSuccess) {
+                val summary = summaryResult.getOrNull()
+                val budgetDetails = budgetDetailsResult.getOrNull()
+                val stats = statsResult.getOrNull() ?: emptyList()
+
+                val enrichedCategories = budgetDetails?.limits?.map { limit ->
+                    val stat = stats.find { it.id == limit.categoryId }
+                    val limitValue = if (limit.limitType == BudgetLimitType.PERCENT) {
+                        (budgetDetails.totalIncome * (limit.limitValue / 100.0))
+                    } else {
+                        limit.limitValue
+                    }
+                    CategoryUi(
+                        id = limit.categoryId,
+                        name = limit.categoryName,
+                        iconRes = limit.iconRes,
+                        color = limit.color,
+                        spentValue = formatMoney(stat?.spentAmount ?: 0.0),
+                        limitValue = formatMoney(limitValue),
+                        progress = if (limitValue > 0)
+                            ((stat?.spentAmount ?: 0.0) / limitValue).toFloat().coerceIn(0f, 1f)
+                        else 0f
+                    )
+                } ?: emptyList()
 
                 updateState {
                     copy(
-                        budgetTerm = summary.period,
-                        summary = BudgetSummaryUi(
+                        budgetTerm = summary?.period ?: "",
+                        hasBudget = budgetDetails != null,
+                        summary = if (summary != null) BudgetSummaryUi(
                             totalIncome = formatMoney(summary.totalIncome),
                             totalLimit = formatMoney(summary.totalLimit),
                             totalSpent = formatMoney(summary.totalSpent),
-                            freeFunds = formatMoney(summary.freeFunds)
-                        ),
-                        categories = domainCategories.map { dc ->
-                            CategoryUi(
-                                id = dc.id,
-                                name = dc.name,
-                                iconRes = dc.iconRes,
-                                color = CategoryColorMapper.getColorForId(dc.id.value),
-                                spentValue = formatMoney(dc.spentAmount),
-                                limitValue = formatMoney(dc.limitAmount),
-                                progress = if (dc.limitAmount > 0)
-                                    (dc.spentAmount / dc.limitAmount).toFloat().coerceIn(0f, 1f)
-                                else 0f
-                            )
-                        },
+                            freeFunds = formatMoney(summary.freeFunds),
+                            progress = if (summary.totalLimit > 0)
+                                (summary.totalSpent / summary.totalLimit).toFloat().coerceIn(0f, 1f)
+                            else 0f
+                        ) else null,
+                        categories = enrichedCategories,
                         isLoading = false
                     )
                 }
             } else {
-                updateState { copy(isLoading = false, error = "Ошибка обновления данных") }
+                val error = summaryResult.exceptionOrNull()
+                if (error is ApiException && error.code == 404) {
+                    updateState { 
+                        copy(
+                            isLoading = false, 
+                            hasBudget = false,
+                            summary = null,
+                            categories = emptyList()
+                        ) 
+                    }
+                } else {
+                    updateState { copy(isLoading = false, error = "Ошибка обновления данных") }
+                }
             }
         }
     }

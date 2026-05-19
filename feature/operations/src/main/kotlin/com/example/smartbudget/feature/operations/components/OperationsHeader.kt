@@ -11,10 +11,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tbank.smartbudget.core.ui.common.BasicSearchBar
@@ -32,26 +32,28 @@ fun OperationsHeader(
         modifier = modifier.fillMaxWidth()
     ) {
         IconButton(onClick = onBackClick) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Назад", tint = Color.Black)
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                "Назад",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
         }
         IconButton(onClick = onCalendarClick) {
             Icon(Icons.Default.DateRange, "Календарь", tint = SmartBudgetTheme.colors.blue)
         }
+
         Spacer(Modifier.width(4.dp))
 
         Box(
             modifier = Modifier
                 .weight(1f)
-                .clickable { onSearchClick() }
         ) {
             BasicSearchBar(
                 searchText = "",
                 onSearchTextChange = { },
-                modifier = Modifier.fillMaxWidth(),
-                backgroundColor = Color(0xFFF5F5F5)
+                modifier = Modifier.fillMaxWidth().clickable { onSearchClick() },
+                backgroundColor = SmartBudgetTheme.colors.lightGray
             )
-            // Overlay to capture clicks even if SearchBar isn't focused
-            Box(modifier = Modifier.matchParentSize().clickable { onSearchClick() })
         }
     }
 }

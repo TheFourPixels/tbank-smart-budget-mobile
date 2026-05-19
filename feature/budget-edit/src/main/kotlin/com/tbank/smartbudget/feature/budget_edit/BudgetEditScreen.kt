@@ -66,7 +66,7 @@ fun BudgetEditScreen(
         onDeleteClick = { viewModel.onIntent(BudgetEditIntent.OnDeleteClicked) },
         onSaveClick = { viewModel.onIntent(BudgetEditIntent.OnSaveClicked) },
         onClearError = { viewModel.onIntent(BudgetEditIntent.ClearError) },
-        onPeriodSelected = { viewModel.onIntent(BudgetEditIntent.OnPeriodSelected(it)) },
+        onNameChanged = { viewModel.onIntent(BudgetEditIntent.OnNameChanged(it)) },
         onAmountChanged = { viewModel.onIntent(BudgetEditIntent.OnAmountChanged(it)) },
         onToggleLimitType = { viewModel.onIntent(BudgetEditIntent.ToggleGlobalLimitType) },
         onCategoryLimitChanged = { id, value -> viewModel.onIntent(BudgetEditIntent.OnCategoryLimitChanged(id, value)) },
@@ -84,7 +84,7 @@ private fun BudgetEditContent(
     onDeleteClick: () -> Unit,
     onSaveClick: () -> Unit,
     onClearError: () -> Unit,
-    onPeriodSelected: (Int) -> Unit,
+    onNameChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onToggleLimitType: () -> Unit,
     onCategoryLimitChanged: (Long, String) -> Unit,
@@ -97,7 +97,7 @@ private fun BudgetEditContent(
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {},
@@ -155,7 +155,7 @@ private fun BudgetEditContent(
                         ))
                         Box(modifier = Modifier.fillMaxSize().background(
                             brush = Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.White.copy(alpha = 0f), Color.White),
+                                colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0f), MaterialTheme.colorScheme.background),
                                 startY = 0.4f * gradientHeightPx, endY = 1.0f * gradientHeightPx
                             )
                         ))
@@ -175,9 +175,8 @@ private fun BudgetEditContent(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             BudgetSettingsCard(
-                                periods = state.periods,
-                                selectedPeriodIndex = state.selectedPeriodIndex,
-                                onPeriodSelected = onPeriodSelected,
+                                budgetName = state.budgetName,
+                                onNameChanged = onNameChanged,
                                 amount = state.amount,
                                 onAmountChanged = onAmountChanged,
                                 isPercentMode = state.isPercentMode,
@@ -214,7 +213,7 @@ private fun BudgetEditScreenPreview() {
             onDeleteClick = {},
             onSaveClick = {},
             onClearError = {},
-            onPeriodSelected = {},
+            onNameChanged = {},
             onAmountChanged = {},
             onToggleLimitType = {},
             onCategoryLimitChanged = { _, _ -> },

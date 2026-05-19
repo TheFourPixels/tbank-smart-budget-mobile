@@ -1,26 +1,22 @@
 package com.tbank.smartbudget.feature.budget_tab
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,12 +25,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.data.domain.model.CategoryId
-import com.tbank.smartbudget.feature.budget_tab.components.BudgetSummaryCard
-import com.tbank.smartbudget.feature.budget_tab.components.CategoryProgressItem
-import com.tbank.smartbudget.feature.budget_tab.components.SummaryCategoryUi
-import com.tbank.smartbudget.feature.budget_tab.components.SummaryRow
-import com.tbank.smartbudget.feature.budget_tab.components.UserInfoAndSearch
-import com.tbank.smartbudget.feature.budget_tab.components.WhiteBackgroundContainer
+import com.tbank.smartbudget.feature.budget_tab.components.*
 
 @Composable
 fun BudgetTabScreen(
@@ -43,7 +34,8 @@ fun BudgetTabScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToAllOperations: () -> Unit,
-    onNavigateToSelectedCategories: () -> Unit
+    onNavigateToSelectedCategories: () -> Unit,
+    onNavigateToAddTransaction: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -76,7 +68,8 @@ fun BudgetTabScreen(
         onProfileClick = { viewModel.onIntent(BudgetIntent.OnProfileClick) },
         onBudgetClick = { viewModel.onIntent(BudgetIntent.OnBudgetClick) },
         onAllOperationsClick = { viewModel.onIntent(BudgetIntent.OnAllOperationsClick) },
-        onSelectedCategoriesClick = { viewModel.onIntent(BudgetIntent.OnSelectedCategoriesClick) }
+        onSelectedCategoriesClick = { viewModel.onIntent(BudgetIntent.OnSelectedCategoriesClick) },
+        onAddTransactionClick = onNavigateToAddTransaction
     )
 }
 
@@ -87,13 +80,24 @@ private fun BudgetTabContent(
     onProfileClick: () -> Unit,
     onBudgetClick: () -> Unit,
     onAllOperationsClick: () -> Unit,
-    onSelectedCategoriesClick: () -> Unit
+    onSelectedCategoriesClick: () -> Unit,
+    onAddTransactionClick: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddTransactionClick,
+                containerColor = SmartBudgetTheme.colors.blue,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Добавить операцию")
+            }
+        }
     ) { paddingValues ->
-        if (state.isLoading && state.summary == null) {
+        if (state.isLoading && state.summary == null && state.hasBudget) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SmartBudgetTheme.colors.blue)
             }
@@ -114,6 +118,7 @@ private fun BudgetTabContent(
                             )
                             Spacer(Modifier.height(16.dp))
                             BudgetSummaryCard(
+                                hasBudget = state.hasBudget,
                                 budgetName = state.budgetName,
                                 balance = state.summary?.freeFunds ?: "0 ₽",
                                 term = state.budgetTerm,
@@ -129,6 +134,7 @@ private fun BudgetTabContent(
                     SummaryRow(
                         totalSpent = state.summary?.totalSpent ?: "0 ₽",
                         totalSpentDescription = "Трат в этом месяце",
+                        spentProgress = state.summary?.progress ?: 0f,
                         categories = state.categories.map {
                             SummaryCategoryUi(it.id.value, it.name, it.iconRes, it.color)
                         },
@@ -138,20 +144,39 @@ private fun BudgetTabContent(
                     Spacer(Modifier.height(24.dp))
                 }
 
-                item {
-                    Text(
-                        text = "Лимиты по категориям",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                if (state.hasBudget && state.categories.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Лимиты по категориям",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
 
-                items(state.categories, key = { it.id.value }) { category ->
-                    CategoryProgressItem(
-                        category = category,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-                    )
+                    items(state.categories, key = { it.id.value }) { category ->
+                        CategoryProgressItem(
+                            category = category,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                        )
+                    }
+                } else if (!state.hasBudget) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Планируйте свои расходы, чтобы накопить на мечту!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -183,7 +208,8 @@ private fun BudgetTabScreenPreview() {
             onProfileClick = {},
             onBudgetClick = {},
             onAllOperationsClick = {},
-            onSelectedCategoriesClick = {}
+            onSelectedCategoriesClick = {},
+            onAddTransactionClick = {}
         )
     }
 }

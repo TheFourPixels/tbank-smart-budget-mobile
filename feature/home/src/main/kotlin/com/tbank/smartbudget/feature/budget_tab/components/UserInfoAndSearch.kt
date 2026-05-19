@@ -28,12 +28,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tbank.smartbudget.core.ui.common.BasicSearchBar
-import com.tbank.smartbudget.core.ui.theme.PrimaryDark
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
-fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit, onProfileClick: () -> Unit) { // Принимаем колбэк
-    // 1. Управление состоянием поиска внутри родителя (Hoisting State)
+fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit, onProfileClick: () -> Unit) {
     var searchText by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(top = 16.dp)) {
@@ -49,13 +47,13 @@ fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit, onProfileClic
                 modifier = Modifier
                     .size(37.dp)
                     .clip(CircleShape)
-                    .background(PrimaryDark.copy(alpha = 0.2f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 // Заглушка для аватара
                 Text(
-                    text = userName.first().toString(),
-                    color = PrimaryDark,
+                    text = userName.firstOrNull()?.toString()?.uppercase() ?: "",
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -85,7 +83,7 @@ fun UserInfoAndSearch(userName: String, onSearchClick: () -> Unit, onProfileClic
         ) {
             BasicSearchBar(
                 searchText = searchText,
-                onSearchTextChange = { /* Не делаем ничего, так как переходим на другой экран */ },
+                onSearchTextChange = { },
                 backgroundColor = SmartBudgetTheme.colors.lightGray,
                 modifier = Modifier.fillMaxWidth()
             )

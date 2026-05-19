@@ -11,6 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,16 +48,16 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8F8F8),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Профиль", style = MaterialTheme.typography.titleMedium) },
+                title = { Text("Профиль", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Назад",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -94,11 +97,65 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = state.userName,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
-                )
+                if (state.isEditingName) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        TextField(
+                            value = state.editingName,
+                            onValueChange = { viewModel.onIntent(ProfileIntent.OnNameChanged(it)) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = SmartBudgetTheme.colors.yellow,
+                                cursorColor = SmartBudgetTheme.colors.yellow
+                            ),
+                            textStyle = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        )
+
+                        IconButton(onClick = { viewModel.onIntent(ProfileIntent.OnSaveNameClicked) }) {
+                            Icon(Icons.Default.Check, contentDescription = "Сохранить", tint = Color.Green)
+                        }
+
+                        IconButton(onClick = { viewModel.onIntent(ProfileIntent.OnCancelEditClicked) }) {
+                            Icon(Icons.Default.Close, contentDescription = "Отмена", tint = Color.Red)
+                        }
+                    }
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = state.userName,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        IconButton(
+                            onClick = { viewModel.onIntent(ProfileIntent.OnEditNameClicked) },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Редактировать имя",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -116,7 +173,7 @@ fun ProfileScreen(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 ),
-                                color = Color(0xFF333333)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -126,7 +183,6 @@ fun ProfileScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 items(state.budgets) { budget ->
-                                    // Добавляем кликабельность через Intent
                                     Box(modifier = Modifier.clickable {
                                         viewModel.onIntent(ProfileIntent.OnBudgetSelected(budget.id))
                                     }) {
@@ -175,13 +231,13 @@ fun ProfileScreen(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 ),
-                                color = Color(0xFF333333)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Ваши награды за достигнутые цели",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.outline
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                         }

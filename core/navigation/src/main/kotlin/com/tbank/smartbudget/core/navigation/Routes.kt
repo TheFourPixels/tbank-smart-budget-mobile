@@ -18,3 +18,4 @@ import kotlinx.serialization.Serializable
 @Serializable data object SelectedCategoriesRoute
 @Serializable data object CategoriesDashboardRoute
 @Serializable data object ProfileRoute
+@Serializable data object AddTransactionRoute

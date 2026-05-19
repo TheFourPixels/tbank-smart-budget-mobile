@@ -1,7 +1,10 @@
 package com.tbank.smartbudget.data.repository
 
+import android.util.Log
 import com.tbank.smartbudget.core.network.remote.api.CategoryApi
+import com.tbank.smartbudget.core.network.remote.dto.CreateCategoryRequest
 import com.tbank.smartbudget.data.domain.model.BudgetCategory
+import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.CategoryId
 import com.tbank.smartbudget.data.domain.repository.CategorySearchRepository
 import javax.inject.Inject
@@ -11,34 +14,58 @@ class CategorySearchRepositoryImpl @Inject constructor(
 ) : CategorySearchRepository {
 
     override suspend fun getAllCategories(): List<BudgetCategory> {
-        return try {
-            // Запрашиваем все категории (страница 0, размер 100)
-            val response = api.getCategories(page = 0, size = 100)
-            if (response.isSuccessful && response.body() != null) {
-                val dtos = response.body()!!.content
-                dtos.map { dto ->
-                    BudgetCategory(
-                        id = CategoryId(dto.id),
-                        name = dto.name,
-                        iconRes = 0,
-                        color = generateColor(dto.id)
-                    )
+        val allCategories = mutableListOf<BudgetCategory>()
+        var currentPage = 0
+        var isLastPage = false
+
+        try {
+            while (!isLastPage) {
+                Log.d("CategorySearch", "Fetching page $currentPage")
+                // Запрашиваем очередную страницу
+                val response = api.getCategories(page = currentPage, size = 50)
+                if (response.isSuccessful && response.body() != null) {
+                    val pageDto = response.body()!!
+                    Log.d("CategorySearch", "Received ${pageDto.content.size} items, last=${pageDto.last}")
+                    
+                    // Маппим DTO в доменную модель и добавляем в общий список
+                    val domainItems = pageDto.content.map { dto ->
+                        BudgetCategory(
+                            id = CategoryId(dto.id ?: 0L),
+                            name = dto.name ?: "Без категории",
+                            iconRes = 0,
+                            color = CategoryColorMapper.getColorForId(dto.id ?: 0L)
+                        )
+                    }
+                    allCategories.addAll(domainItems)
+                    
+                    // Проверяем, последняя ли это страница
+                    isLastPage = pageDto.last
+                    currentPage++
+                } else {
+                    Log.e("CategorySearch", "Error fetching categories: ${response.code()} ${response.errorBody()?.string()}")
+                    // Если запрос не удался, прерываем цикл
+                    break
                 }
-            } else {
-                emptyList()
             }
         } catch (e: Exception) {
-            emptyList()
+            Log.e("CategorySearch", "Exception fetching categories", e)
+            // В случае ошибки возвращаем то, что успели загрузить (или пустой список)
         }
+
+        return allCategories
     }
 
-    private fun generateColor(id: Long): Long {
-        val colors = listOf(
-            0xFFEF5350, 0xFFEC407A, 0xFFAB47BC, 0xFF7E57C2, 0xFF5C6BC0,
-            0xFF42A5F5, 0xFF29B6F6, 0xFF26C6DA, 0xFF26A69A, 0xFF66BB6A,
-            0xFF9CCC65, 0xFFD4E157, 0xFFFFEE58, 0xFFFFCA28, 0xFFFFA726,
-            0xFFFF7043, 0xFF8D6E63, 0xFFBDBDBD, 0xFF78909C
-        )
-        return colors[(id % colors.size).toInt()]
+    override suspend fun createCategory(name: String): Result<Long> {
+        return try {
+            val response = api.createCategory(CreateCategoryRequest(name))
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.id != null) {
+                Result.success(body.id!!)
+            } else {
+                Result.failure(Exception("Failed to create category: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

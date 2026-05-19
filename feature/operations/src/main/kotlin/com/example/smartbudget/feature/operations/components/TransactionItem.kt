@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.smartbudget.feature.operations.TransactionUi
@@ -26,9 +25,21 @@ fun TransactionItem(transaction: TransactionUi) {
         Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(transaction.iconColor))
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(transaction.title, fontWeight = FontWeight.Bold)
-            Text(transaction.subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(
+                transaction.title,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                transaction.subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline
+            )
         }
-        Text(text = transaction.amount, fontWeight = FontWeight.Bold, color = transaction.amountColor)
+        Text(
+            text = transaction.amount,
+            fontWeight = FontWeight.Bold,
+            color = if (transaction.amount.startsWith("-")) MaterialTheme.colorScheme.onBackground else transaction.amountColor
+        )
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,11 +85,12 @@ fun CategoriesDashboardContent(
     val density = LocalDensity.current
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
+    val backgroundColor = MaterialTheme.colorScheme.background
 
     var isExpensesChartVisible by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
@@ -121,10 +123,10 @@ fun CategoriesDashboardContent(
                             tileMode = TileMode.Clamp
                         )
                     ))
-                    // Плавный переход в белый
+                    // Плавный переход в фон
                     Box(modifier = Modifier.fillMaxSize().background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0f), Color.White),
+                            colors = listOf(Color.Transparent, backgroundColor.copy(alpha = 0f), backgroundColor),
                             startY = 0.6f * gradientHeightPx, endY = 1.0f * gradientHeightPx
                         )
                     ))
@@ -164,12 +166,13 @@ fun CategoriesDashboardContent(
                             Text(
                                 text = "Самые популярные категории",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                modifier = Modifier.align(Alignment.CenterHorizontally  )
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Круговая диаграмма",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Black.copy(alpha = 0.5f)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
                             Spacer(modifier = Modifier.height(24.dp))
 
@@ -184,12 +187,12 @@ fun CategoriesDashboardContent(
                                     Text(
                                         text = "Всего",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.outline
                                     )
                                     Text(
                                         text = state.totalSpent,
                                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }
@@ -218,14 +221,14 @@ fun CategoriesDashboardContent(
                                         Text(
                                             text = item.name,
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Black.copy(alpha = 0.8f),
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                                             modifier = Modifier.weight(1f)
                                         )
 
                                         Text(
                                             text = "${(item.percent * 100).toInt()}%",
                                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                            color = Color.Black
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                 }
@@ -248,7 +251,8 @@ fun CategoriesDashboardContent(
                                 Column {
                                     Text(
                                         text = "Топ категорий",
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -256,8 +260,6 @@ fun CategoriesDashboardContent(
                                     CategoriesHorizontalBarChartPercent(
                                         categories = state.categories.take(5)
                                     )
-
-
 
                                     AnimatedVisibility(
                                         visible = isExpensesChartVisible,
@@ -267,15 +269,14 @@ fun CategoriesDashboardContent(
                                         Column {
                                             Spacer(modifier = Modifier.height(24.dp))
 
-                                            // Мини-карточка (серый фон, скругление)
+                                            // Мини-карточка
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(16.dp))
-                                                    .background(Color(0xFFF9F9F9))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                                                     .padding(16.dp)
                                             ) {
-                                                // Дублируем график или показываем расширенный
                                                 CategoriesHorizontalBarChartRubles(
                                                     categories = state.categories.take(5)
                                                 )
@@ -309,32 +310,11 @@ fun CategoriesDashboardContent(
                             )
                         }
                     }
-
-                    /*// --- КАРТОЧКА 3: Динамика (График) ---
-                    DetailsCard {
-                        Column {
-                            Text(
-                                text = "Динамика",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
-                                SimpleLineChart(
-                                    dataPoints = state.historyData,
-                                    lineColor = SmartBudgetTheme.colors.blue
-                                )
-                            }
-                        }
-                    }
-*/
                 }
             }
         }
     }
 }
-
-// --- Компоненты ---
 
 @Preview(showBackground = true, heightDp = 1000)
 @Composable

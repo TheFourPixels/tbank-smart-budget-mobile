@@ -12,10 +12,19 @@ data class SelectedCategoryUi(
     val iconRes: Int = 0
 )
 
+enum class CategoryCreationStep {
+    HIDDEN, NAME, LIMIT
+}
+
 data class SelectedCategoriesUiState(
     val searchQuery: String = "",
     val selectedCategories: List<SelectedCategoryUi> = emptyList(),
     val availableCategories: List<SelectedCategoryUi> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    
+    // Поля для диалога создания
+    val creationStep: CategoryCreationStep = CategoryCreationStep.HIDDEN,
+    val newCategoryName: String = "",
+    val newCategoryLimit: String = ""
 ) : UiState

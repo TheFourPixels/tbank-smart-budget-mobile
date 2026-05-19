@@ -3,12 +3,12 @@ package com.tbank.smartbudget.feature.budget_edit.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,9 +23,8 @@ import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 @Composable
 fun BudgetSettingsCard(
-    periods: List<String>,
-    selectedPeriodIndex: Int,
-    onPeriodSelected: (Int) -> Unit,
+    budgetName: String,
+    onNameChanged: (String) -> Unit,
     amount: String,
     onAmountChanged: (String) -> Unit,
     isPercentMode: Boolean,
@@ -41,22 +40,20 @@ fun BudgetSettingsCard(
             Text(
                 "Настройки бюджета",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                fontSize = 20.sp
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(16.dp))
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                itemsIndexed(periods) { index, text ->
-                    PeriodChip(
-                        text = text,
-                        isSelected = index == selectedPeriodIndex,
-                        onClick = { onPeriodSelected(index) }
-                    )
-                }
-            }
-            Spacer(Modifier.height(16.dp))
+            
+            InputBox(
+                label = "Название бюджета",
+                value = budgetName,
+                onValueChange = onNameChanged,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(Modifier.height(12.dp))
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -81,7 +78,7 @@ fun BudgetSettingsCard(
                 Text(
                     "Мы берем $amount отсюда",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.outline
                 )
                 Text(
                     "Изменить",
@@ -101,9 +98,8 @@ fun BudgetSettingsCard(
 private fun BudgetSettingsCardPreview() {
     SmartBudgetTheme {
         BudgetSettingsCard(
-            periods = listOf("Месяц", "Квартал", "Год"),
-            selectedPeriodIndex = 0,
-            onPeriodSelected = {},
+            budgetName = "Основной",
+            onNameChanged = {},
             amount = "15 000 ₽",
             onAmountChanged = {},
             isPercentMode = false,

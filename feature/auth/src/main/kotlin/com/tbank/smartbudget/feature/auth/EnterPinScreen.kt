@@ -1,7 +1,12 @@
 package com.tbank.smartbudget.feature.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +26,7 @@ import com.tbank.smartbudget.feature.auth.components.PinIndicator
 @Composable
 fun EnterPinScreen(
     onLoginSuccess: () -> Unit,
+    onBack: () -> Unit,
     viewModel: AuthViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -35,24 +41,39 @@ fun EnterPinScreen(
 
     EnterPinContent(
         state = state,
-        onIntent = { intent -> viewModel.onIntent(intent) }
+        onIntent = { intent -> viewModel.onIntent(intent) },
+        onBack = onBack
     )
 }
 
 @Composable
 fun EnterPinContent(
     state: AuthUiState,
-    onIntent: (AuthIntent) -> Unit
+    onIntent: (AuthIntent) -> Unit,
+    onBack: () -> Unit
 ) {
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Назад",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             AuthTitle("Код доступа")
@@ -93,21 +114,8 @@ private fun EnterPinPreview() {
                 pinCode = "12",
                 isLoading = false
             ),
-            onIntent = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Loading State")
-@Composable
-private fun EnterPinLoadingPreview() {
-    SmartBudgetTheme {
-        EnterPinContent(
-            state = AuthUiState(
-                pinCode = "1234",
-                isLoading = true
-            ),
-            onIntent = {}
+            onIntent = {},
+            onBack = {}
         )
     }
 }

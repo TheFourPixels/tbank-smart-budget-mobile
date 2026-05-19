@@ -3,7 +3,7 @@ package com.example.smartbudget.feature.category_search
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
+import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.BudgetCategory
 import com.tbank.smartbudget.data.domain.usecase.GetCategoriesForSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
