@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,17 +36,11 @@ fun SearchInputBar(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Кнопка Назад (опционально, если это не корневой экран)
-        /*IconButton(onClick = onNavigateBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад", tint = Color.Black)
-        }
-        Spacer(Modifier.width(8.dp))*/
-
         Box(
             modifier = Modifier
                 .height(44.dp)
                 .weight(1f)
-                .background(Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.CenterStart
         ) {
@@ -53,18 +48,18 @@ fun SearchInputBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
                 Spacer(Modifier.width(8.dp))
                 BasicTextField(
                     value = searchText,
                     onValueChange = onSearchTextChange,
                     singleLine = true,
-                    textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
+                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
                     modifier = Modifier.weight(1f),
                     decorationBox = { innerTextField ->
                         Box {
                             if (searchText.isEmpty()) {
-                                Text("Поиск", color = Color.Gray, fontSize = 16.sp)
+                                Text("Поиск", color = MaterialTheme.colorScheme.outline, fontSize = 16.sp)
                             }
                             innerTextField()
                         }
@@ -74,7 +69,7 @@ fun SearchInputBar(
                     Icon(
                         Icons.Filled.Cancel,
                         contentDescription = "Очистить",
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.clickable { onSearchTextChange("") }
                     )
                 }
