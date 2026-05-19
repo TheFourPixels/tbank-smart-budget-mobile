@@ -2,7 +2,7 @@ package com.tbank.smartbudget.feature.budget_edit
 
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
+import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
 import com.tbank.smartbudget.data.domain.model.BudgetLimitData
 import com.tbank.smartbudget.data.domain.model.BudgetLimitType
 import com.tbank.smartbudget.data.domain.usecase.DeleteBudgetUseCase
@@ -10,6 +10,7 @@ import com.tbank.smartbudget.data.domain.usecase.GetBudgetDetailsUseCase
 import com.tbank.smartbudget.data.domain.usecase.SaveBudgetUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,8 +22,8 @@ class BudgetEditViewModel @Inject constructor(
     BudgetEditUiState(isLoading = true)
 ) {
 
-    private val currentYear = 2025
-    private val currentMonth = 12
+    private val currentYear: Int get() = LocalDate.now().year
+    private val currentMonth: Int get() = LocalDate.now().monthValue
 
     init {
         onIntent(BudgetEditIntent.LoadBudget)
@@ -33,7 +34,7 @@ class BudgetEditViewModel @Inject constructor(
             BudgetEditIntent.LoadBudget -> loadBudget()
             BudgetEditIntent.RefreshCategories -> refreshCategories()
             BudgetEditIntent.ToggleGlobalLimitType -> handleGlobalLimitToggle()
-            is BudgetEditIntent.OnPeriodSelected -> updateState { copy(selectedPeriodIndex = intent.index) }
+            is BudgetEditIntent.OnNameChanged -> updateState { copy(budgetName = intent.newName) }
             is BudgetEditIntent.OnAmountChanged -> handleAmountChange(intent.newAmount)
             is BudgetEditIntent.OnCategoryLimitChanged -> handleCategoryLimitChange(intent.categoryId, intent.newValue)
             is BudgetEditIntent.OnCategoryTypeToggle -> handleCategoryTypeToggle(intent.categoryId)
@@ -59,14 +60,11 @@ class BudgetEditViewModel @Inject constructor(
                         )
                     }
 
-                    val periodIndex = currentState.periods.indexOf(budget.period).coerceAtLeast(0)
-
                     updateState {
                         copy(
                             isLoading = false,
                             amount = formatValue(budget.totalIncome),
                             categories = uiCategories,
-                            selectedPeriodIndex = periodIndex,
                             isPercentMode = uiCategories.any { it.limitType == BudgetLimitType.PERCENT }
                         )
                     }
@@ -111,7 +109,7 @@ class BudgetEditViewModel @Inject constructor(
                 }
                 cat.copy(
                     limitValue = formatValue(newValue),
-                    limitType = if (newModeIsPercent) BudgetLimitType.PERCENT else BudgetLimitType.AMOUNT
+                    limitType = if (newModeIsPercent) BudgetLimitType.PERCENT else BudgetLimitType.SUM
                 )
             }
             copy(isPercentMode = newModeIsPercent, categories = updatedCategories)
@@ -140,7 +138,7 @@ class BudgetEditViewModel @Inject constructor(
             val updated = categories.map {
                 if (it.id.value == categoryId) {
                     val newType = if (it.limitType == BudgetLimitType.PERCENT)
-                        BudgetLimitType.AMOUNT else BudgetLimitType.PERCENT
+                        BudgetLimitType.SUM else BudgetLimitType.PERCENT
                     it.copy(limitType = newType)
                 } else it
             }
@@ -151,7 +149,7 @@ class BudgetEditViewModel @Inject constructor(
     private fun saveBudget() {
         val s = currentState
         val income = s.amount.parseToDouble()
-        val selectedPeriod = s.periods.getOrElse(s.selectedPeriodIndex) { "1 мес" }
+        val period = "1 мес"
 
         val limitsData = s.categories.mapNotNull { uiCat ->
             uiCat.limitValue.parseToDoubleOrNull()?.let { value ->
@@ -165,7 +163,7 @@ class BudgetEditViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateState { copy(isSaving = true) }
-            saveBudgetUseCase.execute(currentYear, currentMonth, income, selectedPeriod, limitsData)
+            saveBudgetUseCase.execute(currentYear, currentMonth, income, period, limitsData)
                 .onSuccess {
                     updateState { copy(isSaving = false, isSavedSuccess = true) }
                     sendEffect(BudgetEditEffect.NavigateBack)
@@ -192,7 +190,7 @@ class BudgetEditViewModel @Inject constructor(
 
     private fun String.parseToDouble() = this.replace(" ", "").replace(",", ".").toDoubleOrNull() ?: 0.0
     private fun String.parseToDoubleOrNull() = this.replace(" ", "").replace(",", ".").toDoubleOrNull()
-    private fun String.isValidInput() = this.all { it.isDigit() || it == '.' || it == ',' }
+    private fun String.isValidInput() = this.isEmpty() || this.all { it.isDigit() || it == '.' || it == ',' }
 
     private fun formatValue(value: Double): String {
         return if (value % 1.0 == 0.0) value.toInt().toString()

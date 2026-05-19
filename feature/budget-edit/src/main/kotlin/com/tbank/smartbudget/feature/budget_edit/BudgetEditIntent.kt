@@ -6,7 +6,7 @@ sealed interface BudgetEditIntent : UiIntent {
     data object LoadBudget : BudgetEditIntent
     data object RefreshCategories : BudgetEditIntent
     data object ToggleGlobalLimitType : BudgetEditIntent
-    data class OnPeriodSelected(val index: Int) : BudgetEditIntent
+    data class OnNameChanged(val newName: String) : BudgetEditIntent
     data class OnAmountChanged(val newAmount: String) : BudgetEditIntent
     data class OnCategoryLimitChanged(val categoryId: Long, val newValue: String) : BudgetEditIntent
     data class OnCategoryTypeToggle(val categoryId: Long) : BudgetEditIntent

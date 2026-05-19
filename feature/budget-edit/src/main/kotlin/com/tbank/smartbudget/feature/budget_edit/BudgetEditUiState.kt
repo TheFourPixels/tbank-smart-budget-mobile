@@ -7,8 +7,6 @@ data class BudgetEditUiState(
     val budgetName: String = "Основной",
     val amount: String = "0",
     val categories: List<EditCategoryUi> = emptyList(),
-    val periods: List<String> = listOf("1 мес", "2 мес", "3 мес", "Полгода", "Год"),
-    val selectedPeriodIndex: Int = 0,
     val isPercentMode: Boolean = false,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
