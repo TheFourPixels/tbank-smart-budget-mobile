@@ -16,7 +16,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SummarySmallCard(modifier: Modifier = Modifier, minHeight: Dp, content: @Composable ColumnScope.() -> Unit) {
+fun SummarySmallCard(
+    modifier: Modifier = Modifier,
+    minHeight: Dp,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    content: @Composable ColumnScope.() -> Unit
+) {
 
     val shape = RoundedCornerShape(16.dp)
 
@@ -32,7 +37,7 @@ fun SummarySmallCard(modifier: Modifier = Modifier, minHeight: Dp, content: @Com
                 spotColor = Color.Black.copy(alpha = 0.5f)
             )
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = containerColor,
                 shape = shape
             )
             .padding(16.dp)

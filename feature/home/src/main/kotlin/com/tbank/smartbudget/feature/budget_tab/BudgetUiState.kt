@@ -11,6 +11,7 @@ data class BudgetUiState(
     val budgetTerm: String = "",
     val summary: BudgetSummaryUi? = null,
     val categories: List<CategoryUi> = emptyList(),
+    val hasBudget: Boolean = true,
     val isLoading: Boolean = false,
     val error: String? = null
 ) : UiState
@@ -19,7 +20,8 @@ data class BudgetSummaryUi(
     val totalIncome: String,
     val totalLimit: String,
     val totalSpent: String,
-    val freeFunds: String
+    val freeFunds: String,
+    val progress: Float
 )
 
 data class CategoryUi(

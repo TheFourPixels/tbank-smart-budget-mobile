@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tbank.smartbudget.core.ui.common.CategoryIconPlaceholder
+import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
 data class SummaryCategoryUi(
     val id: Long,
@@ -38,10 +41,22 @@ data class SummaryCategoryUi(
     val color: Long
 )
 
+private fun getPluralCategories(count: Int): String {
+    val mod10 = count % 10
+    val mod100 = count % 100
+    return when {
+        mod100 in 11..19 -> "$count категорий"
+        mod10 == 1 -> "$count категория"
+        mod10 in 2..4 -> "$count категории"
+        else -> "$count категорий"
+    }
+}
+
 @Composable
 fun SummaryRow(
     totalSpent: String,
     totalSpentDescription: String,
+    spentProgress: Float,
     categories: List<SummaryCategoryUi>,
     onAllOperationsClick: () -> Unit,
     onSelectedCategoriesClick: () -> Unit
@@ -60,7 +75,7 @@ fun SummaryRow(
             Text(
                 text = "Траты",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -98,13 +113,15 @@ fun SummaryRow(
                     fontSize = 16.sp
                 )
                 Spacer(Modifier.height(20.dp))
-                // Имитация прогресс-бара
-                Box(
+                // Настоящий прогресс-бар
+                LinearProgressIndicator(
+                    progress = { spentProgress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(7.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.error)
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = MaterialTheme.colorScheme.error,
+                    trackColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
                 )
             }
 
@@ -113,15 +130,26 @@ fun SummaryRow(
                 modifier = Modifier
                     .weight(1f)
                     .clickable(onClick = onSelectedCategoriesClick),
-                minHeight = measuredHeightDp
+                minHeight = measuredHeightDp,
+                containerColor = SmartBudgetTheme.colors.cardBackground
             ) {
                 Text(
                     "Выбранные категории",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.W700,
                         lineHeight = 23.sp
-                    )
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(Modifier.height(4.dp))
+
+                val totalCount = categories.size
+                Text(
+                    text = getPluralCategories(totalCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+
                 Spacer(Modifier.height(8.dp))
 
                 // --- Иконки с наложением ---
@@ -130,27 +158,24 @@ fun SummaryRow(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val maxIcons = 3
-                    val totalCount = categories.size
-
-                    // Логика:
-                    // Если всего категорий <= 4, показываем все
-                    // Если больше 4, показываем 3 иконки + кружок "+N"
 
                     val showCount = if (totalCount > maxIcons) maxIcons - 1 else totalCount
                     val remainingCount = if (totalCount > maxIcons) totalCount - showCount else 0
 
                     // Рисуем видимые категории
                     categories.take(showCount).forEach { category ->
-                        // Белая обводка для эффекта разделения при наложении
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(Color.White)
+                                .background(SmartBudgetTheme.colors.cardBackground)
                                 .padding(2.dp)
                         ) {
                             CategoryIconPlaceholder(
                                 color = Color(category.color),
-                                iconRes = category.iconRes
+                                iconRes = category.iconRes,
+                                name = category.name,
+                                size = 32.dp,
+                                iconSize = 16.dp
                             )
                         }
                     }
@@ -160,20 +185,20 @@ fun SummaryRow(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(Color.White)
+                                .background(SmartBudgetTheme.colors.cardBackground)
                                 .padding(2.dp)
                         ) {
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFE0E0E0)),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = "+$remainingCount",
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                     fontSize = 12.sp
                                 )
                             }
