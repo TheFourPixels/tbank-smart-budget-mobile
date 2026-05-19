@@ -11,4 +11,6 @@ sealed interface AllOperationsIntent : UiIntent {
     data class OnCategorySelected(val categoryName: String) : AllOperationsIntent
     data object OnBackClick : AllOperationsIntent
     data object OnSearchClick : AllOperationsIntent
+    data object OnGenerateTransactionsClick : AllOperationsIntent
+    data object OnGenerateCategoriesClick : AllOperationsIntent
 }

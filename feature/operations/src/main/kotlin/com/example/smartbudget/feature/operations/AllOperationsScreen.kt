@@ -3,6 +3,10 @@ package com.example.smartbudget.feature.operations
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,11 +24,13 @@ import com.tbank.smartbudget.data.domain.model.TransactionId
 fun AllOperationsScreen(
     onNavigateBack: () -> Unit,
     onSearchClick: () -> Unit,
+    onAddTransactionClick: () -> Unit,
     viewModel: AllOperationsViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDateRangePickerState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -32,6 +38,12 @@ fun AllOperationsScreen(
                 AllOperationsEffect.NavigateBack -> onNavigateBack()
                 AllOperationsEffect.NavigateToSearch -> onSearchClick()
             }
+        }
+    }
+
+    LaunchedEffect(state.error) {
+        state.error?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
@@ -60,9 +72,11 @@ fun AllOperationsScreen(
 
     AllOperationsContent(
         state = state,
+        snackbarHostState = snackbarHostState,
         onBackClick = { viewModel.onIntent(AllOperationsIntent.OnBackClick) },
         onCalendarClick = { showDatePicker = true },
         onSearchClick = { viewModel.onIntent(AllOperationsIntent.OnSearchClick) },
+        onAddTransactionClick = onAddTransactionClick,
         onPeriodChanged = { viewModel.onIntent(AllOperationsIntent.OnPeriodChanged(it)) },
         onCategorySelected = { viewModel.onIntent(AllOperationsIntent.OnCategorySelected(it)) }
     )
@@ -71,13 +85,28 @@ fun AllOperationsScreen(
 @Composable
 private fun AllOperationsContent(
     state: AllOperationsUiState,
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onAddTransactionClick: () -> Unit,
     onPeriodChanged: (PeriodType) -> Unit,
     onCategorySelected: (String) -> Unit
 ) {
-    Scaffold(containerColor = Color.White) { paddingValues ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddTransactionClick,
+                containerColor = SmartBudgetTheme.colors.blue,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Add, "Добавить")
+            }
+        }
+    ) { paddingValues ->
         if (state.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SmartBudgetTheme.colors.blue)
@@ -119,7 +148,7 @@ private fun AllOperationsContent(
                 if (state.transactionGroups.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("Нет операций", color = Color.Gray)
+                            Text("Нет операций", color = MaterialTheme.colorScheme.outline)
                         }
                     }
                 } else {
@@ -177,44 +206,11 @@ private fun AllOperationsScreenPreview() {
                     )
                 )
             ),
+            snackbarHostState = SnackbarHostState(),
             onBackClick = {},
             onCalendarClick = {},
             onSearchClick = {},
-            onPeriodChanged = {},
-            onCategorySelected = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Empty State")
-@Composable
-private fun AllOperationsScreenEmptyPreview() {
-    SmartBudgetTheme {
-        AllOperationsContent(
-            state = AllOperationsUiState(
-                dateRangeLabel = "1 янв — 7 янв",
-                totalExpense = "0 ₽",
-                isLoading = false,
-                transactionGroups = emptyList()
-            ),
-            onBackClick = {},
-            onCalendarClick = {},
-            onSearchClick = {},
-            onPeriodChanged = {},
-            onCategorySelected = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Loading State")
-@Composable
-private fun AllOperationsScreenLoadingPreview() {
-    SmartBudgetTheme {
-        AllOperationsContent(
-            state = AllOperationsUiState(isLoading = true),
-            onBackClick = {},
-            onCalendarClick = {},
-            onSearchClick = {},
+            onAddTransactionClick = {},
             onPeriodChanged = {},
             onCategorySelected = {}
         )
