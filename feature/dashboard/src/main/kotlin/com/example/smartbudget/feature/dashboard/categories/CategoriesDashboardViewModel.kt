@@ -3,18 +3,23 @@ package com.example.smartbudget.feature.dashboard.categories
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
-import com.tbank.smartbudget.core.ui.common.CategoryColorMapper
-import com.tbank.smartbudget.data.domain.repository.BudgetRepository
+import com.tbank.smartbudget.data.domain.model.TransactionType
+import com.tbank.smartbudget.data.domain.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class CategoriesDashboardViewModel @Inject constructor(
-    private val repository: BudgetRepository
+    private val transactionRepository: TransactionRepository
 ) : BaseViewModel<CategoriesDashboardUiState, CategoriesDashboardIntent, CategoriesDashboardEffect>(
     CategoriesDashboardUiState(isLoading = true)
 ) {
+
+    private val now = LocalDate.now()
+    private val currentYear = now.year
+    private val currentMonth = now.monthValue
 
     init {
         onIntent(CategoriesDashboardIntent.LoadData)
@@ -30,30 +35,43 @@ class CategoriesDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             updateState { copy(isLoading = true) }
 
-            val budgetResult = repository.getActiveBudgetSummary(2025, 12)
+            val startOfMonth = LocalDate.of(currentYear, currentMonth, 1).atStartOfDay()
+            val endOfMonth = LocalDate.of(currentYear, currentMonth, 1).plusMonths(1).atStartOfDay().minusNanos(1)
 
-            val ids = listOf(1L, 5L, 2L, 3L, 4L)
-            val mockCategories = ids.map { id ->
-                val amount = (1000..5000).random().toDouble()
-                CategoryDashboardItem(
-                    id = id,
-                    name = "Категория $id",
-                    amountStr = formatMoney(amount),
-                    amountValue = amount,
-                    color = Color(CategoryColorMapper.getColorForId(id)),
-                    percent = 0.2f
-                )
-            }.sortedByDescending { it.amountValue }
+            // We fetch transactions and aggregate them locally to ensure categorization rules are applied
+            transactionRepository.getTransactions(
+                page = 0,
+                size = 500,
+                startDate = startOfMonth,
+                endDate = endOfMonth
+            ).onSuccess { transactions ->
+                val expenses = transactions.filter { it.type == TransactionType.EXPENSE }
+                val total = expenses.sumOf { it.amount }
 
-            val total = mockCategories.sumOf { it.amountValue }
+                val uiCategories = expenses
+                    .groupBy { it.categoryName }
+                    .map { (name, list) ->
+                        val amount = list.sumOf { it.amount }
+                        CategoryDashboardItem(
+                            id = list.first().categoryId.value,
+                            name = name,
+                            amountStr = formatMoney(amount),
+                            amountValue = amount,
+                            color = Color(list.first().categoryColor),
+                            percent = if (total > 0) (amount / total).toFloat() else 0f
+                        )
+                    }.sortedByDescending { it.amountValue }
 
-            updateState {
-                copy(
-                    isLoading = false,
-                    totalSpent = formatMoney(total),
-                    categories = mockCategories,
-                    historyData = listOf(1200f, 1500f, 800f, 2300f, 4000f)
-                )
+                updateState {
+                    copy(
+                        isLoading = false,
+                        totalSpent = formatMoney(total),
+                        categories = uiCategories,
+                        historyData = emptyList()
+                    )
+                }
+            }.onFailure {
+                updateState { copy(isLoading = false) }
             }
         }
     }
