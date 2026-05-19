@@ -21,6 +21,8 @@ import com.example.smartbudget.feature.dashboard.categories.CategoriesDashboardV
 import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactScreen
 import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactViewModel
 import com.example.smartbudget.feature.operations.AllOperationsIntent
+import com.example.smartbudget.feature.operations.AddTransactionScreen
+import com.example.smartbudget.feature.operations.AddTransactionViewModel
 import com.tbank.smartbudget.core.navigation.*
 import com.tbank.smartbudget.feature.auth.*
 import com.tbank.smartbudget.feature.budget_details.BudgetDetailsScreen
@@ -48,7 +50,8 @@ fun SmartBudgetNavHost() {
                 viewModel = viewModel,
                 onNavigateNext = { email, isExisting, userName ->
                     navController.navigate(LoginPasswordRoute(email, isExisting, userName))
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -77,7 +80,8 @@ fun SmartBudgetNavHost() {
                     navController.navigate(BudgetTabRoute) {
                         popUpTo(EnterPinRoute) { inclusive = true }
                     }
-                }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -90,6 +94,16 @@ fun SmartBudgetNavHost() {
                 onNavigateToSearch = { navController.navigate(CategorySearchRoute) },
                 onNavigateToProfile = { navController.navigate(ProfileRoute) },
                 onNavigateToAllOperations = { navController.navigate(AllOperationsRoute) },
+                onNavigateToSelectedCategories = { navController.navigate(SelectedCategoriesRoute) },
+                onNavigateToAddTransaction = { navController.navigate(AddTransactionRoute) }
+            )
+        }
+
+        composable<AddTransactionRoute> {
+            val viewModel = hiltViewModel<AddTransactionViewModel>()
+            AddTransactionScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToSelectedCategories = { navController.navigate(SelectedCategoriesRoute) }
             )
         }
@@ -118,6 +132,7 @@ fun SmartBudgetNavHost() {
             )
         }
 
+        // ... остальные маршруты остаются без изменений
         composable<BudgetEditRoute> {
             val viewModel = hiltViewModel<BudgetEditViewModel>()
             BudgetEditScreen(
@@ -179,7 +194,8 @@ fun SmartBudgetNavHost() {
             AllOperationsScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onSearchClick = { navController.navigate(CategorySearchRoute) }
+                onSearchClick = { navController.navigate(CategorySearchRoute) },
+                onAddTransactionClick = { navController.navigate(AddTransactionRoute) }
             )
         }
 
