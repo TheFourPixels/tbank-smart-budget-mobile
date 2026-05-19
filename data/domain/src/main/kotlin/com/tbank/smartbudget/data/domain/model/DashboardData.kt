@@ -8,6 +8,7 @@ data class DashboardData(
     val totalIncome: Double,
     val totalSpent: Double,
     val remainingBudget: Double,
+    val categoryStats: List<CategoryLimit>,
     val activeGoals: List<Goal>,
     val recentTransactions: List<Transaction>
 )

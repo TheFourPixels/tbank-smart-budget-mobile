@@ -11,6 +11,7 @@ import com.tbank.smartbudget.core.network.remote.interceptor.ApiException
 import com.tbank.smartbudget.core.network.remote.safeApiCall
 import com.tbank.smartbudget.data.domain.model.*
 import com.tbank.smartbudget.data.domain.repository.BudgetRepository
+import com.tbank.smartbudget.data.domain.repository.CategorySearchRepository
 import com.tbank.smartbudget.data.repository.mappers.toDomain
 import com.tbank.smartbudget.data.repository.mappers.toSummary
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class BudgetRepositoryImpl @Inject constructor(
     private val budgetApi: BudgetApi,
     private val dashboardApi: DashboardApi,
+    private val categorySearchRepository: CategorySearchRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BudgetRepository {
 
@@ -38,11 +40,18 @@ class BudgetRepositoryImpl @Inject constructor(
             }.toResult()
         }
 
+    override suspend fun getCategoryStats(year: Int, month: Int): Result<List<CategoryLimit>> =
+        withContext(ioDispatcher) {
+            safeApiCall {
+                budgetApi.getBudgetDashboard(year, month).categoryStats.map { it.toDomain() }
+            }.toResult()
+        }
+
     override suspend fun getCategoryLimits(budgetId: Long): Result<List<CategoryLimit>> =
         withContext(ioDispatcher) {
             safeApiCall {
                 val now = LocalDate.now()
-                val dto = dashboardApi.getDashboardSummary(month = now.monthValue, year = now.year)
+                val dto = dashboardApi.get(month = now.monthValue, year = now.year)
                 dto.categoryStats.map { it.toDomain() }
             }.toResult()
         }
@@ -76,13 +85,42 @@ class BudgetRepositoryImpl @Inject constructor(
             }.toResult()
         }
 
-    override suspend fun getAllAvailableCategories(): Result<List<BudgetCategory>> = Result.success(emptyList())
+    override suspend fun getAllAvailableCategories(): Result<List<BudgetCategory>> = withContext(ioDispatcher) {
+        try {
+            Result.success(categorySearchRepository.getAllCategories())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     override suspend fun createCustomCategory(name: String, iconRes: Int, color: Long): Result<BudgetCategory> =
         Result.failure(UnsupportedOperationException("Use CategoryRepository for this"))
 
-    override suspend fun addCategoryToBudget(year: Int, month: Int, categoryId: Long): Result<Unit> = Result.success(Unit)
-    override suspend fun removeCategoryFromBudget(year: Int, month: Int, categoryId: Long): Result<Unit> = Result.success(Unit)
+    override suspend fun addCategoryToBudget(year: Int, month: Int, categoryId: Long): Result<Unit> = withContext(ioDispatcher) {
+        val currentBudget = getBudgetDetails(year, month).getOrNull()
+        if (currentBudget == null) {
+             saveBudget(year, month, 0.0, "1 мес", listOf(BudgetLimitData(categoryId, 0.0, BudgetLimitType.SUM)))
+        } else {
+            val alreadyExists = currentBudget.limits.any { it.categoryId.value == categoryId }
+            if (alreadyExists) return@withContext Result.success(Unit)
+            
+            val newLimits = currentBudget.limits.map { 
+                BudgetLimitData(it.categoryId.value, it.limitValue, it.limitType) 
+            } + BudgetLimitData(categoryId, 0.0, BudgetLimitType.SUM)
+            
+            saveBudget(year, month, currentBudget.totalIncome, currentBudget.period, newLimits)
+        }
+    }
+
+    override suspend fun removeCategoryFromBudget(year: Int, month: Int, categoryId: Long): Result<Unit> = withContext(ioDispatcher) {
+        val currentBudget = getBudgetDetails(year, month).getOrNull() ?: return@withContext Result.success(Unit)
+        
+        val newLimits = currentBudget.limits
+            .filter { it.categoryId.value != categoryId }
+            .map { BudgetLimitData(it.categoryId.value, it.limitValue, it.limitType) }
+        
+        saveBudget(year, month, currentBudget.totalIncome, currentBudget.period, newLimits)
+    }
 
     private fun <T> AppResult<T>.toResult(): Result<T> = when (this) {
         is AppResult.Success -> Result.success(data)

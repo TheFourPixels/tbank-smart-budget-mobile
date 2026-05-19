@@ -11,4 +11,11 @@ interface CategorySearchRepository {
      * @return Список объектов BudgetCategory.
      */
     suspend fun getAllCategories(): List<BudgetCategory>
+
+    /**
+     * Создает новую категорию.
+     * @param name Название категории.
+     * @return ID созданной категории.
+     */
+    suspend fun createCategory(name: String): Result<Long>
 }

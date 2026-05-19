@@ -7,6 +7,7 @@ import com.tbank.smartbudget.core.network.remote.api.AuthorizedUserApi
 import com.tbank.smartbudget.core.network.remote.dto.AuthRequest
 import com.tbank.smartbudget.core.network.remote.dto.CheckEmailRequest
 import com.tbank.smartbudget.core.network.remote.dto.RegisterRequest
+import com.tbank.smartbudget.core.network.remote.dto.UpdateProfileRequest
 import com.tbank.smartbudget.core.network.remote.safeApiCall
 import com.tbank.smartbudget.data.domain.model.User
 import com.tbank.smartbudget.data.domain.model.UserId
@@ -61,6 +62,17 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun getProfile(): AppResult<User> = safeApiCall {
         val dto = userApi.getProfile()
+        User(
+            id = UserId(dto.id),
+            name = dto.name,
+            email = dto.email,
+            avatarUrl = dto.avatarUrl
+        )
+    }
+
+    override suspend fun updateProfile(name: String): AppResult<User> = safeApiCall {
+        val dto = userApi.updateProfile(UpdateProfileRequest(name = name, avatarUrl = null))
+        sessionManager.updateUserName(dto.name)
         User(
             id = UserId(dto.id),
             name = dto.name,

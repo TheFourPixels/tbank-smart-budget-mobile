@@ -31,5 +31,5 @@ data class BudgetLimitModel(
 )
 
 enum class BudgetLimitType {
-    PERCENT, AMOUNT
+    PERCENT, SUM
 }

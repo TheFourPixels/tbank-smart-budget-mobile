@@ -13,6 +13,9 @@ interface BudgetRepository {
     // 1. Получение сводки (Dashboard)
     suspend fun getActiveBudgetSummary(year: Int, month: Int): Result<BudgetSummary>
 
+    // 1a. Получение статистики по категориям (Dashboard)
+    suspend fun getCategoryStats(year: Int, month: Int): Result<List<CategoryLimit>>
+
     // 2. Получение деталей бюджета по категориям (для экрана списка категорий)
     suspend fun getCategoryLimits(budgetId: Long): Result<List<CategoryLimit>>
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,10 +27,10 @@ fun BasicSearchBar(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     modifier: Modifier = Modifier.Companion,
-    backgroundColor: Color = Color(0xFFE0E0E0)
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant
 ) {
     val textStyle = TextStyle(
-        color = Color.Black,
+        color = MaterialTheme.colorScheme.onSurface,
         fontSize = 15.sp
     )
 
@@ -51,7 +52,7 @@ fun BasicSearchBar(
             Icon(
                 imageVector = Icons.Filled.Search,
                 contentDescription = "Поиск",
-                tint = Color.DarkGray.copy(alpha = 0.6f),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 modifier = Modifier
                     .size(30.dp)
                     .padding(end = 8.dp)
@@ -70,7 +71,7 @@ fun BasicSearchBar(
                         if (searchText.isEmpty()) {
                             Text(
                                 text = "Поиск",
-                                style = textStyle.copy(color = Color.DarkGray.copy(alpha = 0.6f)),
+                                style = textStyle.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)),
                             )
                         }
                         innerTextField()

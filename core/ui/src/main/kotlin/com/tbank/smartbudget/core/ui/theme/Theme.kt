@@ -10,40 +10,34 @@ import androidx.compose.ui.graphics.Color
 
 // --- 1. СТАНДАРТНЫЕ ЦВЕТОВЫЕ СХЕМЫ MATERIAL 3 ---
 
-// Темная цветовая схема, использует цвета, определенные в Color.kt
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
     onPrimary = DarkOnPrimary,
     secondary = SecondaryDark,
     background = DarkBackground,
     surface = DarkSurface,
-    onBackground = DarkOnSurface,
+    onBackground = DarkOnBackground,
     onSurface = DarkOnSurface,
-    surfaceVariant = Color(0xFF333333), // Цвет фона для карточек
+    surfaceVariant = DarkSurfaceVariant,
     error = ErrorRed,
-    scrim = Color.Black.copy(alpha = 0.8f) // Используется для фона модальных окон
+    scrim = Color.Black.copy(alpha = 0.8f)
 )
 
-// Светлая цветовая схема, использует цвета, определенные в Color.kt
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryLight,
     onPrimary = LightOnPrimary,
     secondary = SecondaryLight,
     background = LightBackground,
     surface = LightSurface,
-    onBackground = LightOnSurface,
+    onBackground = LightOnBackground,
     onSurface = LightOnSurface,
-    surfaceVariant = LightSurfaceVariant, // Используем для фона карточек/элементов
+    surfaceVariant = LightSurfaceVariant,
     error = ErrorRedLight,
     scrim = Color.Black.copy(alpha = 0.6f),
 )
 
 // --- 2. РАСШИРЕНИЕ ЦВЕТОВЫХ СХЕМ ---
 
-/**
- * Основная тема приложения SmartBudget.
- * Внедряет MaterialTheme и ExtendedColors.
- */
 @Composable
 fun SmartBudgetTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

@@ -2,9 +2,11 @@ package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.core.network.remote.api.GoalApi
 import com.tbank.smartbudget.core.network.remote.dto.CreateGoalRequest
+import com.tbank.smartbudget.core.network.remote.dto.GoalContributionRequest
 import com.tbank.smartbudget.data.domain.model.Goal
-import com.tbank.smartbudget.data.domain.model.GoalId
 import com.tbank.smartbudget.data.domain.repository.GoalRepository
+import com.tbank.smartbudget.data.repository.mappers.toDomain
+import java.time.LocalDate
 import javax.inject.Inject
 
 class GoalRepositoryImpl @Inject constructor(
@@ -13,22 +15,9 @@ class GoalRepositoryImpl @Inject constructor(
 
     override suspend fun getGoals(): Result<List<Goal>> {
         return try {
-            val dtos = api.getGoals()
-            val goals = dtos.map { dto ->
-                val progress = if (dto.targetAmount > 0) {
-                    ((dto.currentAmount / dto.targetAmount) * 100).toInt()
-                } else 0
-
-                Goal(
-                    id = GoalId(dto.id),
-                    name = dto.name,
-                    targetAmount = dto.targetAmount,
-                    savedAmount = dto.currentAmount,
-                    deadline = dto.deadline,
-                    progressPercent = progress
-                )
-            }
-            Result.success(goals)
+            val now = LocalDate.now()
+            val activeGoals = api.listActive(now.year, now.monthValue)
+            Result.success(activeGoals.map { it.toDomain() })
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -41,15 +30,8 @@ class GoalRepositoryImpl @Inject constructor(
     ): Result<Goal> {
         return try {
             val request = CreateGoalRequest(name, targetAmount, deadline)
-            val dto = api.createGoal(request)
-            Goal(
-                id = GoalId(dto.id),
-                name = dto.name,
-                targetAmount = dto.targetAmount,
-                savedAmount = dto.currentAmount,
-                deadline = dto.deadline,
-                progressPercent = 0
-            ).let { Result.success(it) }
+            val dto = api.create(request)
+            Result.success(dto.toDomain())
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -57,8 +39,18 @@ class GoalRepositoryImpl @Inject constructor(
 
     override suspend fun deleteGoal(id: Long): Result<Unit> {
         return try {
-            api.deleteGoal(id)
+            api.delete(id)
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Добавим новый метод для пополнения, если он нужен в репозитории
+    suspend fun contributeToGoal(id: Long, amount: Double): Result<Goal> {
+        return try {
+            val dto = api.contribute(id, GoalContributionRequest(amount))
+            Result.success(dto.toDomain())
         } catch (e: Exception) {
             Result.failure(e)
         }

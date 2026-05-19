@@ -1,60 +1,56 @@
 package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.core.network.remote.api.DashboardApi
-import com.tbank.smartbudget.data.domain.model.CategoryId
+import com.tbank.smartbudget.data.domain.model.CategoryLimit
 import com.tbank.smartbudget.data.domain.model.DashboardData
-import com.tbank.smartbudget.data.domain.model.Goal
-import com.tbank.smartbudget.data.domain.model.GoalId
-import com.tbank.smartbudget.data.domain.model.Transaction
-import com.tbank.smartbudget.data.domain.model.TransactionId
-import com.tbank.smartbudget.data.domain.model.TransactionType
 import com.tbank.smartbudget.data.domain.repository.DashboardRepository
-import java.time.LocalDateTime
+import com.tbank.smartbudget.data.repository.mappers.toDomain
+import com.tbank.smartbudget.data.repository.utils.TransactionCategorizer
+import java.time.LocalDate
 import javax.inject.Inject
 
 class DashboardRepositoryImpl @Inject constructor(
-    private val api: DashboardApi
+    private val api: DashboardApi,
+    private val categorizer: TransactionCategorizer
 ) : DashboardRepository {
 
     override suspend fun getDashboardSummary(month: Int?, year: Int?): Result<DashboardData> {
         return try {
-            val dto = api.getDashboardSummary(month, year)
-
-            val activeGoals = dto.activeGoals.map { goalStat ->
-                Goal(
-                    id = GoalId(goalStat.id),
-                    name = goalStat.name,
-                    targetAmount = goalStat.target,
-                    savedAmount = goalStat.saved,
-                    deadline = null,
-                    progressPercent = goalStat.progressPercent
+            val now = LocalDate.now()
+            val m = month ?: now.monthValue
+            val y = year ?: now.year
+            
+            val dto = api.get(y, m)
+            val domainData = dto.toDomain()
+            
+            // Enrich recent transactions
+            val categorizedRecent = categorizer.categorize(domainData.recentTransactions)
+            
+            // Re-aggregate stats locally to reflect client-side categorization
+            // This is a robust fallback when backend stats are not yet updated with new rules
+            val aggregatedStats = categorizedRecent.groupBy { it.categoryName }.map { (name, list) ->
+                val totalSpent = list.sumOf { it.amount }
+                CategoryLimit(
+                    id = list.first().categoryId,
+                    name = name,
+                    limitAmount = 0.0, // Placeholder
+                    spentAmount = totalSpent,
+                    iconRes = 0,
+                    color = list.first().categoryColor
                 )
             }
 
-            val recentTransactions = dto.recentTransactions.map { txDto ->
-                Transaction(
-                    id = TransactionId(txDto.id),
-                    amount = txDto.amount,
-                    type = if (txDto.isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                    date = LocalDateTime.parse(txDto.date),
-                    description = txDto.description,
-                    merchantName = txDto.merchant,
-                    categoryName = txDto.categoryName ?: "Без категории",
-                    categoryColor = txDto.categoryColor ?: 0xFF808080,
-                    categoryId = CategoryId(txDto.categoryId ?: 0L)
-                )
+            // Merge local aggregation with backend stats (prioritize backend if available but fill gaps)
+            val finalStats = if (domainData.categoryStats.isEmpty()) {
+                aggregatedStats
+            } else {
+                domainData.categoryStats // In real app, we'd merge more complexly
             }
-
-            val dashboardData = DashboardData(
-                month = dto.month,
-                totalIncome = dto.totalIncome,
-                totalSpent = dto.totalSpent,
-                remainingBudget = dto.remainingBudget,
-                activeGoals = activeGoals,
-                recentTransactions = recentTransactions
-            )
-
-            Result.success(dashboardData)
+            
+            Result.success(domainData.copy(
+                recentTransactions = categorizedRecent,
+                categoryStats = finalStats
+            ))
         } catch (e: Exception) {
             Result.failure(e)
         }
