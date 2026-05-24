@@ -23,6 +23,15 @@ class GoalRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getGoalDetails(id: Long): Result<Goal> {
+        return try {
+            val dto = api.get(id)
+            Result.success(dto.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun createGoal(
         name: String,
         targetAmount: Double,
@@ -46,8 +55,7 @@ class GoalRepositoryImpl @Inject constructor(
         }
     }
 
-    // Добавим новый метод для пополнения, если он нужен в репозитории
-    suspend fun contributeToGoal(id: Long, amount: Double): Result<Goal> {
+    override suspend fun contributeToGoal(id: Long, amount: Double): Result<Goal> {
         return try {
             val dto = api.contribute(id, GoalContributionRequest(amount))
             Result.success(dto.toDomain())

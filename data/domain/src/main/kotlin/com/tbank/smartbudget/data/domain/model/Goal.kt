@@ -11,5 +11,15 @@ data class Goal(
     val targetAmount: Double,
     val savedAmount: Double,
     val deadline: String?,
-    val progressPercent: Int
+    val progressPercent: Int,
+    val daysLeft: Long = 0,
+    val recommendedMonthly: Double = 0.0,
+    val contributions: List<GoalContribution> = emptyList()
+)
+
+@Immutable
+data class GoalContribution(
+    val amount: Double,
+    val date: java.time.LocalDateTime,
+    val description: String?
 )

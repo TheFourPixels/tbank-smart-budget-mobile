@@ -65,6 +65,7 @@ fun BudgetDashboardScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPlanVsFact: () -> Unit,
     onNavigateToCategoriesDashboard: () -> Unit,
+    onNavigateToGoals: () -> Unit,
     viewModel: BudgetDashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -73,7 +74,8 @@ fun BudgetDashboardScreen(
         state = state,
         onNavigateBack = onNavigateBack,
         onNavigateToPlanVsFact = onNavigateToPlanVsFact,
-        onNavigateToCategoriesDashboard = onNavigateToCategoriesDashboard
+        onNavigateToCategoriesDashboard = onNavigateToCategoriesDashboard,
+        onNavigateToGoals = onNavigateToGoals
     )
 }
 
@@ -84,6 +86,7 @@ fun BudgetDashboardContent(
     onNavigateBack: () -> Unit,
     onNavigateToPlanVsFact: () -> Unit,
     onNavigateToCategoriesDashboard: () -> Unit,
+    onNavigateToGoals: () -> Unit,
 ) {
     var showChartsSheet by remember { mutableStateOf(false) }
     val density = LocalDensity.current
@@ -94,11 +97,10 @@ fun BudgetDashboardContent(
             onDismiss = { showChartsSheet = false },
             onChartSelected = { chartType ->
                 showChartsSheet = false
-                if (chartType == "plan_vs_fact") {
-                    onNavigateToPlanVsFact()
-                }
-                if (chartType == "categories_dashboard") {
-                    onNavigateToCategoriesDashboard()
+                when (chartType) {
+                    "plan_vs_fact" -> onNavigateToPlanVsFact()
+                    "categories_dashboard" -> onNavigateToCategoriesDashboard()
+                    "goals" -> onNavigateToGoals()
                 }
             }
         )
@@ -372,7 +374,8 @@ fun BudgetDashboardScreenPreview() {
             ),
             onNavigateBack = {},
             onNavigateToPlanVsFact = {},
-            onNavigateToCategoriesDashboard = {}
+            onNavigateToCategoriesDashboard = {},
+            onNavigateToGoals = {}
         )
     }
 }

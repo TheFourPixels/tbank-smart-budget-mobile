@@ -97,7 +97,27 @@ fun GoalDto.toDomain(): Goal {
         targetAmount = targetAmount,
         savedAmount = savedAmount,
         deadline = deadline,
-        progressPercent = progressPercent
+        progressPercent = progressPercent,
+        daysLeft = daysLeft,
+        recommendedMonthly = recommendedMonthly,
+        contributions = contributions?.map { it.toDomain() } ?: emptyList()
+    )
+}
+
+fun GoalContributionDto.toDomain(): GoalContribution {
+    val ldt = try {
+        java.time.ZonedDateTime.parse(date).toLocalDateTime()
+    } catch (e: Exception) {
+        try {
+            java.time.LocalDateTime.parse(date)
+        } catch (e2: Exception) {
+            java.time.LocalDateTime.now()
+        }
+    }
+    return GoalContribution(
+        amount = amount,
+        date = ldt,
+        description = description
     )
 }
 
@@ -111,7 +131,9 @@ fun GoalSummaryDto.toDomain(): Goal {
         targetAmount = target,
         savedAmount = saved,
         deadline = null,
-        progressPercent = progressPercent
+        progressPercent = progressPercent,
+        daysLeft = daysLeft,
+        recommendedMonthly = recommendedMonthly
     )
 }
 

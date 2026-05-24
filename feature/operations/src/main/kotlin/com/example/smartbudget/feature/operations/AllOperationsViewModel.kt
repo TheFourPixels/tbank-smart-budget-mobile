@@ -117,14 +117,12 @@ class AllOperationsViewModel @Inject constructor(
         val result = cachedResult ?: return
         val selectedCategories = currentState.selectedCategoryNames
         
-        android.util.Log.d("AllOperations", "Applying filters. Total groups in cache: ${result.groupedTransactions.size}. Selected cats: $selectedCategories")
-
         val filteredGroups = result.groupedTransactions.mapNotNull { (date, transactions) ->
             val filteredTransactions = if (selectedCategories.isNotEmpty()) {
-                transactions.filter { it.categoryName in selectedCategories }
+                transactions.filter { tx -> 
+                    selectedCategories.any { it.equals(tx.categoryName, ignoreCase = true) }
+                }
             } else transactions
-
-            android.util.Log.d("AllOperations", "Group [$date]: ${transactions.size} txs -> ${filteredTransactions.size} filtered")
 
             if (filteredTransactions.isNotEmpty()) {
                 val dayTotalValue = filteredTransactions
@@ -138,6 +136,8 @@ class AllOperationsViewModel @Inject constructor(
                 )
             } else null
         }
+        
+        android.util.Log.d("AllOperations", "Updating UI state with ${filteredGroups.size} groups")
         updateState { copy(transactionGroups = filteredGroups) }
     }
 
