@@ -214,8 +214,8 @@ fun PlanVsFactContent(
                                         contentAlignment = Alignment.BottomCenter
                                     ) {
                                         BarChartComparison(
-                                            planValue = state.totalPlan.parseMoney(),
-                                            factValue = state.totalFact.parseMoney(),
+                                            planValue = state.planValue,
+                                            factValue = state.factValue,
                                             diffLabel = state.percentageDiffLabel,
                                             listOfColors = listOf(PlanColor, FactColor)
                                         )

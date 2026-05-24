@@ -7,12 +7,14 @@ import kotlinx.serialization.Serializable
 data class DashboardResponse(
     @SerialName("year") val year: Int,
     @SerialName("month") val month: Int,
-    @SerialName("totalIncome") val totalIncome: Double,
-    @SerialName("totalSpent") val totalSpent: Double,
-    @SerialName("remainingBudget") val remainingBudget: Double,
-    @SerialName("categoryStats") val categoryStats: List<CategoryStatDto>,
-    @SerialName("recentTransactions") val recentTransactions: List<RecentTransactionDto>,
-    @SerialName("activeGoals") val activeGoals: List<GoalSummaryDto>
+    @SerialName("totalIncome") val totalIncome: Double = 0.0,
+    @SerialName("budgetPlan") val budgetPlan: Double = 0.0,
+    @SerialName("totalSpent") val totalSpent: Double = 0.0,
+    @SerialName("remainingBudget") val remainingBudget: Double = 0.0,
+    @SerialName("categoryStats") val categoryStats: List<CategoryStatDto>? = null,
+    @SerialName("categoriesStats") val categoriesStats: List<CategoryStatDto>? = null,
+    @SerialName("recentTransactions") val recentTransactions: List<RecentTransactionDto>? = null,
+    @SerialName("activeGoals") val activeGoals: List<GoalSummaryDto>? = null,
 )
 
 @Serializable
@@ -39,10 +41,10 @@ data class GoalSummaryDto(
 
 @Serializable
 data class RecentTransactionDto(
-    @SerialName("merchant") val merchant: String?,
-    @SerialName("description") val description: String?,
-    @SerialName("amount") val amount: Double,
-    @SerialName("date") val date: String, // date-time
-    @SerialName("categoryName") val categoryName: String?,
-    @SerialName("income") val income: Boolean
+    @SerialName("merchant") val merchant: String? = null,
+    @SerialName("description") val description: String? = null,
+    @SerialName("amount") val amount: Double? = null,
+    @SerialName("date") val date: String? = null,
+    @SerialName("categoryName") val categoryName: String? = null,
+    @SerialName("income") val income: Boolean = false
 )

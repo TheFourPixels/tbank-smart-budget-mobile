@@ -35,12 +35,15 @@ class TransactionCategorizer @Inject constructor(
     suspend fun categorize(transactions: List<Transaction>): List<Transaction> {
         val rules = getRules()
         val categories = getCategories()
+        
+        android.util.Log.d("Categorizer", "Starting categorization for ${transactions.size} transactions. Rules: ${rules.size}, Categories: ${categories.size}")
 
         return transactions.map { transaction ->
             // 1. Если категория уже назначена (ID > 0), просто обогащаем метаданными
             if (transaction.categoryId.value > 0) {
                 val category = categories.find { it.id.value == transaction.categoryId.value }
                 category?.let {
+                    android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: Already has ID ${transaction.categoryId.value}, enriched with name ${it.name}")
                     return@map transaction.copy(
                         categoryName = it.name,
                         categoryColor = CategoryColorMapper.getColorForId(it.id.value)
@@ -49,13 +52,17 @@ class TransactionCategorizer @Inject constructor(
             }
 
             // 2. Применяем правила категоризации
-            val rule = rules.find {
-                (transaction.merchantName?.contains(it.keyword, ignoreCase = true) == true) ||
-                (transaction.description?.contains(it.keyword, ignoreCase = true) == true)
+            val rule = rules.find { rule ->
+                val keyword = rule.keyword.lowercase().replace('ё', 'е')
+                val merchant = transaction.merchantName?.lowercase()?.replace('ё', 'е') ?: ""
+                val desc = transaction.description?.lowercase()?.replace('ё', 'е') ?: ""
+                
+                merchant.contains(keyword) || desc.contains(keyword)
             }
 
             if (rule != null) {
                 val category = categories.find { it.id.value == rule.categoryId }
+                android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: Matched rule [${rule.keyword}] -> Category ${category?.name}")
                 return@map transaction.copy(
                     categoryId = CategoryId(rule.categoryId),
                     categoryName = category?.name ?: "Категория ${rule.categoryId}",
@@ -63,15 +70,17 @@ class TransactionCategorizer @Inject constructor(
                 )
             }
 
-            // 3. Запасной вариант: Поиск по точному совпадению имени категории в описании или мерчанте
-            // Это поможет, если категория была передана строкой или выбрана вручную, но ID потерялся
-            val matchedCategory = categories.find { 
-                (it.name.equals(transaction.merchantName, ignoreCase = true)) ||
-                (it.name.equals(transaction.description, ignoreCase = true)) ||
-                ((transaction.description?.contains(it.name, ignoreCase = true) == true) && (it.name.length > 3))
+            // 3. Запасной вариант: Поиск по точному совпадению имени категории
+            val matchedCategory = categories.find { category ->
+                val catName = category.name.lowercase().replace('ё', 'е')
+                val merchant = transaction.merchantName?.lowercase()?.replace('ё', 'е') ?: ""
+                val desc = transaction.description?.lowercase()?.replace('ё', 'е') ?: ""
+                
+                catName == merchant || catName == desc || (desc.contains(catName) && catName.length > 3)
             }
 
             if (matchedCategory != null) {
+                android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: Matched category name [${matchedCategory.name}]")
                 return@map transaction.copy(
                     categoryId = matchedCategory.id,
                     categoryName = matchedCategory.name,
@@ -79,6 +88,7 @@ class TransactionCategorizer @Inject constructor(
                 )
             }
 
+            android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: No category found")
             // Оставляем без изменений, если ничего не найдено
             transaction
         }

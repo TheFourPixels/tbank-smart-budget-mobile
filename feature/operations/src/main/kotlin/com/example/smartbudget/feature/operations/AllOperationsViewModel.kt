@@ -87,6 +87,7 @@ class AllOperationsViewModel @Inject constructor(
 
             getTransactionsUseCase.execute(query = currentQuery, startDate = startDateTime, endDate = endDateTime)
                 .onSuccess { result ->
+                    android.util.Log.d("AllOperations", "Loaded ${result.groupedTransactions.size} groups, total expense: ${result.totalExpense}")
                     cachedResult = result
                     val chartData = result.categoryStats.map { stat ->
                         ChartDataUi(
@@ -115,11 +116,15 @@ class AllOperationsViewModel @Inject constructor(
     private fun applyLocalFilters() {
         val result = cachedResult ?: return
         val selectedCategories = currentState.selectedCategoryNames
+        
+        android.util.Log.d("AllOperations", "Applying filters. Total groups in cache: ${result.groupedTransactions.size}. Selected cats: $selectedCategories")
 
         val filteredGroups = result.groupedTransactions.mapNotNull { (date, transactions) ->
             val filteredTransactions = if (selectedCategories.isNotEmpty()) {
                 transactions.filter { it.categoryName in selectedCategories }
             } else transactions
+
+            android.util.Log.d("AllOperations", "Group [$date]: ${transactions.size} txs -> ${filteredTransactions.size} filtered")
 
             if (filteredTransactions.isNotEmpty()) {
                 val dayTotalValue = filteredTransactions

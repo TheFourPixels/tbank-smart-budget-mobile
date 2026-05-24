@@ -36,14 +36,14 @@ class BudgetRepositoryImpl @Inject constructor(
     override suspend fun getActiveBudgetSummary(year: Int, month: Int): Result<BudgetSummary> =
         withContext(ioDispatcher) {
             safeApiCall {
-                budgetApi.getBudgetDashboard(year, month).toSummary()
+                dashboardApi.get(year, month).toSummary()
             }.toResult()
         }
 
     override suspend fun getCategoryStats(year: Int, month: Int): Result<List<CategoryLimit>> =
         withContext(ioDispatcher) {
             safeApiCall {
-                budgetApi.getBudgetDashboard(year, month).categoryStats.map { it.toDomain() }
+                dashboardApi.get(year, month).categoryStats?.map { it.toDomain() } ?: emptyList()
             }.toResult()
         }
 
@@ -52,7 +52,7 @@ class BudgetRepositoryImpl @Inject constructor(
             safeApiCall {
                 val now = LocalDate.now()
                 val dto = dashboardApi.get(month = now.monthValue, year = now.year)
-                dto.categoryStats.map { it.toDomain() }
+                dto.categoryStats?.map { it.toDomain() } ?: emptyList()
             }.toResult()
         }
 

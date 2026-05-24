@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
 import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
-import com.tbank.smartbudget.data.domain.usecase.GetCategoryDetailsUseCase
+import com.tbank.smartbudget.data.domain.repository.DashboardRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlanVsFactViewModel @Inject constructor(
-    private val getCategoryDetailsUseCase: GetCategoryDetailsUseCase
+    private val dashboardRepository: DashboardRepository
 ) : BaseViewModel<PlanVsFactUiState, PlanVsFactIntent, PlanVsFactEffect>(
     PlanVsFactUiState(isLoading = true)
 ) {
@@ -41,10 +41,11 @@ class PlanVsFactViewModel @Inject constructor(
             val formattedPeriod = date.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
                 .replaceFirstChar { it.uppercase() }
 
-            getCategoryDetailsUseCase.execute(budgetId = 1L)
-                .onSuccess { categories ->
+            dashboardRepository.getDashboardSummary(currentMonth, currentYear)
+                .onSuccess { data ->
+                    val categories = data.categoryStats
                     val totalPlanVal = categories.sumOf { it.limitAmount }
-                    val totalFactVal = categories.sumOf { it.spentAmount }
+                    val totalFactVal = data.totalSpent
 
                     val diffPercent = if (totalPlanVal > 0) ((totalFactVal - totalPlanVal) / totalPlanVal) * 100 else 0.0
                     val diffLabel = "${if (diffPercent > 0) "+" else ""}${"%.1f".format(diffPercent)}%"
