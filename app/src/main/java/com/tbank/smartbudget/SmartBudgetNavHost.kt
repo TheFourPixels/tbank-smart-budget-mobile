@@ -191,8 +191,8 @@ fun SmartBudgetNavHost() {
             GoalDetailsScreen(
                 goalId = args.goalId,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToContribute = { goalId, amount ->
-                    navController.navigate(ContributeGoalRoute(goalId, amount))
+                onNavigateToContribute = { goalId, amount, target, saved ->
+                    navController.navigate(ContributeGoalRoute(goalId, amount, target, saved))
                 },
                 viewModel = viewModel
             )
@@ -204,6 +204,8 @@ fun SmartBudgetNavHost() {
             ContributeGoalScreen(
                 goalId = args.goalId,
                 recommendedAmount = args.recommendedAmount,
+                targetAmount = args.targetAmount,
+                savedAmount = args.savedAmount,
                 onNavigateBack = { navController.popBackStack() },
                 viewModel = viewModel
             )

@@ -42,7 +42,7 @@ import java.util.Locale
 fun GoalDetailsScreen(
     goalId: Long,
     onNavigateBack: () -> Unit,
-    onNavigateToContribute: (Long, Double) -> Unit,
+    onNavigateToContribute: (Long, Double, Double, Double) -> Unit,
     viewModel: GoalDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -62,7 +62,9 @@ fun GoalDetailsScreen(
     GoalDetailsContent(
         state = state,
         onBackClick = { viewModel.onIntent(GoalDetailsIntent.OnBackClicked) },
-        onContributeClick = { onNavigateToContribute(it.id.value, it.recommendedMonthly) }
+        onContributeClick = { 
+            onNavigateToContribute(it.id.value, it.recommendedMonthly, it.targetAmount, it.savedAmount) 
+        }
     )
 }
 

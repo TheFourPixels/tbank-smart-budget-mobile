@@ -80,11 +80,15 @@ class TransactionCategorizer @Inject constructor(
                 val isFood = merchant.contains("магнит") || merchant.contains("пятерочка") || merchant.contains("перекресток")
                 val isTech = merchant.contains("dns") || merchant.contains("днс") || merchant.contains("мвидео")
                 val isBook = merchant.contains("читай-город") || merchant.contains("лабиринт")
+                val isClothes = merchant.contains("остин") || merchant.contains("gloria jeans") || merchant.contains("zara") || merchant.contains("hm")
+                val isCafe = merchant.contains("кафе") || merchant.contains("ресторан") || merchant.contains("kfc") || merchant.contains("burger king")
 
                 (catName == merchant || catName == desc || (desc.contains(catName) && catName.length > 3)) ||
                 (catName == "продукты" && isFood) ||
                 (catName == "техника" && isTech) ||
-                (catName == "книги" && isBook)
+                (catName == "книги" && isBook) ||
+                (catName == "одежда" && isClothes) ||
+                (catName == "рестораны" && isCafe)
             }
 
             if (matchedCategory != null) {

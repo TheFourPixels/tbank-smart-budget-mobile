@@ -26,8 +26,16 @@ class DashboardRepositoryImpl @Inject constructor(
             val dto = api.get(y, m)
             val domainData = dto.toDomain()
             
-            // Fetch real transactions to ensure we have the most up-to-date 'spent' data
-            val realTransactions = transactionRepository.getTransactions(page = 0, size = 20).getOrNull() ?: emptyList()
+            // Fetch real transactions for the requested month to ensure accurate 'spent' data
+            val startOfMonth = LocalDate.of(y, m, 1).atStartOfDay()
+            val endOfMonth = LocalDate.of(y, m, 1).plusMonths(1).atStartOfDay().minusNanos(1)
+            
+            val realTransactions = transactionRepository.getTransactions(
+                page = 0, 
+                size = 100,
+                startDate = startOfMonth,
+                endDate = endOfMonth
+            ).getOrNull() ?: emptyList()
             
             // Enrich recent transactions
             val transactionsToCategorize = if (domainData.recentTransactions.all { it.amount == 0.0 }) {
@@ -81,7 +89,8 @@ class DashboardRepositoryImpl @Inject constructor(
             val finalIncome = if (domainData.totalIncome > 0) domainData.totalIncome else (domainData.remainingBudget + totalSpent)
             val remainingBudget = (finalIncome - totalSpent).coerceAtLeast(0.0)
             
-            Log.d("DashboardRepo", "Final calculated: Income=$finalIncome, Spent=$totalSpent, Remaining=$remainingBudget")
+            Log.d("DashboardRepo", "Returning ${mergedStats.size} category stats. Total spent: $totalSpent")
+            mergedStats.forEach { Log.d("DashboardRepo", "   -> Stat: ${it.name} ID=${it.id.value} Spent=${it.spentAmount}") }
 
             Result.success(domainData.copy(
                 totalIncome = finalIncome,

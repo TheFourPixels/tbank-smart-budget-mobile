@@ -429,16 +429,11 @@ fun PlanVsFactContent(
                                             .fillMaxWidth()
                                             .height(200.dp)
                                     ) {
-                                        // Мок-данные для графика
-                                        val mockLineData = remember {
-                                            listOf(1200f, 2400f, 1800f, 500f, 3200f, 1500f, 800f, 2500f, 1800f, 400f, 3000f)
-                                        }
-
                                         ExpensesLineChart(
-                                            dataPoints = mockLineData,
+                                            dataPoints = state.expenseHistory,
                                             modifier = Modifier.fillMaxSize(),
                                             lineColor = FactColor,
-                                            limitThreshold = 2500f // Порог для отображения красной точки
+                                            limitThreshold = (state.planValue / 30).toFloat() // Порог превышения среднего дневного лимита
                                         )
                                     }
 

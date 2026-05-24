@@ -63,13 +63,21 @@ class BudgetViewModel @Inject constructor(
                 val budgetDetails = budgetDetailsResult.getOrNull()
                 val stats = statsResult.getOrNull() ?: emptyList()
 
+                android.util.Log.d("BudgetViewModel", "Data loaded. Summary: ${summary?.totalSpent}, Limits: ${budgetDetails?.limits?.size}, Stats: ${stats.size}")
+                stats.forEach { android.util.Log.d("BudgetViewModel", "   - Stat: ${it.name} ID=${it.id.value} Spent=${it.spentAmount}") }
+
                 val enrichedCategories = budgetDetails?.limits?.map { limit ->
-                    val stat = stats.find { it.id == limit.categoryId }
+                    val stat = stats.find { it.id.value == limit.categoryId.value }
                     val limitValue = if (limit.limitType == BudgetLimitType.PERCENT) {
                         (budgetDetails.totalIncome * (limit.limitValue / 100.0))
                     } else {
                         limit.limitValue
                     }
+                    
+                    if (stat != null) {
+                        android.util.Log.d("BudgetViewModel", "Enriching ${limit.categoryName}: found stat with spent ${stat.spentAmount}")
+                    }
+
                     CategoryUi(
                         id = limit.categoryId,
                         name = limit.categoryName,

@@ -30,7 +30,8 @@ fun InputBox(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     isValueSecondary: Boolean = false,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Decimal
 ) {
     Column(
         modifier = modifier
@@ -56,7 +57,7 @@ fun InputBox(
                 fontSize = if (isValueSecondary) 14.sp else 18.sp,
                 textAlign = TextAlign.Center
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { innerTextField ->

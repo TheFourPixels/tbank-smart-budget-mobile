@@ -12,16 +12,19 @@ import com.tbank.smartbudget.core.network.remote.safeApiCall
 import com.tbank.smartbudget.data.domain.model.*
 import com.tbank.smartbudget.data.domain.repository.BudgetRepository
 import com.tbank.smartbudget.data.domain.repository.CategorySearchRepository
+import com.tbank.smartbudget.data.domain.repository.DashboardRepository
 import com.tbank.smartbudget.data.repository.mappers.toDomain
-import com.tbank.smartbudget.data.repository.mappers.toSummary
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 
 class BudgetRepositoryImpl @Inject constructor(
     private val budgetApi: BudgetApi,
     private val dashboardApi: DashboardApi,
+    private val dashboardRepository: DashboardRepository,
     private val categorySearchRepository: CategorySearchRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BudgetRepository {
@@ -35,25 +38,30 @@ class BudgetRepositoryImpl @Inject constructor(
 
     override suspend fun getActiveBudgetSummary(year: Int, month: Int): Result<BudgetSummary> =
         withContext(ioDispatcher) {
-            safeApiCall {
-                dashboardApi.get(year, month).toSummary()
-            }.toResult()
+            dashboardRepository.getDashboardSummary(month, year).map { data ->
+                val monthName = LocalDate.of(year, month, 1)
+                    .month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
+                    .replaceFirstChar { it.uppercase() }
+
+                BudgetSummary(
+                    totalIncome = data.totalIncome,
+                    totalLimit = data.totalIncome,
+                    totalSpent = data.totalSpent,
+                    freeFunds = data.remainingBudget,
+                    period = monthName
+                )
+            }
         }
 
     override suspend fun getCategoryStats(year: Int, month: Int): Result<List<CategoryLimit>> =
         withContext(ioDispatcher) {
-            safeApiCall {
-                dashboardApi.get(year, month).categoryStats?.map { it.toDomain() } ?: emptyList()
-            }.toResult()
+            dashboardRepository.getDashboardSummary(month, year).map { it.categoryStats }
         }
 
     override suspend fun getCategoryLimits(budgetId: Long): Result<List<CategoryLimit>> =
         withContext(ioDispatcher) {
-            safeApiCall {
-                val now = LocalDate.now()
-                val dto = dashboardApi.get(month = now.monthValue, year = now.year)
-                dto.categoryStats?.map { it.toDomain() } ?: emptyList()
-            }.toResult()
+            val now = LocalDate.now()
+            dashboardRepository.getDashboardSummary(now.monthValue, now.year).map { it.categoryStats }
         }
 
     override suspend fun saveBudget(

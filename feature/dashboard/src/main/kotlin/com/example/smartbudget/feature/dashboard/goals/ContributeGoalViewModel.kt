@@ -16,7 +16,14 @@ class ContributeGoalViewModel @Inject constructor(
 
     override fun onIntent(intent: ContributeGoalIntent) {
         when (intent) {
-            is ContributeGoalIntent.Init -> updateState { copy(goalId = intent.goalId, amount = intent.amount.toInt().toString()) }
+            is ContributeGoalIntent.Init -> updateState { 
+                copy(
+                    goalId = intent.goalId, 
+                    amount = intent.amount.toInt().toString(),
+                    targetAmount = intent.targetAmount,
+                    savedAmount = intent.savedAmount
+                ) 
+            }
             is ContributeGoalIntent.OnAmountChanged -> updateState { copy(amount = intent.amount) }
             ContributeGoalIntent.OnContributeClicked -> contribute()
             ContributeGoalIntent.OnBackClicked -> sendEffect(ContributeGoalEffect.NavigateBack)
