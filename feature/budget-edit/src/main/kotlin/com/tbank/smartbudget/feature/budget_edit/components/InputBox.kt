@@ -31,7 +31,7 @@ fun InputBox(
     modifier: Modifier = Modifier,
     isValueSecondary: Boolean = false,
     readOnly: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Decimal
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     Column(
         modifier = modifier

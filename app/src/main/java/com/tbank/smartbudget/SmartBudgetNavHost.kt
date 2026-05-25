@@ -58,8 +58,7 @@ fun SmartBudgetNavHost() {
                 viewModel = viewModel,
                 onNavigateNext = { email, isExisting, userName ->
                     navController.navigate(LoginPasswordRoute(email, isExisting, userName))
-                },
-                onBack = { navController.popBackStack() }
+                }
             )
         }
 
