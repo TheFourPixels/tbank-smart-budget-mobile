@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.smartbudget.feature.category_search.SearchCategoryItem
+import com.tbank.smartbudget.core.ui.common.CategoryIconPlaceholder
 
 @Composable
 fun CategoryItemRow(category: SearchCategoryItem, onClick: () -> Unit) {
@@ -27,7 +28,11 @@ fun CategoryItemRow(category: SearchCategoryItem, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CategoryIconPlaceholder(category.color)
+        CategoryIconPlaceholder(
+            color = category.color,
+            iconRes = category.iconRes,
+            name = category.name
+        )
         Spacer(Modifier.width(16.dp))
 
         Column {

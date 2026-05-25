@@ -18,6 +18,7 @@ class GoalDetailsViewModel @Inject constructor(
         when (intent) {
             is GoalDetailsIntent.LoadGoal -> loadGoal(intent.id)
             is GoalDetailsIntent.OnContributeClicked -> contribute(intent.amount)
+            GoalDetailsIntent.OnCompleteEarlyClicked -> completeEarly()
             GoalDetailsIntent.OnBackClicked -> sendEffect(GoalDetailsEffect.NavigateBack)
         }
     }
@@ -45,6 +46,21 @@ class GoalDetailsViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     updateState { copy(isContributing = false, error = error.message) }
+                }
+        }
+    }
+
+    private fun completeEarly() {
+        val goalId = currentState.goal?.id?.value ?: return
+        viewModelScope.launch {
+            updateState { copy(isLoading = true) }
+            goalRepository.deleteGoal(goalId)
+                .onSuccess {
+                    sendEffect(GoalDetailsEffect.ShowToast("Цель завершена"))
+                    sendEffect(GoalDetailsEffect.NavigateBack)
+                }
+                .onFailure { error ->
+                    updateState { copy(isLoading = false, error = "Ошибка: ${error.message}") }
                 }
         }
     }

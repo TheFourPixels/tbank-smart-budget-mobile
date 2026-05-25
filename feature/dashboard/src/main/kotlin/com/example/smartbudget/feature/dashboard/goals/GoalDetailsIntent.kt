@@ -6,9 +6,11 @@ import com.tbank.smartbudget.core.ui.common.UiIntent
 sealed class GoalDetailsIntent : UiIntent {
     data class LoadGoal(val id: Long) : GoalDetailsIntent()
     data class OnContributeClicked(val amount: Double) : GoalDetailsIntent()
+    data object OnCompleteEarlyClicked : GoalDetailsIntent()
     data object OnBackClicked : GoalDetailsIntent()
 }
 
 sealed class GoalDetailsEffect : UiEffect {
     data object NavigateBack : GoalDetailsEffect()
+    data class ShowToast(val message: String) : GoalDetailsEffect()
 }

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -21,11 +22,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tbank.smartbudget.core.ui.common.DetailsCard
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
@@ -40,6 +44,7 @@ fun GoalsScreen(
     viewModel: GoalsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -48,6 +53,16 @@ fun GoalsScreen(
                 GoalsEffect.NavigateToAddGoal -> onNavigateToAddGoal()
             }
         }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onIntent(GoalsIntent.LoadGoals)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     GoalsContent(
@@ -89,27 +104,47 @@ fun GoalsContent(
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
             val backgroundColor = MaterialTheme.colorScheme.background
             val gradientHeight = 400.dp
-            
+
             // Основной градиент
-            Box(modifier = Modifier.fillMaxWidth().height(gradientHeight).background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF5E35B1), Color(0xFFD81B60).copy(alpha = 0.7f)),
-                    start = Offset(0f, 0f),
-                    end = Offset(Float.POSITIVE_INFINITY, 600f)
-                )
-            ))
-            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(gradientHeight)
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF5E35B1),
+                                Color(0xFFD81B60).copy(alpha = 0.7f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(Float.POSITIVE_INFINITY, 600f)
+                        )
+                    )
+            )
+
             // Плавный переход в фон снизу
-            Box(modifier = Modifier.fillMaxWidth().height(gradientHeight).background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color.Transparent, backgroundColor.copy(alpha = 0f), backgroundColor),
-                    startY = 0.6f * with(androidx.compose.ui.platform.LocalDensity.current) { gradientHeight.toPx() },
-                    endY = 1.0f * with(androidx.compose.ui.platform.LocalDensity.current) { gradientHeight.toPx() }
-                )
-            ))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(gradientHeight)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                backgroundColor.copy(alpha = 0f),
+                                backgroundColor
+                            ),
+                            startY = 0.6f * with(androidx.compose.ui.platform.LocalDensity.current) { gradientHeight.toPx() },
+                            endY = 1.0f * with(androidx.compose.ui.platform.LocalDensity.current) { gradientHeight.toPx() }
+                        )
+                    ))
 
             Column(
                 modifier = Modifier
@@ -119,12 +154,15 @@ fun GoalsContent(
             ) {
                 Text(
                     text = "Мои цели",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
                     color = Color.White,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
-                if (state.isLoading) {
+                if (state.isLoading && state.activeGoals.isEmpty() && state.completedGoals.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
@@ -132,20 +170,41 @@ fun GoalsContent(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(text = state.error, color = MaterialTheme.colorScheme.error)
                     }
-                } else if (state.goals.isEmpty()) {
+                } else if (state.activeGoals.isEmpty() && state.completedGoals.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("У вас пока нет активных целей", color = Color.Gray)
                     }
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
-                        items(state.goals) { goal ->
-                            GoalCard(
-                                goal = goal,
-                                onClick = { onGoalClick(goal) }
-                            )
+                        if (state.activeGoals.isNotEmpty()) {
+                            items(state.activeGoals) { goal ->
+                                GoalCard(
+                                    goal = goal,
+                                    onClick = { onGoalClick(goal) }
+                                )
+                            }
+                        }
+
+                        if (state.completedGoals.isNotEmpty()) {
+                            item {
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    text = "Выполненные цели",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.White
+                                )
+                            }
+
+                            items(state.completedGoals) { goal ->
+                                GoalCard(
+                                    goal = goal,
+                                    onClick = { onGoalClick(goal) }
+                                )
+                            }
                         }
                     }
                 }
@@ -163,9 +222,9 @@ fun GoalCard(goal: Goal, onClick: () -> Unit) {
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color.Black
             )
-            
+
             Spacer(Modifier.height(16.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -205,7 +264,7 @@ fun GoalCard(goal: Goal, onClick: () -> Unit) {
                 iconColor = Color(0xFF42A5F5),
                 text = "Осталось: ${goal.daysLeft} дней"
             )
-            
+
             Spacer(Modifier.height(12.dp))
 
             GoalInfoRow(
@@ -240,9 +299,29 @@ fun GoalsScreenPreview() {
     SmartBudgetTheme {
         GoalsContent(
             state = GoalsUiState(
-                goals = listOf(
-                    Goal(GoalId(1), "Накопить на авто", 150000.0, 45000.0, "05.04.2026", 30, 45, 2300.0),
-                    Goal(GoalId(2), "Отпуск", 50000.0, 25000.0, "15.08.2026", 50, 120, 5000.0)
+                activeGoals = listOf(
+                    Goal(
+                        GoalId(1),
+                        "Накопить на авто",
+                        150000.0,
+                        45000.0,
+                        "05.04.2026",
+                        null,
+                        30,
+                        45L,
+                        2300.0
+                    ),
+                    Goal(
+                        GoalId(2),
+                        "Отпуск",
+                        50000.0,
+                        25000.0,
+                        "15.08.2026",
+                        null,
+                        50,
+                        120L,
+                        5000.0
+                    )
                 )
             ),
             onBackClick = {},

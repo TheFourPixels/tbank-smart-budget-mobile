@@ -97,6 +97,7 @@ fun GoalDto.toDomain(): Goal {
         targetAmount = targetAmount,
         savedAmount = savedAmount,
         deadline = deadline,
+        createdAt = createdAt,
         progressPercent = progressPercent,
         daysLeft = daysLeft,
         recommendedMonthly = recommendedMonthly,
@@ -106,12 +107,12 @@ fun GoalDto.toDomain(): Goal {
 
 fun GoalContributionDto.toDomain(): GoalContribution {
     val ldt = try {
-        java.time.ZonedDateTime.parse(date).toLocalDateTime()
+        ZonedDateTime.parse(date).toLocalDateTime()
     } catch (e: Exception) {
         try {
-            java.time.LocalDateTime.parse(date)
+            LocalDateTime.parse(date)
         } catch (e2: Exception) {
-            java.time.LocalDateTime.now()
+            LocalDateTime.now()
         }
     }
     return GoalContribution(

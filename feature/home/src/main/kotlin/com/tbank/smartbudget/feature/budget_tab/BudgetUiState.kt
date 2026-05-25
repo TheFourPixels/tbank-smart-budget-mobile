@@ -7,7 +7,7 @@ import com.tbank.smartbudget.data.domain.model.CategoryId
 data class BudgetUiState(
     val period: BudgetPeriod = BudgetPeriod.MONTH,
     val userName: String = "",
-    val budgetName: String = "Кубышка",
+    val budgetName: String = "Основной",
     val budgetTerm: String = "",
     val summary: BudgetSummaryUi? = null,
     val categories: List<CategoryUi> = emptyList(),

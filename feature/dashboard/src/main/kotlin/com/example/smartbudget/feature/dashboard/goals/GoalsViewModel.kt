@@ -29,13 +29,27 @@ class GoalsViewModel @Inject constructor(
     private fun loadGoals() {
         viewModelScope.launch {
             updateState { copy(isLoading = true) }
-            goalRepository.getGoals()
-                .onSuccess { goals ->
-                    updateState { copy(isLoading = false, goals = goals) }
+            
+            val activeResult = goalRepository.getGoals()
+            val completedResult = goalRepository.getCompletedGoals()
+
+            if (activeResult.isSuccess || completedResult.isSuccess) {
+                updateState {
+                    copy(
+                        isLoading = false,
+                        activeGoals = activeResult.getOrNull() ?: emptyList(),
+                        completedGoals = completedResult.getOrNull() ?: emptyList(),
+                        error = null
+                    )
                 }
-                .onFailure { error ->
-                    updateState { copy(isLoading = false, error = error.message) }
+            } else {
+                updateState { 
+                    copy(
+                        isLoading = false, 
+                        error = activeResult.exceptionOrNull()?.message ?: "Ошибка загрузки"
+                    ) 
                 }
+            }
         }
     }
 }

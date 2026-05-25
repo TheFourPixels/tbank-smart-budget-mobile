@@ -122,7 +122,7 @@ private fun CategorySearchScreenPreview() {
                         name = "Продукты",
                         iconRes = 0,
                         color = Color.Green,
-                        limit = "",
+                        limit = "Остаток: 10 000 ₽",
                         isTopResult = true
                     ),
                     SearchCategoryItem(
@@ -130,7 +130,7 @@ private fun CategorySearchScreenPreview() {
                         name = "Транспорт",
                         iconRes = 0,
                         color = Color.Blue,
-                        limit = "",
+                        limit = "Остаток: 5 000 ₽",
                         isTopResult = false
                     )
                 )

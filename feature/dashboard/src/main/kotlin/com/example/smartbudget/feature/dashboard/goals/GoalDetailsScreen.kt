@@ -46,6 +46,7 @@ fun GoalDetailsScreen(
     viewModel: GoalDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(goalId) {
         viewModel.onIntent(GoalDetailsIntent.LoadGoal(goalId))
@@ -55,6 +56,9 @@ fun GoalDetailsScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 GoalDetailsEffect.NavigateBack -> onNavigateBack()
+                is GoalDetailsEffect.ShowToast -> {
+                    android.widget.Toast.makeText(context, effect.message, android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -64,7 +68,8 @@ fun GoalDetailsScreen(
         onBackClick = { viewModel.onIntent(GoalDetailsIntent.OnBackClicked) },
         onContributeClick = { 
             onNavigateToContribute(it.id.value, it.recommendedMonthly, it.targetAmount, it.savedAmount) 
-        }
+        },
+        onCompleteEarlyClick = { viewModel.onIntent(GoalDetailsIntent.OnCompleteEarlyClicked) }
     )
 }
 
@@ -73,7 +78,8 @@ fun GoalDetailsScreen(
 fun GoalDetailsContent(
     state: GoalDetailsUiState,
     onBackClick: () -> Unit,
-    onContributeClick: (Goal) -> Unit
+    onContributeClick: (Goal) -> Unit,
+    onCompleteEarlyClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -213,7 +219,7 @@ fun GoalDetailsContent(
                                 }
                                 
                                 TextButton(
-                                    onClick = { /* TODO */ },
+                                    onClick = onCompleteEarlyClick,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text("Завершить цель досрочно", color = Color(0xFF528ECE))
@@ -324,7 +330,8 @@ fun GoalDetailsScreenPreview() {
                 )
             ),
             onBackClick = {},
-            onContributeClick = {}
+            onContributeClick = {},
+            onCompleteEarlyClick = {}
         )
     }
 }

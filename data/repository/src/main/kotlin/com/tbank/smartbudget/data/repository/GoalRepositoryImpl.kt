@@ -23,6 +23,16 @@ class GoalRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getCompletedGoals(): Result<List<Goal>> {
+        return try {
+            val now = LocalDate.now()
+            val completedGoals = api.listCompleted(now.year, now.monthValue)
+            Result.success(completedGoals.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getGoalDetails(id: Long): Result<Goal> {
         return try {
             val dto = api.get(id)

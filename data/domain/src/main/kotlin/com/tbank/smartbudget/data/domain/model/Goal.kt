@@ -11,6 +11,7 @@ data class Goal(
     val targetAmount: Double,
     val savedAmount: Double,
     val deadline: String?,
+    val createdAt: String? = null,
     val progressPercent: Int,
     val daysLeft: Long = 0,
     val recommendedMonthly: Double = 0.0,
