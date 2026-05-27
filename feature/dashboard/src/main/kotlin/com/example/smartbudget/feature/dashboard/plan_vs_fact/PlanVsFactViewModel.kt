@@ -4,7 +4,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
 import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
-import com.tbank.smartbudget.data.domain.usecase.GetCategoryDetailsUseCase
+import com.tbank.smartbudget.data.domain.model.TransactionType
+import com.tbank.smartbudget.data.domain.repository.DashboardRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlanVsFactViewModel @Inject constructor(
-    private val getCategoryDetailsUseCase: GetCategoryDetailsUseCase
+    private val dashboardRepository: DashboardRepository
 ) : BaseViewModel<PlanVsFactUiState, PlanVsFactIntent, PlanVsFactEffect>(
     PlanVsFactUiState(isLoading = true)
 ) {
@@ -41,10 +42,32 @@ class PlanVsFactViewModel @Inject constructor(
             val formattedPeriod = date.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
                 .replaceFirstChar { it.uppercase() }
 
-            getCategoryDetailsUseCase.execute(budgetId = 1L)
-                .onSuccess { categories ->
+            dashboardRepository.getDashboardSummary(currentMonth, currentYear)
+                .onSuccess { data ->
+                    val categories = data.categoryStats
                     val totalPlanVal = categories.sumOf { it.limitAmount }
-                    val totalFactVal = categories.sumOf { it.spentAmount }
+                    val totalFactVal = data.totalSpent
+
+                    // Calculate real expense history from transactions
+                    val historyMap = data.recentTransactions
+                        .filter { it.type == TransactionType.EXPENSE }
+                        .groupBy { it.date.toLocalDate() }
+                        .mapValues { it.value.sumOf { tx -> tx.amount }.toFloat() }
+
+                    val sortedDates = historyMap.keys.sorted()
+                    val historyPoints = if (sortedDates.isNotEmpty()) {
+                        val firstDate = sortedDates.first()
+                        val lastDate = LocalDate.now()
+                        val points = mutableListOf<Float>()
+                        var d = firstDate
+                        while (!d.isAfter(lastDate)) {
+                            points.add(historyMap[d] ?: 0f)
+                            d = d.plusDays(1)
+                        }
+                        points.takeLast(14) // Показываем последние 2 недели
+                    } else {
+                        emptyList()
+                    }
 
                     val diffPercent = if (totalPlanVal > 0) ((totalFactVal - totalPlanVal) / totalPlanVal) * 100 else 0.0
                     val diffLabel = "${if (diffPercent > 0) "+" else ""}${"%.1f".format(diffPercent)}%"
@@ -71,6 +94,7 @@ class PlanVsFactViewModel @Inject constructor(
                             planValue = totalPlanVal,
                             factValue = totalFactVal,
                             percentageDiffLabel = diffLabel,
+                            expenseHistory = historyPoints,
                             categories = uiCategories,
                             periodName = formattedPeriod
                         )

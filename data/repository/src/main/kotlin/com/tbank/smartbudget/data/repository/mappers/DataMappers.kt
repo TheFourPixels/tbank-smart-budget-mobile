@@ -46,19 +46,23 @@ fun TransactionDto.toDomain(): Transaction {
  * Маппинг RecentTransactionDto в доменную модель Transaction.
  */
 fun RecentTransactionDto.toDomain(): Transaction {
-    val ldt = try {
-        ZonedDateTime.parse(date).toLocalDateTime()
-    } catch (e: Exception) {
-        try {
-            LocalDateTime.parse(date)
-        } catch (e2: Exception) {
-            LocalDateTime.now()
+    val dateStr = date
+    val ldt = when {
+        dateStr == null -> LocalDateTime.now()
+        else -> try {
+            ZonedDateTime.parse(dateStr).toLocalDateTime()
+        } catch (e: Exception) {
+            try {
+                LocalDateTime.parse(dateStr)
+            } catch (e2: Exception) {
+                LocalDateTime.now()
+            }
         }
     }
     val finalCategoryName = categoryName ?: "Без категории"
     return Transaction(
         id = TransactionId(0L), // Dashboard не возвращает ID
-        amount = amount,
+        amount = amount ?: 0.0,
         type = if (income) TransactionType.INCOME else TransactionType.EXPENSE,
         date = ldt,
         description = description,
@@ -93,7 +97,28 @@ fun GoalDto.toDomain(): Goal {
         targetAmount = targetAmount,
         savedAmount = savedAmount,
         deadline = deadline,
-        progressPercent = progressPercent
+        createdAt = createdAt,
+        progressPercent = progressPercent,
+        daysLeft = daysLeft,
+        recommendedMonthly = recommendedMonthly,
+        contributions = contributions?.map { it.toDomain() } ?: emptyList()
+    )
+}
+
+fun GoalContributionDto.toDomain(): GoalContribution {
+    val ldt = try {
+        ZonedDateTime.parse(date).toLocalDateTime()
+    } catch (e: Exception) {
+        try {
+            LocalDateTime.parse(date)
+        } catch (e2: Exception) {
+            LocalDateTime.now()
+        }
+    }
+    return GoalContribution(
+        amount = amount,
+        date = ldt,
+        description = description
     )
 }
 
@@ -107,7 +132,9 @@ fun GoalSummaryDto.toDomain(): Goal {
         targetAmount = target,
         savedAmount = saved,
         deadline = null,
-        progressPercent = progressPercent
+        progressPercent = progressPercent,
+        daysLeft = daysLeft,
+        recommendedMonthly = recommendedMonthly
     )
 }
 
@@ -127,13 +154,25 @@ fun UserProfileDto.toDomain(): User {
  * Преобразование статистики категорий из DTO в доменную модель.
  */
 fun CategoryStatDto.toDomain(): CategoryLimit {
+    val parsedColor = try {
+        val colorStr = color
+        if (colorStr != null && colorStr.startsWith("#")) {
+            colorStr.removePrefix("#").toLong(16) or 0xFF000000
+        } else {
+            // Если пришло название цвета ("green", "red") или null - берем по ID
+            CategoryColorMapper.getColorForId(categoryId)
+        }
+    } catch (e: Exception) {
+        CategoryColorMapper.getColorForId(categoryId)
+    }
+
     return CategoryLimit(
         id = CategoryId(categoryId),
         name = categoryName,
         limitAmount = limit,
         spentAmount = spent,
         iconRes = 0,
-        color = color?.removePrefix("#")?.toLong(16) ?: 0L
+        color = parsedColor
     )
 }
 
@@ -141,14 +180,17 @@ fun CategoryStatDto.toDomain(): CategoryLimit {
  * Преобразование DashboardResponse в DashboardData.
  */
 fun DashboardResponse.toDomain(): DashboardData {
+    val finalIncome = if (totalIncome > 0) totalIncome else budgetPlan
+    val finalStats = categoryStats ?: categoriesStats ?: emptyList()
+    
     return DashboardData(
         month = month,
-        totalIncome = totalIncome,
+        totalIncome = finalIncome,
         totalSpent = totalSpent,
         remainingBudget = remainingBudget,
-        categoryStats = categoryStats.map { it.toDomain() },
-        activeGoals = activeGoals.map { it.toDomain() },
-        recentTransactions = recentTransactions.map { it.toDomain() }
+        categoryStats = finalStats.map { it.toDomain() },
+        activeGoals = activeGoals?.map { it.toDomain() } ?: emptyList(),
+        recentTransactions = recentTransactions?.map { it.toDomain() } ?: emptyList()
     )
 }
 
@@ -156,12 +198,13 @@ fun DashboardResponse.toDomain(): DashboardData {
  * Преобразование DashboardResponse в BudgetSummary.
  */
 fun DashboardResponse.toSummary(): BudgetSummary {
+    val finalIncome = if (totalIncome > 0) totalIncome else budgetPlan
     val monthName = LocalDate.of(year, month, 1)
         .month.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
         .replaceFirstChar { it.uppercase() }
 
     return BudgetSummary(
-        totalIncome = totalIncome,
+        totalIncome = finalIncome,
         totalLimit = totalSpent + remainingBudget,
         totalSpent = totalSpent,
         freeFunds = remainingBudget,

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -19,6 +18,7 @@ import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 fun BudgetDashboardHero(
     remainingAmount: String,
     budgetName: String,
+    historyData: List<Float>,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -36,13 +36,8 @@ fun BudgetDashboardHero(
 
         Spacer(Modifier.height(24.dp))
 
-        // Мок-данные для графика
-        val mockChartData = remember {
-            listOf(1.0f, 0.95f, 0.88f, 0.82f, 0.75f, 0.60f, 0.55f, 0.48f, 0.40f, 0.45f)
-        }
-
         BudgetLineChart(
-            dataPoints = mockChartData,
+            dataPoints = historyData,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp),
@@ -58,7 +53,8 @@ private fun BudgetDashboardHeroPreview() {
     SmartBudgetTheme {
         BudgetDashboardHero(
             remainingAmount = "17 500 ₽",
-            budgetName = "Кубышка"
+            budgetName = "Кубышка",
+            historyData = listOf(1f, 0.8f, 0.6f, 0.7f, 0.4f)
         )
     }
 }

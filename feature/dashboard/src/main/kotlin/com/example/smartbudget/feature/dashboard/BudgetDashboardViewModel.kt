@@ -2,6 +2,7 @@ package com.example.smartbudget.feature.dashboard
 
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
+import com.tbank.smartbudget.data.domain.model.TransactionType
 import com.tbank.smartbudget.data.domain.repository.DashboardRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -54,6 +55,28 @@ class BudgetDashboardViewModel @Inject constructor(
                     val daysInMonth = now.month.length(now.isLeapYear)
                     val daysLeft = (daysInMonth - now.dayOfMonth).coerceAtLeast(1)
 
+                    // Generate real-ish history data based on income and spent
+                    val historyPoints = if (totalLimit > 0) {
+                        val points = mutableListOf<Float>()
+                        var currentBalance = data.totalIncome
+                        points.add(1.0f) // Start at 100%
+                        
+                        // We use recent transactions to show a downward trend
+                        data.recentTransactions.filter { it.type == TransactionType.EXPENSE }
+                            .sortedBy { it.date }
+                            .takeLast(7)
+                            .forEach { tx ->
+                                currentBalance -= tx.amount
+                                points.add((currentBalance / data.totalIncome).toFloat().coerceIn(0f, 1f))
+                            }
+                        
+                        if (points.size < 5) {
+                           // If not enough transactions, add a trend point
+                           points.add((data.remainingBudget / data.totalIncome).toFloat().coerceIn(0f, 1f))
+                        }
+                        points
+                    } else listOf(0f)
+
                     updateState {
                         copy(
                             isLoading = false,
@@ -66,6 +89,7 @@ class BudgetDashboardViewModel @Inject constructor(
                             daysLeft = daysLeft,
                             dailyBudget = formatMoney(data.remainingBudget / daysLeft),
                             periodDescription = monthName,
+                            historyData = historyPoints,
                             recentTransactions = data.recentTransactions,
                             activeGoals = data.activeGoals,
                             categoryStats = data.categoryStats

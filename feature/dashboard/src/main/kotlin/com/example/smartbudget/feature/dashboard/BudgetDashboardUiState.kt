@@ -17,6 +17,7 @@ data class BudgetDashboardUiState(
     val daysLeft: Int = 0,
     val dailyBudget: String = "0 ₽",
     val periodDescription: String = "",
+    val historyData: List<Float> = emptyList(),
     val recentTransactions: List<Transaction> = emptyList(),
     val activeGoals: List<Goal> = emptyList(),
     val categoryStats: List<CategoryLimit> = emptyList()

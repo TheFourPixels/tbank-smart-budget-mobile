@@ -17,5 +17,14 @@ import kotlinx.serialization.Serializable
 @Serializable data object AllOperationsRoute
 @Serializable data object SelectedCategoriesRoute
 @Serializable data object CategoriesDashboardRoute
+@Serializable data object GoalsRoute
+@Serializable data object AddGoalRoute
+@Serializable data class GoalDetailsRoute(val goalId: Long)
+@Serializable data class ContributeGoalRoute(
+    val goalId: Long, 
+    val recommendedAmount: Double,
+    val targetAmount: Double,
+    val savedAmount: Double
+)
 @Serializable data object ProfileRoute
 @Serializable data object AddTransactionRoute

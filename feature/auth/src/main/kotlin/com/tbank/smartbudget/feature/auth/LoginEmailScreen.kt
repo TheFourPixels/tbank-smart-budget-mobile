@@ -38,7 +38,6 @@ import com.tbank.smartbudget.feature.auth.components.AuthTitle
 @Composable
 fun LoginEmailScreen(
     onNavigateNext: (email: String, isExisting: Boolean, userName: String?) -> Unit,
-    onBack: () -> Unit,
     viewModel: AuthViewModel
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -63,16 +62,14 @@ fun LoginEmailScreen(
 
     LoginEmailContent(
         state = state,
-        onIntent = viewModel::onIntent,
-        onBack = onBack
+        onIntent = viewModel::onIntent
     )
 }
 
 @Composable
 fun LoginEmailContent(
     state: AuthUiState,
-    onIntent: (AuthIntent) -> Unit,
-    onBack: () -> Unit
+    onIntent: (AuthIntent) -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -86,15 +83,7 @@ fun LoginEmailContent(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             
-            IconButton(onClick = onBack, modifier = Modifier.padding(start = 0.dp)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Назад",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(88.dp))
 
             AuthTitle("Вход")
             AuthSubtitle("Введите вашу почту для входа или регистрации")
@@ -152,8 +141,7 @@ private fun LoginEmailPreview() {
     SmartBudgetTheme {
         LoginEmailContent(
             state = AuthUiState(email = "test@example.com", isEmailValid = true),
-            onIntent = {},
-            onBack = {}
+            onIntent = {}
         )
     }
 }

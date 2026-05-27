@@ -13,7 +13,15 @@ data class GoalDto(
     @SerialName("createdAt") val createdAt: String?, // date
     @SerialName("progressPercent") val progressPercent: Int,
     @SerialName("daysLeft") val daysLeft: Long,
-    @SerialName("recommendedMonthly") val recommendedMonthly: Double
+    @SerialName("recommendedMonthly") val recommendedMonthly: Double,
+    @SerialName("contributions") val contributions: List<GoalContributionDto>? = null
+)
+
+@Serializable
+data class GoalContributionDto(
+    @SerialName("amount") val amount: Double,
+    @SerialName("date") val date: String,
+    @SerialName("description") val description: String? = null
 )
 
 @Serializable

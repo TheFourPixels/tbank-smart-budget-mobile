@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.tbank.smartbudget.core.ui.common.BaseViewModel
 import com.tbank.smartbudget.data.domain.model.CategoryColorMapper
-import com.tbank.smartbudget.data.domain.model.BudgetCategory
+import com.tbank.smartbudget.data.domain.model.CategoryLimit
 import com.tbank.smartbudget.data.domain.usecase.GetCategoriesForSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -17,7 +17,7 @@ class CategorySearchViewModel @Inject constructor(
     CategorySearchUiState()
 ) {
 
-    private var allCategories: List<BudgetCategory> = emptyList()
+    private var allCategories: List<CategoryLimit> = emptyList()
 
     init {
         onIntent(CategorySearchIntent.LoadCategories)
@@ -70,14 +70,18 @@ class CategorySearchViewModel @Inject constructor(
         updateState { copy(searchResults = filteredItems) }
     }
 
-    private fun mapToUiModel(domainCategory: BudgetCategory, isTop: Boolean): SearchCategoryItem {
+    private fun mapToUiModel(domainCategory: CategoryLimit, isTop: Boolean): SearchCategoryItem {
         return SearchCategoryItem(
             id = domainCategory.id,
             name = domainCategory.name,
             iconRes = domainCategory.iconRes,
-            color = Color(CategoryColorMapper.getColorForId(domainCategory.id.value)),
-            limit = "Лимит: ...",
+            color = Color(domainCategory.color),
+            limit = "Остаток: ${formatMoney(domainCategory.remainingAmount)}",
             isTopResult = isTop
         )
+    }
+
+    private fun formatMoney(amount: Double): String {
+        return "%,.0f ₽".format(amount).replace(',', ' ')
     }
 }

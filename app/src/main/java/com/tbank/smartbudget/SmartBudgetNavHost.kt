@@ -18,6 +18,14 @@ import com.example.smartbudget.feature.dashboard.BudgetDashboardScreen
 import com.example.smartbudget.feature.dashboard.BudgetDashboardViewModel
 import com.example.smartbudget.feature.dashboard.categories.CategoriesDashboardScreen
 import com.example.smartbudget.feature.dashboard.categories.CategoriesDashboardViewModel
+import com.example.smartbudget.feature.dashboard.goals.AddGoalScreen
+import com.example.smartbudget.feature.dashboard.goals.AddGoalViewModel
+import com.example.smartbudget.feature.dashboard.goals.ContributeGoalScreen
+import com.example.smartbudget.feature.dashboard.goals.ContributeGoalViewModel
+import com.example.smartbudget.feature.dashboard.goals.GoalDetailsScreen
+import com.example.smartbudget.feature.dashboard.goals.GoalDetailsViewModel
+import com.example.smartbudget.feature.dashboard.goals.GoalsScreen
+import com.example.smartbudget.feature.dashboard.goals.GoalsViewModel
 import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactScreen
 import com.example.smartbudget.feature.dashboard.plan_vs_fact.PlanVsFactViewModel
 import com.example.smartbudget.feature.operations.AllOperationsIntent
@@ -50,8 +58,7 @@ fun SmartBudgetNavHost() {
                 viewModel = viewModel,
                 onNavigateNext = { email, isExisting, userName ->
                     navController.navigate(LoginPasswordRoute(email, isExisting, userName))
-                },
-                onBack = { navController.popBackStack() }
+                }
             )
         }
 
@@ -160,7 +167,54 @@ fun SmartBudgetNavHost() {
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPlanVsFact = { navController.navigate(PlanVsFactRoute) },
-                onNavigateToCategoriesDashboard = { navController.navigate(CategoriesDashboardRoute) }
+                onNavigateToCategoriesDashboard = { navController.navigate(CategoriesDashboardRoute) },
+                onNavigateToGoals = { navController.navigate(GoalsRoute) }
+            )
+        }
+
+        composable<GoalsRoute> {
+            val viewModel = hiltViewModel<GoalsViewModel>()
+            GoalsScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddGoal = { navController.navigate(AddGoalRoute) },
+                onNavigateToGoalDetails = { goalId -> 
+                    navController.navigate(GoalDetailsRoute(goalId))
+                }
+            )
+        }
+
+        composable<GoalDetailsRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<GoalDetailsRoute>()
+            val viewModel = hiltViewModel<GoalDetailsViewModel>()
+            GoalDetailsScreen(
+                goalId = args.goalId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToContribute = { goalId, amount, target, saved ->
+                    navController.navigate(ContributeGoalRoute(goalId, amount, target, saved))
+                },
+                viewModel = viewModel
+            )
+        }
+
+        composable<ContributeGoalRoute> { backStackEntry ->
+            val args = backStackEntry.toRoute<ContributeGoalRoute>()
+            val viewModel = hiltViewModel<ContributeGoalViewModel>()
+            ContributeGoalScreen(
+                goalId = args.goalId,
+                recommendedAmount = args.recommendedAmount,
+                targetAmount = args.targetAmount,
+                savedAmount = args.savedAmount,
+                onNavigateBack = { navController.popBackStack() },
+                viewModel = viewModel
+            )
+        }
+
+        composable<AddGoalRoute> {
+            val viewModel = hiltViewModel<AddGoalViewModel>()
+            AddGoalScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

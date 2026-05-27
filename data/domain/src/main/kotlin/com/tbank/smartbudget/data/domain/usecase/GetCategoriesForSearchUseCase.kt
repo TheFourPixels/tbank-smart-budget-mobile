@@ -1,24 +1,22 @@
 package com.tbank.smartbudget.data.domain.usecase
 
-import com.tbank.smartbudget.data.domain.model.BudgetCategory
-import com.tbank.smartbudget.data.domain.repository.CategorySearchRepository
+import com.tbank.smartbudget.data.domain.model.CategoryLimit
+import com.tbank.smartbudget.data.domain.repository.BudgetRepository
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
- * UseCase для получения списка всех доступных категорий, которые пользователь может
- * выбрать или искать на экране поиска.
- *
- * @param repository Интерфейс репозитория для доступа к данным.
+ * UseCase для получения списка всех доступных категорий с информацией о лимитах.
  */
 class GetCategoriesForSearchUseCase @Inject constructor(
-    private val repository: CategorySearchRepository
+    private val repository: BudgetRepository
 ) {
     /**
-     * Возвращает список всех доступных категорий.
-     *
-     * @return List<BudgetCategory> Список категорий.
+     * Возвращает список категорий с текущими лимитами/тратами.
      */
-    suspend operator fun invoke(): List<BudgetCategory> {
-        return repository.getAllCategories()
+    suspend operator fun invoke(): List<CategoryLimit> {
+        val now = LocalDate.now()
+        val statsResult = repository.getCategoryStats(now.year, now.monthValue)
+        return statsResult.getOrNull() ?: emptyList()
     }
 }

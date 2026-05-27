@@ -1,7 +1,9 @@
 package com.tbank.smartbudget.data.repository
 
 import com.tbank.smartbudget.core.network.remote.api.TransactionApi
+import com.tbank.smartbudget.core.network.remote.dto.CategoryDto
 import com.tbank.smartbudget.core.network.remote.dto.CreateTransactionRequest
+import com.tbank.smartbudget.data.domain.model.CategoryId
 import com.tbank.smartbudget.data.domain.model.Transaction
 import com.tbank.smartbudget.data.domain.repository.TransactionRepository
 import com.tbank.smartbudget.data.repository.mappers.toDomain
@@ -13,7 +15,7 @@ import javax.inject.Inject
 
 class TransactionRepositoryImpl @Inject constructor(
     private val api: TransactionApi,
-    private val categorizer: TransactionCategorizer
+    private val categorizer: TransactionCategorizer,
 ) : TransactionRepository {
 
     override suspend fun getTransactions(
@@ -22,7 +24,7 @@ class TransactionRepositoryImpl @Inject constructor(
         categoryId: Long?,
         query: String?,
         startDate: LocalDateTime?,
-        endDate: LocalDateTime?
+        endDate: LocalDateTime?,
     ): Result<List<Transaction>> {
         return try {
             val pageResponse = api.getTransactions(
@@ -58,11 +60,20 @@ class TransactionRepositoryImpl @Inject constructor(
                 type = type,
                 merchant = merchantName?.takeIf { it.isNotBlank() },
                 categoryId = categoryId,
+                category = CategoryDto(id = categoryId),
                 description = description?.takeIf { it.isNotBlank() }
             )
 
             val dto = api.createTransaction(request)
-            Result.success(dto.toDomain())
+            var domain = dto.toDomain()
+            
+            // Если сервер вернул транзакцию без категории, используем ID из запроса
+            if ((domain.categoryId.value <= 0L) && (categoryId > 0L)) {
+                domain = domain.copy(categoryId = CategoryId(categoryId))
+            }
+
+            val categorized = categorizer.categorize(listOf(domain)).first()
+            Result.success(categorized)
         } catch (e: Exception) {
             Result.failure(e)
         }

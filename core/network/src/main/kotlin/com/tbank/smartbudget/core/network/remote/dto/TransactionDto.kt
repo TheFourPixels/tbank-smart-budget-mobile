@@ -32,6 +32,7 @@ data class CreateTransactionRequest(
     @SerialName("type") val type: String,
     @SerialName("merchant") val merchant: String?,
     @SerialName("categoryId") val categoryId: Long,
+    @SerialName("category") val category: CategoryDto? = null,
     @SerialName("description") val description: String?
 )
 

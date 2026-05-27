@@ -13,7 +13,7 @@ import javax.inject.Singleton
 @Singleton
 class TransactionCategorizer @Inject constructor(
     private val transactionApi: TransactionApi,
-    private val categoryRepository: CategorySearchRepository
+    private val categoryRepository: CategorySearchRepository,
 ) {
 
     private suspend fun getRules(): List<CategorizationRule> {
@@ -35,29 +35,34 @@ class TransactionCategorizer @Inject constructor(
     suspend fun categorize(transactions: List<Transaction>): List<Transaction> {
         val rules = getRules()
         val categories = getCategories()
+        
+        android.util.Log.d("Categorizer", "Starting categorization for ${transactions.size} transactions. Rules: ${rules.size}, Categories: ${categories.size}")
 
         return transactions.map { transaction ->
-            // Если категория уже назначена (ID > 0), просто обогащаем метаданными
+            // 1. Если категория уже назначена (ID > 0), просто обогащаем метаданными
             if (transaction.categoryId.value > 0) {
                 val category = categories.find { it.id.value == transaction.categoryId.value }
-                return@map if (category != null) {
-                    transaction.copy(
-                        categoryName = category.name,
-                        categoryColor = CategoryColorMapper.getColorForId(category.id.value)
+                category?.let {
+                    android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: Already has ID ${transaction.categoryId.value}, enriched with name ${it.name}")
+                    return@map transaction.copy(
+                        categoryName = it.name,
+                        categoryColor = CategoryColorMapper.getColorForId(it.id.value)
                     )
-                } else {
-                    transaction
                 }
             }
 
-            // Применяем правила ТОЛЬКО для не категоризированных транзакций
-            val rule = rules.find {
-                (transaction.merchantName?.contains(it.keyword, ignoreCase = true) == true) ||
-                (transaction.description?.contains(it.keyword, ignoreCase = true) == true)
+            // 2. Применяем правила категоризации
+            val rule = rules.find { rule ->
+                val keyword = rule.keyword.lowercase().replace('ё', 'е')
+                val merchant = transaction.merchantName?.lowercase()?.replace('ё', 'е') ?: ""
+                val desc = transaction.description?.lowercase()?.replace('ё', 'е') ?: ""
+                
+                merchant.contains(keyword) || desc.contains(keyword)
             }
 
             if (rule != null) {
                 val category = categories.find { it.id.value == rule.categoryId }
+                android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: Matched rule [${rule.keyword}] -> Category ${category?.name}")
                 return@map transaction.copy(
                     categoryId = CategoryId(rule.categoryId),
                     categoryName = category?.name ?: "Категория ${rule.categoryId}",
@@ -65,7 +70,38 @@ class TransactionCategorizer @Inject constructor(
                 )
             }
 
-            // Оставляем без изменений, если правило не найдено
+            // 3. Запасной вариант: Поиск по точному совпадению имени категории или базе знаний
+            val matchedCategory = categories.find { category ->
+                val catName = category.name.lowercase().replace('ё', 'е')
+                val merchant = transaction.merchantName?.lowercase()?.replace('ё', 'е') ?: ""
+                val desc = transaction.description?.lowercase()?.replace('ё', 'е') ?: ""
+                
+                // Встроенная база знаний для популярных сетей
+                val isFood = merchant.contains("магнит") || merchant.contains("пятерочка") || merchant.contains("перекресток")
+                val isTech = merchant.contains("dns") || merchant.contains("днс") || merchant.contains("мвидео")
+                val isBook = merchant.contains("читай-город") || merchant.contains("лабиринт")
+                val isClothes = merchant.contains("остин") || merchant.contains("gloria jeans") || merchant.contains("zara") || merchant.contains("hm")
+                val isCafe = merchant.contains("кафе") || merchant.contains("ресторан") || merchant.contains("kfc") || merchant.contains("burger king")
+
+                (catName == merchant || catName == desc || (desc.contains(catName) && catName.length > 3)) ||
+                (catName == "продукты" && isFood) ||
+                (catName == "техника" && isTech) ||
+                (catName == "книги" && isBook) ||
+                (catName == "одежда" && isClothes) ||
+                (catName == "рестораны" && isCafe)
+            }
+
+            if (matchedCategory != null) {
+                android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: Matched category name [${matchedCategory.name}]")
+                return@map transaction.copy(
+                    categoryId = matchedCategory.id,
+                    categoryName = matchedCategory.name,
+                    categoryColor = matchedCategory.color
+                )
+            }
+
+            android.util.Log.d("Categorizer", "Tx [${transaction.merchantName}]: No category found")
+            // Оставляем без изменений, если ничего не найдено
             transaction
         }
     }

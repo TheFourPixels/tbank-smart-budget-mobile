@@ -15,9 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tbank.smartbudget.core.ui.common.DarkSourceCard
 import com.tbank.smartbudget.core.ui.common.DetailsCard
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 
@@ -49,7 +51,8 @@ fun BudgetSettingsCard(
                 label = "Название бюджета",
                 value = budgetName,
                 onValueChange = onNameChanged,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardType = KeyboardType.Text
             )
             
             Spacer(Modifier.height(12.dp))
@@ -62,7 +65,8 @@ fun BudgetSettingsCard(
                     label = "Сумма вклада",
                     value = amount,
                     onValueChange = onAmountChanged,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Decimal
                 )
                 UnitSwitchBox(
                     isPercentMode = isPercentMode,
