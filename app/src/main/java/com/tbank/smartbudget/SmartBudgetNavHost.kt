@@ -135,7 +135,7 @@ fun SmartBudgetNavHost() {
             BudgetDetailsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onEditClick = { navController.navigate(BudgetEditRoute) },
-                onCalculationsClick = { navController.navigate(BudgetDashboardRoute) }
+                onNavigateToDashboard = { navController.navigate(BudgetDashboardRoute) }
             )
         }
 

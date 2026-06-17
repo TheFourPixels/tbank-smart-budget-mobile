@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -52,7 +53,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.smartbudget.feature.dashboard.components.BudgetDashboardHero
-import com.example.smartbudget.feature.dashboard.components.ChartsBottomSheet
+import com.tbank.smartbudget.core.ui.common.CalculationsDialog
+import com.tbank.smartbudget.core.ui.common.ChartsBottomSheet
 import com.tbank.smartbudget.core.ui.common.CategoryIconPlaceholder
 import com.tbank.smartbudget.core.ui.common.DetailsCard
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
@@ -89,22 +91,9 @@ fun BudgetDashboardContent(
     onNavigateToGoals: () -> Unit,
 ) {
     var showChartsSheet by remember { mutableStateOf(false) }
+    var showCalculationsDialog by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     val backgroundColor = MaterialTheme.colorScheme.background
-
-    if (showChartsSheet) {
-        ChartsBottomSheet(
-            onDismiss = { showChartsSheet = false },
-            onChartSelected = { chartType ->
-                showChartsSheet = false
-                when (chartType) {
-                    "plan_vs_fact" -> onNavigateToPlanVsFact()
-                    "categories_dashboard" -> onNavigateToCategoriesDashboard()
-                    "goals" -> onNavigateToGoals()
-                }
-            }
-        )
-    }
 
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
@@ -194,11 +183,24 @@ fun BudgetDashboardContent(
 
                             // 1. Окно с информацией (Объединенная карточка)
                             DetailsCard {
-                                Text(
-                                    "Сводка по бюджету", 
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Сводка по бюджету", 
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    IconButton(onClick = { showCalculationsDialog = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Info,
+                                            contentDescription = "Как мы считаем",
+                                            tint = SmartBudgetTheme.colors.blue
+                                        )
+                                    }
+                                }
                                 Spacer(Modifier.height(16.dp))
 
                                 SummaryRow("Получено", state.totalIncome, SmartBudgetTheme.colors.gradientGreen)
@@ -209,7 +211,7 @@ fun BudgetDashboardContent(
                                 Spacer(Modifier.height(20.dp))
 
                                 Button(
-                                    onClick = { /* Действие кнопки */ },
+                                    onClick = { showChartsSheet = true },
                                     modifier = Modifier.fillMaxWidth().height(48.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDD2D), contentColor = Color.Black),
                                     shape = RoundedCornerShape(12.dp)
@@ -266,6 +268,26 @@ fun BudgetDashboardContent(
                 }
             }
         }
+    }
+
+    if (showChartsSheet) {
+        ChartsBottomSheet(
+            onDismiss = { showChartsSheet = false },
+            onChartSelected = { chartType ->
+                showChartsSheet = false
+                when (chartType) {
+                    "plan_vs_fact" -> onNavigateToPlanVsFact()
+                    "categories_dashboard" -> onNavigateToCategoriesDashboard()
+                    "goals" -> onNavigateToGoals()
+                }
+            }
+        )
+    }
+
+    if (showCalculationsDialog) {
+        CalculationsDialog(
+            onDismiss = { showCalculationsDialog = false }
+        )
     }
 }
 
