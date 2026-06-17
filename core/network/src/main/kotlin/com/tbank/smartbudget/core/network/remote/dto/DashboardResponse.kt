@@ -9,6 +9,7 @@ data class DashboardResponse(
     @SerialName("month") val month: Int,
     @SerialName("totalIncome") val totalIncome: Double = 0.0,
     @SerialName("budgetPlan") val budgetPlan: Double = 0.0,
+    @SerialName("spendingLimit") val spendingLimit: Double? = null,
     @SerialName("totalSpent") val totalSpent: Double = 0.0,
     @SerialName("remainingBudget") val remainingBudget: Double = 0.0,
     @SerialName("categoryStats") val categoryStats: List<CategoryStatDto>? = null,

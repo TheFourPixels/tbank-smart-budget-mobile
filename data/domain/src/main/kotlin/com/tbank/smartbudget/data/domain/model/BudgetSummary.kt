@@ -7,6 +7,7 @@ data class BudgetSummary(
     val totalIncome: Double,
     val totalLimit: Double,
     val totalSpent: Double,
+    val spendingLimit: Double? = null,
     val freeFunds: Double, // totalIncome - totalLimit
     val period: String
 )

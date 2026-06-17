@@ -1,4 +1,4 @@
-package com.example.smartbudget.feature.dashboard.components
+package com.tbank.smartbudget.core.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

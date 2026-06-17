@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartbudget.feature.dashboard.components.SummaryCard
 import com.tbank.smartbudget.core.ui.common.DetailsCard
+import com.tbank.smartbudget.core.ui.common.CalculationsDialog
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme
 import com.tbank.smartbudget.core.ui.theme.SmartBudgetTheme.colors
 import androidx.compose.ui.text.style.TextAlign.Companion.Center
@@ -66,9 +67,16 @@ fun PlanVsFactContent(
     state: PlanVsFactUiState,
     onNavigateBack: () -> Unit
 ) {
+    var showCalculationsDialog by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     val gradientHeight = 500.dp
     val gradientHeightPx = with(density) { gradientHeight.toPx() }
+
+    if (showCalculationsDialog) {
+        CalculationsDialog(
+            onDismiss = { showCalculationsDialog = false }
+        )
+    }
 
     var selectedCategoryIndex by remember(state.categories) { mutableIntStateOf(0) }
     var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
@@ -229,7 +237,7 @@ fun PlanVsFactContent(
 
                         // Желтая кнопка
                         Button(
-                            onClick = { /* Действие */ },
+                            onClick = { showCalculationsDialog = true },
                             modifier = Modifier
                                 .width(300.dp)
                                 .height(56.dp),
@@ -387,7 +395,7 @@ fun PlanVsFactContent(
 
                         // Вторая желтая кнопка
                         Button(
-                            onClick = { /* Действие */ },
+                            onClick = { showCalculationsDialog = true },
                             modifier = Modifier
                                 .width(300.dp)
                                 .height(56.dp),
@@ -433,7 +441,8 @@ fun PlanVsFactContent(
                                             dataPoints = state.expenseHistory,
                                             modifier = Modifier.fillMaxSize(),
                                             lineColor = FactColor,
-                                            limitThreshold = (state.planValue / 30).toFloat() // Порог превышения среднего дневного лимита
+                                            limitThreshold = state.dailyLimit,
+                                            daysInMonth = state.daysInMonth
                                         )
                                     }
 
@@ -445,7 +454,7 @@ fun PlanVsFactContent(
 
                         // Третья желтая кнопка для графика расходов
                         Button(
-                            onClick = { /* Действие */ },
+                            onClick = { showCalculationsDialog = true },
                             modifier = Modifier
                                 .width(300.dp)
                                 .height(56.dp),
@@ -615,7 +624,8 @@ fun ExpensesLineChart(
     dataPoints: List<Float>,
     modifier: Modifier = Modifier,
     lineColor: Color,
-    limitThreshold: Float = 0f // Порог для отображения точки превышения
+    limitThreshold: Float = 0f, // Порог для отображения точки превышения
+    daysInMonth: Int = 30
 ) {
     // Вспомогательная функция для рисования текста
     val textPaint = remember {
@@ -629,9 +639,9 @@ fun ExpensesLineChart(
 
     if (dataPoints.isEmpty()) return
 
-    val maxValue = dataPoints.maxOrNull() ?: 1f
+    val maxValue = maxOf(dataPoints.maxOrNull() ?: 0f, limitThreshold)
     // Добавляем небольшой отступ сверху (20%)
-    val yRange = maxValue * 1.2f
+    val yRange = if (maxValue > 0) maxValue * 1.2f else 1f
 
     // Находим индекс первого превышения лимита
     val firstOverLimitIndex = if (limitThreshold > 0) {
@@ -671,7 +681,7 @@ fun ExpensesLineChart(
                     val height = size.height
 
                     // Шаг по оси X
-                    val stepX = width / (dataPoints.size - 1).coerceAtLeast(1)
+                    val stepX = width / (daysInMonth - 1).coerceAtLeast(1)
 
                     // Рисуем путь линии
                     val strokePath = Path().apply {
@@ -708,6 +718,18 @@ fun ExpensesLineChart(
                         )
                     )
 
+                    // 1. Линия лимита (дневного)
+                    if (limitThreshold > 0) {
+                        val yLimit = height - (limitThreshold / yRange) * height
+                        drawLine(
+                            color = LabelYellow.copy(alpha = 0.6f),
+                            start = Offset(0f, yLimit),
+                            end = Offset(width, yLimit),
+                            strokeWidth = 2.dp.toPx(),
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
+                        )
+                    }
+
                     // Заливка градиентом под линией (опционально, для красоты)
                     val fillPath = Path().apply {
                         addPath(strokePath)
@@ -734,22 +756,24 @@ fun ExpensesLineChart(
                         val x = i * stepX
                         val y = height - (value / yRange) * height
 
-                        // Если это точка первого превышения лимита
-                        if (i == firstOverLimitIndex) {
-                            // Желтая точка (как попросил пользователь)
+                        // Если значение выше лимита
+                        if (limitThreshold > 0 && value > limitThreshold) {
+                            // Желтая точка превышения
                             drawCircle(
                                 color = LabelYellow,
-                                radius = 6.dp.toPx(), // Чуть крупнее
+                                radius = 6.dp.toPx(),
                                 center = Offset(x, y)
                             )
-
-                            // Подпись "Превышение"
-                            drawContext.canvas.nativeCanvas.drawText(
-                                "Превышение",
-                                x + 12.dp.toPx(), // Сдвиг вправо от точки
-                                y + 4.dp.toPx(), // Небольшая корректировка по Y для выравнивания
-                                textPaint
-                            )
+                            
+                            // Подпись "Превышение" только для первого случая или значимого пика
+                            if (i == firstOverLimitIndex) {
+                                drawContext.canvas.nativeCanvas.drawText(
+                                    "Превышение",
+                                    x + 12.dp.toPx(),
+                                    y + 4.dp.toPx(),
+                                    textPaint
+                                )
+                            }
                         } else {
                             // Обычные точки
                             drawCircle(

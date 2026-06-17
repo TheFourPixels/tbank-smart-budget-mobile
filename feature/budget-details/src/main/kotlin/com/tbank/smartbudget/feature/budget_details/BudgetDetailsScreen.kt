@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -29,20 +32,29 @@ import com.tbank.smartbudget.feature.budget_details.components.BudgetSummaryCard
 import com.tbank.smartbudget.feature.budget_details.components.LimitCard
 import com.tbank.smartbudget.feature.budget_details.components.LinkedAccountCard
 import com.tbank.smartbudget.feature.budget_details.components.SettingsCard
+import com.tbank.smartbudget.core.ui.common.CalculationsDialog
+import com.tbank.smartbudget.core.ui.common.ChartsBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetDetailsScreen(
     onNavigateBack: () -> Unit,
     onEditClick: () -> Unit,
-    onCalculationsClick: () -> Unit = {},
+    onNavigateToDashboard: () -> Unit,
     onSetLimitClick: () -> Unit = {},
     onChangeAccountClick: () -> Unit = {},
     viewModel: BudgetDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    var showCalculationsDialog by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    if (showCalculationsDialog) {
+        CalculationsDialog(
+            onDismiss = { showCalculationsDialog = false }
+        )
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -60,7 +72,8 @@ fun BudgetDetailsScreen(
         state = state,
         onNavigateBack = onNavigateBack,
         onEditClick = onEditClick,
-        onCalculationsClick = onCalculationsClick,
+        onCalculationsClick = onNavigateToDashboard,
+        onInfoClick = { showCalculationsDialog = true },
         onSetLimitClick = onSetLimitClick,
         onChangeAccountClick = onChangeAccountClick,
         onLimitNotificationToggle = viewModel::onLimitNotificationToggle,
@@ -75,6 +88,7 @@ private fun BudgetDetailsContent(
     onNavigateBack: () -> Unit,
     onEditClick: () -> Unit,
     onCalculationsClick: () -> Unit,
+    onInfoClick: () -> Unit,
     onSetLimitClick: () -> Unit,
     onChangeAccountClick: () -> Unit,
     onLimitNotificationToggle: (Boolean) -> Unit,
@@ -147,7 +161,8 @@ private fun BudgetDetailsContent(
                             income = state.income,
                             expenseLimit = state.expenseLimit,
                             freeFunds = state.freeFunds,
-                            onCalculationsClick = onCalculationsClick
+                            onCalculationsClick = onCalculationsClick,
+                            onInfoClick = onInfoClick
                         )
 
                         LimitCard(
@@ -184,6 +199,7 @@ private fun BudgetDetailsScreenPreview() {
             onNavigateBack = {},
             onEditClick = {},
             onCalculationsClick = {},
+            onInfoClick = {},
             onSetLimitClick = {},
             onChangeAccountClick = {},
             onLimitNotificationToggle = {},

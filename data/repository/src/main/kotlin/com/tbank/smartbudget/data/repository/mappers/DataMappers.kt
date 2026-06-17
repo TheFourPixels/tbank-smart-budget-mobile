@@ -188,6 +188,7 @@ fun DashboardResponse.toDomain(): DashboardData {
         totalIncome = finalIncome,
         totalSpent = totalSpent,
         remainingBudget = remainingBudget,
+        spendingLimit = spendingLimit,
         categoryStats = finalStats.map { it.toDomain() },
         activeGoals = activeGoals?.map { it.toDomain() } ?: emptyList(),
         recentTransactions = recentTransactions?.map { it.toDomain() } ?: emptyList()
@@ -207,6 +208,7 @@ fun DashboardResponse.toSummary(): BudgetSummary {
         totalIncome = finalIncome,
         totalLimit = totalSpent + remainingBudget,
         totalSpent = totalSpent,
+        spendingLimit = spendingLimit,
         freeFunds = remainingBudget,
         period = monthName
     )

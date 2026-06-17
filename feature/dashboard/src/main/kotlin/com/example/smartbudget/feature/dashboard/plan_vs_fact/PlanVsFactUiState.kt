@@ -11,6 +11,8 @@ data class PlanVsFactUiState(
     val periodName: String = "",
     val planValue: Double = 0.0,
     val factValue: Double = 0.0,
+    val dailyLimit: Float = 0f,
+    val daysInMonth: Int = 30,
     val percentageDiffLabel: String = "",
     val expenseHistory: List<Float> = emptyList(),
     val categories: List<PlanVsFactCategoryUi> = emptyList()

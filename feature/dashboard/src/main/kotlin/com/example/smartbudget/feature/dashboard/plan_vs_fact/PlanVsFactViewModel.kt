@@ -45,28 +45,24 @@ class PlanVsFactViewModel @Inject constructor(
             dashboardRepository.getDashboardSummary(currentMonth, currentYear)
                 .onSuccess { data ->
                     val categories = data.categoryStats
-                    val totalPlanVal = categories.sumOf { it.limitAmount }
+                    val totalPlanVal = data.spendingLimit ?: categories.sumOf { it.limitAmount }
                     val totalFactVal = data.totalSpent
 
-                    // Calculate real expense history from transactions
                     val historyMap = data.recentTransactions
                         .filter { it.type == TransactionType.EXPENSE }
                         .groupBy { it.date.toLocalDate() }
                         .mapValues { it.value.sumOf { tx -> tx.amount }.toFloat() }
 
-                    val sortedDates = historyMap.keys.sorted()
-                    val historyPoints = if (sortedDates.isNotEmpty()) {
-                        val firstDate = sortedDates.first()
-                        val lastDate = LocalDate.now()
-                        val points = mutableListOf<Float>()
-                        var d = firstDate
-                        while (!d.isAfter(lastDate)) {
-                            points.add(historyMap[d] ?: 0f)
-                            d = d.plusDays(1)
-                        }
-                        points.takeLast(14) // Показываем последние 2 недели
-                    } else {
-                        emptyList()
+                    val historyPoints = mutableListOf<Float>()
+                    var cumulativeSum = 0f
+                    val firstDay = LocalDate.of(currentYear, currentMonth, 1)
+                    val lastDay = LocalDate.now()
+
+                    var d = firstDay
+                    while (!d.isAfter(lastDay)) {
+                        cumulativeSum += historyMap[d] ?: 0f
+                        historyPoints.add(cumulativeSum)
+                        d = d.plusDays(1)
                     }
 
                     val diffPercent = if (totalPlanVal > 0) ((totalFactVal - totalPlanVal) / totalPlanVal) * 100 else 0.0
@@ -93,6 +89,8 @@ class PlanVsFactViewModel @Inject constructor(
                             totalFact = formatMoney(totalFactVal),
                             planValue = totalPlanVal,
                             factValue = totalFactVal,
+                            dailyLimit = totalPlanVal.toFloat(),
+                            daysInMonth = daysInMonth,
                             percentageDiffLabel = diffLabel,
                             expenseHistory = historyPoints,
                             categories = uiCategories,
