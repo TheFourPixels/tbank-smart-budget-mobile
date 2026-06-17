@@ -441,7 +441,8 @@ fun PlanVsFactContent(
                                             dataPoints = state.expenseHistory,
                                             modifier = Modifier.fillMaxSize(),
                                             lineColor = FactColor,
-                                            limitThreshold = state.dailyLimit
+                                            limitThreshold = state.dailyLimit,
+                                            daysInMonth = state.daysInMonth
                                         )
                                     }
 
@@ -623,7 +624,8 @@ fun ExpensesLineChart(
     dataPoints: List<Float>,
     modifier: Modifier = Modifier,
     lineColor: Color,
-    limitThreshold: Float = 0f // Порог для отображения точки превышения
+    limitThreshold: Float = 0f, // Порог для отображения точки превышения
+    daysInMonth: Int = 30
 ) {
     // Вспомогательная функция для рисования текста
     val textPaint = remember {
@@ -679,7 +681,7 @@ fun ExpensesLineChart(
                     val height = size.height
 
                     // Шаг по оси X
-                    val stepX = width / (dataPoints.size - 1).coerceAtLeast(1)
+                    val stepX = width / (daysInMonth - 1).coerceAtLeast(1)
 
                     // Рисуем путь линии
                     val strokePath = Path().apply {

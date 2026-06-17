@@ -90,6 +90,7 @@ class PlanVsFactViewModel @Inject constructor(
                             planValue = totalPlanVal,
                             factValue = totalFactVal,
                             dailyLimit = totalPlanVal.toFloat(),
+                            daysInMonth = daysInMonth,
                             percentageDiffLabel = diffLabel,
                             expenseHistory = historyPoints,
                             categories = uiCategories,
