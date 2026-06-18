@@ -54,7 +54,7 @@
 
 ### Видео демонстрация
 
-<img width="520" height="1079" alt="Гиф Финал" src="https://github.com/user-attachments/assets/86d579fc-08a9-4afa-a5d9-cd8fc6951abd" />
+<img width="220" height="450" alt="Гиф Финал" src="https://github.com/user-attachments/assets/86d579fc-08a9-4afa-a5d9-cd8fc6951abd" />
 
 
 ---
