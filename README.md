@@ -56,7 +56,7 @@
 
 ### Видео демонстрация
 <!-- Здесь можно разместить GIF-анимацию работы приложения -->
-![App Demo GIF](https://via.placeholder.com/1000x500?text=Place+App+Demo+GIF+Here)
+![App Demo GIF](<img width="146" height="306" alt="Гиф Финал" src="https://github.com/user-attachments/assets/c50595ae-7e17-4d33-8a28-d36b8658eebf" />)
 
 ---
 
