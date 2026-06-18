@@ -1,6 +1,88 @@
-# tbank-smart-budget-mobile
-Демонстрационное приложение
-https://github.com/TheFourPixels/tbank-smart-budget-mobile/blob/4744d5f8a81c642b4dc2e26a2114849a1c3b523b/app-debug.apk
+# SmartBudget — Умное управление финансами
 
-Финальная версия, не работает без сервера:
-https://github.com/TheFourPixels/tbank-smart-budget-mobile/blob/main/app-debug.apk
+**SmartBudget** — это современное Android-приложение для планирования бюджета и отслеживания расходов, построенное на принципах Clean Architecture и современного стека технологий.
+
+![App Banner](https://via.placeholder.com/1000x400?text=SmartBudget+Banner)
+
+## 📱 О приложении
+
+Приложение помогает пользователям не просто записывать траты, а осознанно подходить к своим финансам. Вы можете устанавливать общие лимиты на месяц, распределять бюджет по категориям и в реальном времени следить за выполнением плана через интерактивные дашборды.
+
+### Основные функции:
+- **Управление бюджетом**: Установка общего лимита трат и планируемого дохода.
+- **Гибкие лимиты**: Настройка лимитов по категориям (в рублях или процентах от бюджета).
+- **Интерактивная аналитика**: 
+    - Сравнение "План vs Факт".
+    - Накопительный график расходов с индикацией превышения лимитов.
+    - Детальная статистика по категориям.
+- **Финансовые цели**: Создание целей, отслеживание прогресса и внесение вкладов.
+- **История операций**: Полный список транзакций с фильтрацией и привязкой к банковским картам.
+- **Безопасность**: Вход по PIN-коду и авторизация через Email.
+
+---
+
+## 🛠 Технологический стек
+
+Проект написан на **Kotlin** с использованием самых современных библиотек и подходов:
+
+- **UI**: Jetpack Compose (Material 3) — полностью декларативный интерфейс.
+- **Архитектура**: Clean Architecture (Domain -> Data -> UI) + MVI (Model-View-Intent) для предсказуемого управления состоянием.
+- **Dependency Injection**: Hilt — для управления зависимостями.
+- **Network**: Retrofit 3.0.0 + Kotlinx Serialization — работа с REST API.
+- **Async**: Coroutines & Flow — реактивное программирование и работа в фоновых потоках.
+- **Navigation**: Type-Safe Navigation Compose — безопасная навигация между экранами.
+- **Jetpack**: Lifecycle KTX (collectAsStateWithLifecycle), DataStore.
+
+---
+
+## 📸 Скриншоты и демонстрация
+
+<table style="width: 100%">
+  <tr>
+    <td style="width: 33%; text-align: center">
+      <img src="https://via.placeholder.com/300x600?text=Главный+экран" width="250" />
+      <br><i>Главный дашборд</i>
+    </td>
+    <td style="width: 33%; text-align: center">
+      <img src="https://via.placeholder.com/300x600?text=План+vs+Факт" width="250" />
+      <br><i>Аналитика План vs Факт</i>
+    </td>
+    <td style="width: 33%; text-align: center">
+      <img src="https://via.placeholder.com/300x600?text=Редактирование" width="250" />
+      <br><i>Настройка бюджета</i>
+    </td>
+  </tr>
+</table>
+
+### Видео демонстрация
+<!-- Здесь можно разместить GIF-анимацию работы приложения -->
+![App Demo GIF](https://via.placeholder.com/1000x500?text=Place+App+Demo+GIF+Here)
+
+---
+
+## 🚀 Как запустить
+
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/TheFourPixels/tbank-smart-budget-mobile.git
+   ```
+2. Откройте проект в **Android Studio Ladybug (2024.2.1)** или новее.
+3. Убедитесь, что у вас установлен **JDK 17** или выше.
+4. Выполните Gradle Sync.
+5. Запустите приложение на эмуляторе или реальном устройстве.
+
+---
+
+## 📦 Структура проекта
+
+Проект разделен на модули по функциональному признаку:
+- `:app` — точка входа и навигация.
+- `:feature:*` — функциональные модули (dashboard, budget-edit, goals и т.д.).
+- `:data:*` — репозитории и доменные модели.
+- `:core:*` — общие компоненты (UI, Network, Navigation).
+
+---
+
+## 📄 Лицензия
+
+Демонстрационное приложение для T-Bank Smart Budget.
