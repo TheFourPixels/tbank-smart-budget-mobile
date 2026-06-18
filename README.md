@@ -40,16 +40,16 @@
 <table style="width: 100%">
   <tr>
     <td style="width: 33%; text-align: center">
-      <img src="https://via.placeholder.com/300x600?text=Главный+экран" width="250" />
+        <img width="514" height="1079" alt="image" src="https://github.com/user-attachments/assets/da0943d3-884a-494c-bbdb-15aa24bf5c79" />
       <br><i>Главный дашборд</i>
     </td>
     <td style="width: 33%; text-align: center">
-      <img src="https://via.placeholder.com/300x600?text=План+vs+Факт" width="250" />
-      <br><i>Аналитика План vs Факт</i>
+        <img width="520" height="1079" alt="image" src="https://github.com/user-attachments/assets/0aff3024-108d-4c10-8d41-2761f3ae95e0" />
+        <br><i>Аналитика План vs Факт</i>
     </td>
     <td style="width: 33%; text-align: center">
-      <img src="https://via.placeholder.com/300x600?text=Редактирование" width="250" />
-      <br><i>Настройка бюджета</i>
+        <img width="517" height="1079" alt="image" src="https://github.com/user-attachments/assets/152192da-e3c4-4c59-a419-07f8ec7e79a4" />
+        <br><i>Настройка бюджета</i>
     </td>
   </tr>
 </table>
